@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 export class ProvideController extends React.Component {
   getChildContext() {
     const controllers = this.context.controllers || {};
-    controllers[this.props.controller.name] = this.props.controller;
+    controllers[this.props.controller.getName()] = this.props.controller; 
     return {controllers};
   }
 
