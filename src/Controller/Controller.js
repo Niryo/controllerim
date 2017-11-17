@@ -1,8 +1,23 @@
 
-export class Controller {
+import {proxify} from './proxify';
+import {isPlainObject} from 'lodash';
 
+export class Controller {
   constructor(componentInstance) {
     this.component = componentInstance;
+    let _state = {};
+
+    Object.defineProperty(this, 'state', {
+      set: function(value) {
+        if(!isPlainObject(value)) {
+          throw new Error('State should be initialize only with plain object');
+        }
+        _state = proxify(value);
+      },
+      get: function() {
+        return _state;
+      }
+    });
   }
 
   getName() {

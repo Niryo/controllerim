@@ -26,7 +26,8 @@
   "jest": {
     "setupFiles": [
       "./jestSetup.js"
-    ]
+    ],
+    "testPathIgnorePatterns" : ["./dist" ]    
   },
   "babel": {
     "presets": [
@@ -35,5 +36,9 @@
     "plugins": [
       "transform-react-jsx"
     ]
+  },
+  "dependencies": {
+    "lodash": "^4.17.4",
+    "mobx": "^3.3.1"
   }
 }

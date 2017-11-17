@@ -22,4 +22,13 @@ describe('ProviderController', () => {
       </ProvideController>);
       expect(component.find('[data-hook="controllerName"]').text()).toEqual('testController');
   });
+
+  it('should wrap component with observer', () => {
+    const component = mount(
+      <ProvideController controller={{getName: () => 'testController'}}>
+        <ChildComponent />
+      </ProvideController>);
+      console.log(component.html())
+      // expect(component.find('[data-hook="observer"]').length).toEqual(1);
+  });
 });
