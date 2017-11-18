@@ -10,14 +10,22 @@ class SomeComponent extends React.Component {
   }
 }
 
+let parentComponentRenderCount = 0;
+
 class PrentController extends Controller {
   constructor(componentInstance) {
     super(componentInstance);
     this.state = {
       basicProp: 'blamos',
-      objectProp: {name: 'alice'},
+      objectProp: { name: 'alice' },
       dynamicObject: {}
     };
+    console.log('ParentController', this)
+  }
+
+  printTest() {
+    console.log('*****************************************', this.state);
+    return this.getBasicProp();
   }
 
   getBasicProp() {
@@ -28,7 +36,7 @@ class PrentController extends Controller {
     this.state.basicProp = "changed!"
   }
 
-  getObjectProp(){
+  getObjectProp() {
     return this.state.objectProp;
   }
 
@@ -37,7 +45,7 @@ class PrentController extends Controller {
   }
 
   changeNameOfObjectProp() {
-    this.state.objectProp.name ='changed!';
+    this.state.objectProp.name = 'changed!';
   }
 
   addArrayToDynamicObject() {
@@ -46,14 +54,19 @@ class PrentController extends Controller {
   addNameToDynamicObjectArray() {
     this.state.dynamicObject.array.push('alice');
   }
+  changeTwoPropsButton() {
+    this.state.basicProp = false;
+    this.state.objectProp.name = 'someName';
+  }
 }
 
-class Parent extends React.Component {
+class Parent extends React.Component {  
   componentWillMount() {
     this.controller = new PrentController(this);
   }
 
   render() {
+    parentComponentRenderCount++;
     return <ProvideController controller={this.controller}>
       <div>
         <Child />
@@ -64,6 +77,7 @@ class Parent extends React.Component {
         <div data-hook="dynamicObjectPreviw">{JSON.stringify(this.controller.getDynamicObject())}</div>
         <button data-hook="addArrayToDynamicObjectButton" onClick={() => this.controller.addArrayToDynamicObject()} />
         <button data-hook="addNameToDynamicObjectArrayButton" onClick={() => this.controller.addNameToDynamicObjectArray()} />
+        <button data-hook="changeTwoPropsButton" onClick={() => this.controller.changeTwoPropsButton()} />
 
       </div>
     </ProvideController>;
@@ -84,6 +98,10 @@ Child.contextTypes = {
 };
 
 describe('Controller', () => {
+  beforeEach(() => {
+    parentComponentRenderCount =0;
+    
+  });
   it('should save the name of the component it controlls', () => {
     const someComponent = new SomeComponent();
     const testController = new Controller(someComponent);
@@ -120,13 +138,13 @@ describe('Controller', () => {
 
   it('should allow setting the state only with object', () => {
     const testController = new Controller(Parent);
-    testController.state = {hello: true};
-    expect(testController.state).toEqual({hello: true});
-    expect(() => {testController.state = true}).toThrowError('State should be initialize only with plain object');
-    expect(() => {testController.state = ['1','2']}).toThrowError('State should be initialize only with plain object');
-    expect(() => {testController.state = () => {} }).toThrowError('State should be initialize only with plain object');
-    expect(() => {testController.state = "string" }).toThrowError('State should be initialize only with plain object');
-    expect(() => {testController.state = 8 }).toThrowError('State should be initialize only with plain object');
+    testController.state = { hello: true };
+    expect(testController.state).toEqual({ hello: true });
+    expect(() => { testController.state = true }).toThrowError('State should be initialize only with plain object');
+    expect(() => { testController.state = ['1', '2'] }).toThrowError('State should be initialize only with plain object');
+    expect(() => { testController.state = () => { } }).toThrowError('State should be initialize only with plain object');
+    expect(() => { testController.state = "string" }).toThrowError('State should be initialize only with plain object');
+    expect(() => { testController.state = 8 }).toThrowError('State should be initialize only with plain object');
   })
 
   describe('Complex tests', () => {
@@ -146,11 +164,48 @@ describe('Controller', () => {
     it('should observe on deep nested change', () => {
       const OberverParent = observer(Parent)
       const component = mount(<OberverParent />);
-      expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual("{}");      
+      expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual("{}");
       component.find('[data-hook="addArrayToDynamicObjectButton"]').simulate('click');
-      expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({array: []}));
+      expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: [] }));
       component.find('[data-hook="addNameToDynamicObjectArrayButton"]').simulate('click');
-      expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({array: ['alice']}));       
+      expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: ['alice'] }));
+    });
+
+    it('should trigger only one render per setter', () => {
+      const OberverParent = observer(Parent)
+      const component = mount(<OberverParent />);
+      expect(parentComponentRenderCount).toEqual(1);
+      component.find('[data-hook="changeTwoPropsButton"]').simulate('click');
+      //expect(parentComponentRenderCount).toEqual(1);
+    })
+  });
+
+
+  describe('when proxy is not availble', () => {
+    let backupProxy;
+    beforeEach(() => {
+      backupProxy = global.Proxy;
+      global.Proxy = undefined;
+    });
+
+    it('should have an observable state', () => {
+      const OberverParent = observer(Parent)
+      const component = mount(<OberverParent />);
+      expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('blamos');
+      global.Proxy = backupProxy;
+      component.find('[data-hook="changeBasicPropButton"]').simulate('click');
+      expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('changed!');
+    });
+
+    it('should observe on deep nested change', () => {
+      const OberverParent = observer(Parent)
+      const component = mount(<OberverParent />);
+      expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual("{}");
+      global.Proxy = backupProxy;
+      component.find('[data-hook="addArrayToDynamicObjectButton"]').simulate('click');
+      expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: [] }));
+      component.find('[data-hook="addNameToDynamicObjectArrayButton"]').simulate('click');
+      expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: ['alice'] }));
     });
   });
 });
