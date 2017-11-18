@@ -65,8 +65,8 @@ export const swizzlify = (context, internalState, injectedFunc) => {
 
   methodNames.forEach((name) => {
     const originalMethod = newContext[name];
-    context[name] = () => {
-      const returnValue = originalMethod();
+    context[name] = (...args) => {
+      const returnValue = originalMethod(...args);
       injectedFunc();
       return returnValue;
     }

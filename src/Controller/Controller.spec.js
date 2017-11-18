@@ -53,6 +53,10 @@ class PrentController extends Controller {
     this.state.objectProp.name = Math.random();
     this.state.dynamicObject.foo = Math.random();
   }
+
+  setBasicProp(value){
+    this.state.basicProp = value;
+  }
 }
 
 class Parent extends React.Component {
@@ -73,6 +77,7 @@ class Parent extends React.Component {
         <button data-hook="addArrayToDynamicObjectButton" onClick={() => this.controller.addArrayToDynamicObject()} />
         <button data-hook="addNameToDynamicObjectArrayButton" onClick={() => this.controller.addNameToDynamicObjectArray()} />
         <button data-hook="changeMultiPropsButton" onClick={() => this.controller.changeMultiPropsButton()} />
+        <button data-hook="applySetterWithArgsButton" onClick={() => this.controller.setBasicProp('someValue')} />
 
       </div>
     </ProvideController>;
@@ -174,6 +179,13 @@ describe('Controller', () => {
       component.find('[data-hook="changeMultiPropsButton"]').simulate('click');
       expect(parentComponentRenderCount).toEqual(2);
     })
+
+    it('should allow setters with args', () => {
+      const OberverParent = observer(Parent)
+      const component = mount(<OberverParent />);
+      component.find('[data-hook="applySetterWithArgsButton"]').simulate('click');
+      expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('someValue');
+    })
   });
 
 
@@ -212,6 +224,14 @@ describe('Controller', () => {
       global.Proxy = backupProxy;      
       component.find('[data-hook="changeMultiPropsButton"]').simulate('click');
       expect(parentComponentRenderCount).toEqual(3);
+    })
+
+    it('should allow setters with args', () => {
+      const OberverParent = observer(Parent)
+      const component = mount(<OberverParent />);
+      global.Proxy = backupProxy;            
+      component.find('[data-hook="applySetterWithArgsButton"]').simulate('click');
+      expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('someValue');
     })
   });
 });
