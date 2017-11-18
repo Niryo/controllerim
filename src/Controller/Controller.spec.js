@@ -20,12 +20,6 @@ class PrentController extends Controller {
       objectProp: { name: 'alice' },
       dynamicObject: {}
     };
-    console.log('ParentController', this)
-  }
-
-  printTest() {
-    console.log('*****************************************', this.state);
-    return this.getBasicProp();
   }
 
   getBasicProp() {
@@ -54,13 +48,14 @@ class PrentController extends Controller {
   addNameToDynamicObjectArray() {
     this.state.dynamicObject.array.push('alice');
   }
-  changeTwoPropsButton() {
-    this.state.basicProp = false;
-    this.state.objectProp.name = 'someName';
+  changeMultiPropsButton() {
+    this.state.basicProp = Math.random();
+    this.state.objectProp.name = Math.random();
+    this.state.dynamicObject.foo = Math.random();
   }
 }
 
-class Parent extends React.Component {  
+class Parent extends React.Component {
   componentWillMount() {
     this.controller = new PrentController(this);
   }
@@ -77,7 +72,7 @@ class Parent extends React.Component {
         <div data-hook="dynamicObjectPreviw">{JSON.stringify(this.controller.getDynamicObject())}</div>
         <button data-hook="addArrayToDynamicObjectButton" onClick={() => this.controller.addArrayToDynamicObject()} />
         <button data-hook="addNameToDynamicObjectArrayButton" onClick={() => this.controller.addNameToDynamicObjectArray()} />
-        <button data-hook="changeTwoPropsButton" onClick={() => this.controller.changeTwoPropsButton()} />
+        <button data-hook="changeMultiPropsButton" onClick={() => this.controller.changeMultiPropsButton()} />
 
       </div>
     </ProvideController>;
@@ -99,8 +94,8 @@ Child.contextTypes = {
 
 describe('Controller', () => {
   beforeEach(() => {
-    parentComponentRenderCount =0;
-    
+    parentComponentRenderCount = 0;
+
   });
   it('should save the name of the component it controlls', () => {
     const someComponent = new SomeComponent();
@@ -171,12 +166,13 @@ describe('Controller', () => {
       expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: ['alice'] }));
     });
 
+    //todo: try to fail the test
     it('should trigger only one render per setter', () => {
       const OberverParent = observer(Parent)
       const component = mount(<OberverParent />);
       expect(parentComponentRenderCount).toEqual(1);
-      component.find('[data-hook="changeTwoPropsButton"]').simulate('click');
-      //expect(parentComponentRenderCount).toEqual(1);
+      component.find('[data-hook="changeMultiPropsButton"]').simulate('click');
+      expect(parentComponentRenderCount).toEqual(2);
     })
   });
 
@@ -207,5 +203,15 @@ describe('Controller', () => {
       component.find('[data-hook="addNameToDynamicObjectArrayButton"]').simulate('click');
       expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: ['alice'] }));
     });
+
+    //todo: try to fail the test
+    it('should trigger only one render per setter', () => {
+      const OberverParent = observer(Parent)
+      const component = mount(<OberverParent />);
+      expect(parentComponentRenderCount).toEqual(2); //todo: why 2? why we are wasting a render
+      global.Proxy = backupProxy;      
+      component.find('[data-hook="changeMultiPropsButton"]').simulate('click');
+      expect(parentComponentRenderCount).toEqual(3);
+    })
   });
 });

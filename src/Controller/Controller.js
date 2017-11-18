@@ -1,7 +1,6 @@
 
 import { proxify } from './proxify';
 import { isPlainObject } from 'lodash';
-
 export class Controller {
   constructor(componentInstance) {
     this.component = componentInstance;
@@ -18,8 +17,9 @@ export class Controller {
       }
       swizzlify(this, internalState, funcToInject);
     }
+    const noop = ()=> {}
+    swizzlify(this, internalState, noop);
   }
-
 
   getName() {
     return this.component.constructor.name;
@@ -51,7 +51,6 @@ const exposeInternalStateOnObject = (obj, internalState) => {
     }
   });
 }
-
 
 export const swizzlify = (context, internalState, injectedFunc) => {
   const controllerProto = Reflect.getPrototypeOf(context)
