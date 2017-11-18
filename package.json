@@ -2,7 +2,7 @@
   "name": "react-view-controllers",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "npm run build && jest",
     "build": "babel src -d dist"
@@ -27,7 +27,9 @@
     "setupFiles": [
       "./jestSetup.js"
     ],
-    "testPathIgnorePatterns" : ["./dist" ]    
+    "testPathIgnorePatterns": [
+      "./dist"
+    ]
   },
   "babel": {
     "presets": [
