@@ -3,6 +3,9 @@ import { proxify } from './proxify';
 import { isPlainObject } from 'lodash';
 export class Controller {
   constructor(componentInstance) {
+    if(!componentInstance) {
+        throw new Error(`Component instance is undefined. Make sure that you call 'new Controller(this)' inside componentWillMount and that your calling 'super(componentInstance)' inside your controller constructor`)
+    }
     this.component = componentInstance;
     let internalState = { value: {} };
     exposeInternalStateOnObject(this, internalState);

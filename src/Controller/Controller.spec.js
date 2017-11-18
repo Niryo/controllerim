@@ -54,8 +54,8 @@ class PrentController extends Controller {
     this.state.dynamicObject.foo = Math.random();
   }
 
-  setBasicProp(value){
-    this.state.basicProp = value;
+  setBasicProp(value1,value2){
+    this.state.basicProp = value1+value2;
   }
 }
 
@@ -77,7 +77,7 @@ class Parent extends React.Component {
         <button data-hook="addArrayToDynamicObjectButton" onClick={() => this.controller.addArrayToDynamicObject()} />
         <button data-hook="addNameToDynamicObjectArrayButton" onClick={() => this.controller.addNameToDynamicObjectArray()} />
         <button data-hook="changeMultiPropsButton" onClick={() => this.controller.changeMultiPropsButton()} />
-        <button data-hook="applySetterWithArgsButton" onClick={() => this.controller.setBasicProp('someValue')} />
+        <button data-hook="applySetterWithArgsButton" onClick={() => this.controller.setBasicProp('value1','value2')} />
 
       </div>
     </ProvideController>;
@@ -107,6 +107,15 @@ describe('Controller', () => {
     const testController = new Controller(someComponent);
     expect(testController.getName()).toEqual('SomeComponent');
   });
+
+  it('should throw error if componentInstance was not pass to the controller constructor', () => {
+    expect(() => {new Controller()}).toThrowError(`Component instance is undefined. Make sure that you call 'new Controller(this)' inside componentWillMount and that your calling 'super(componentInstance)' inside your controller constructor`);
+  });
+
+  it('should throw error if componentInstance is not a react class', () => {
+    expect(() => {new Controller({someObj: 'bla'})}).toThrowError('bla');
+  });
+
 
   it('should allow to get parent controller', () => {
     const someComponent = new SomeComponent();
@@ -184,7 +193,7 @@ describe('Controller', () => {
       const OberverParent = observer(Parent)
       const component = mount(<OberverParent />);
       component.find('[data-hook="applySetterWithArgsButton"]').simulate('click');
-      expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('someValue');
+      expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('value1value2');
     })
   });
 
@@ -231,7 +240,7 @@ describe('Controller', () => {
       const component = mount(<OberverParent />);
       global.Proxy = backupProxy;            
       component.find('[data-hook="applySetterWithArgsButton"]').simulate('click');
-      expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('someValue');
+      expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('value1value2');
     })
   });
 });
