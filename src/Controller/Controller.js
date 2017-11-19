@@ -1,17 +1,18 @@
 
 import { proxify } from './proxify';
 import { isPlainObject } from 'lodash';
+
 export class Controller {
   constructor(componentInstance) {
-    if(!componentInstance) {
-        throw new Error(`Component instance is undefined. Make sure that you call 'new Controller(this)' inside componentWillMount and that your calling 'super(componentInstance)' inside your controller constructor`)
+    if (!componentInstance) {
+      throw new Error(`Component instance is undefined. Make sure that you call 'new Controller(this)' inside componentWillMount and that you are calling 'super(componentInstance)' inside your controller constructor`)
     }
     this.component = componentInstance;
     let internalState = { value: {} };
     exposeInternalStateOnObject(this, internalState);
     if (!global.Proxy) {
       let previewsState = JSON.stringify(internalState.value);
-      
+
       const funcToInject = () => {
         if (JSON.stringify(internalState.value) !== previewsState) {
           this.component.forceUpdate();
@@ -20,7 +21,7 @@ export class Controller {
       }
       swizzlify(this, internalState, funcToInject);
     }
-    const noop = ()=> {}
+    const noop = () => { }
     swizzlify(this, internalState, noop);
   }
 

@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Controller } from './Controller';
 import { mount } from 'enzyme';
 import { ProvideController } from '../index';
-import PropTypes from 'prop-types';
 import { observer } from '../index';
 class SomeComponent extends React.Component {
   render() {
@@ -84,7 +83,7 @@ class Parent extends React.Component {
   }
 }
 
-class Child extends React.Component {
+class _Child extends React.Component {
   componentWillMount() {
     this.parentController = new Controller(this).getParentController('PrentController');
   }
@@ -92,10 +91,7 @@ class Child extends React.Component {
     return <div data-hook="blamos">{this.parentController.getBasicProp()}</div>
   }
 }
-
-Child.contextTypes = {
-  controllers: PropTypes.object
-};
+const Child = observer(_Child);
 
 describe('Controller', () => {
   beforeEach(() => {
@@ -114,7 +110,7 @@ describe('Controller', () => {
   });
 
   it('should throw error if componentInstance was not pass to the controller constructor', () => {
-    expect(() => {new Controller()}).toThrowError(`Component instance is undefined. Make sure that you call 'new Controller(this)' inside componentWillMount and that your calling 'super(componentInstance)' inside your controller constructor`);
+    expect(() => {new Controller()}).toThrowError(`Component instance is undefined. Make sure that you call 'new Controller(this)' inside componentWillMount and that you are calling 'super(componentInstance)' inside your controller constructor`);
   });
 
   it.skip('should throw error if componentInstance is not a react class', () => {
