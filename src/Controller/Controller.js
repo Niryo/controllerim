@@ -25,7 +25,7 @@ export class Controller {
   }
 
   getName() {
-    return this.component.constructor.name;
+    return this.constructor.name;
   }
 
   getParentController(parentControllerName) {
@@ -33,11 +33,11 @@ export class Controller {
       throw new Error(`Context is undefined. Make sure that you initialized ${this.getName()} in componentWillMount()`);
 
     }
-    const parrentController = this.component.context.controllers && this.component.context.controllers[parentControllerName];
-    if (!parrentController) {
-      throw new Error(`Parent controller does not exist. make sure that ${parentControllerName} is parrent of ${this.getName()} and that you provided it using ProvideController`);
+    const parentController = this.component.context.controllers && this.component.context.controllers[parentControllerName];
+    if (!parentController) {
+      throw new Error(`Parent controller does not exist. make sure that ${parentControllerName} is parent of ${this.getName()} and that you provided it using ProvideController`);
     }
-    return parrentController;
+    return parentController;
   }
 }
 

@@ -86,7 +86,7 @@ class Parent extends React.Component {
 
 class Child extends React.Component {
   componentWillMount() {
-    this.parentController = new Controller(this).getParentController('Parent');
+    this.parentController = new Controller(this).getParentController('PrentController');
   }
   render() {
     return <div data-hook="blamos">{this.parentController.getBasicProp()}</div>
@@ -102,17 +102,22 @@ describe('Controller', () => {
     parentComponentRenderCount = 0;
 
   });
-  it('should save the name of the component it controlls', () => {
+  it('should return the name of the controller', () => {
     const someComponent = new SomeComponent();
-    const testController = new Controller(someComponent);
-    expect(testController.getName()).toEqual('SomeComponent');
+    class SomeController extends Controller {
+      constructor(instance){
+        super(instance);
+      }
+    }
+    const testController = new SomeController(someComponent);
+    expect(testController.getName()).toEqual('SomeController');
   });
 
   it('should throw error if componentInstance was not pass to the controller constructor', () => {
     expect(() => {new Controller()}).toThrowError(`Component instance is undefined. Make sure that you call 'new Controller(this)' inside componentWillMount and that your calling 'super(componentInstance)' inside your controller constructor`);
   });
 
-  it('should throw error if componentInstance is not a react class', () => {
+  it.skip('should throw error if componentInstance is not a react class', () => {
     expect(() => {new Controller({someObj: 'bla'})}).toThrowError('bla');
   });
 
@@ -129,12 +134,12 @@ describe('Controller', () => {
     someComponent.context = { controllers: {} };
     let testController = new Controller(someComponent);
     expect(() => testController.getParentController('someParent'))
-      .toThrowError(`Parent controller does not exist. make sure that someParent is parrent of SomeComponent and that you provided it using ProvideController`);
+      .toThrowError(`Parent controller does not exist. make sure that someParent is parent of Controller and that you provided it using ProvideController`);
 
     someComponent.context = {};
     testController = new Controller(someComponent);
     expect(() => testController.getParentController('someParent'))
-      .toThrowError(`Parent controller does not exist. make sure that someParent is parrent of SomeComponent and that you provided it using ProvideController`);
+      .toThrowError(`Parent controller does not exist. make sure that someParent is parent of Controller and that you provided it using ProvideController`);
   });
 
   it('should throw an error if context is undefined', () => {
@@ -142,7 +147,7 @@ describe('Controller', () => {
     someComponent.context = undefined;
     const testController = new Controller(someComponent);
     expect(() => testController.getParentController('someParent'))
-      .toThrowError('Context is undefined. Make sure that you initialized SomeComponent in componentWillMount()');
+      .toThrowError('Context is undefined. Make sure that you initialized Controller in componentWillMount()');
   });
 
   it('should allow setting the state only with object', () => {

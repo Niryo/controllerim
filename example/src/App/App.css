@@ -1,0 +1,9 @@
+.todoContainer{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.leftTodo{
+  margin-right: 40px;
+}
