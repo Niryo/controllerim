@@ -1,11 +1,15 @@
 
 import { proxify } from './proxify';
 import { isPlainObject } from 'lodash';
+import {TestUtils} from '../TestUtils/testUtils';
 
 export class Controller {
   constructor(componentInstance) {
     if (!componentInstance) {
       throw new Error(`Component instance is undefined. Make sure that you call 'new Controller(this)' inside componentWillMount and that you are calling 'super(componentInstance)' inside your controller constructor`)
+    }
+    if(TestUtils.isTestMod()){
+      TestUtils.registerControllerForTest(this, componentInstance);
     }
     this.component = componentInstance;
     let internalState = { value: {} };

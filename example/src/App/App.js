@@ -14,7 +14,7 @@ class App extends Component {
     return (
       <ProvideController controller={this.controller}>
         <h1>This is an example of multiple instacne of the same component</h1>
-        <h2>Total notes count: {this.controller.getTotalNotesCount()}</h2>
+        <h2 data-hook="counter">Total notes count: {this.controller.getTotalNotesCount()}</h2>
         <div className="notesContainer">
           <div className="leftNote">
             <NotesList theme={'theme1'}/>

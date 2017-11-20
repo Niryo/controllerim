@@ -9,7 +9,9 @@ export class AppController extends Controller {
   getTotalNotesCount() {
     return this.state.totalNotesCount;
   }
+
   increaseCounter() {
     this.state.totalNotesCount ++;
   }
+
 }

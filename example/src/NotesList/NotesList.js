@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { NotesListController } from './NotesListController';
 import { observer } from 'react-view-controllers';
+import {AppController} from '../App/AppController';
 import './NotesList.css';
 class NotesList extends React.Component {
   componentWillMount() {
     this.controller = new NotesListController(this);
-    this.appController = this.controller.getParentController('AppController');
+    this.appController = this.controller.getParentController(AppController.name);
   }
 
   renderListItems() {
@@ -35,7 +36,7 @@ class NotesList extends React.Component {
         <div className={this.props.theme}>
           <div className="container">
             <div className="leftPane">
-              <h1>Notes:</h1>
+              <h1>Notes:</h1> 
               <ul>
                 {this.renderListItems()}
               </ul>
