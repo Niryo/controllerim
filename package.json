@@ -1,6 +1,6 @@
 {
   "name": "react-view-controllers",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "State management library for react",
   "main": "dist/index.js",
   "scripts": {
