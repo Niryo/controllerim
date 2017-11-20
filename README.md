@@ -11,6 +11,9 @@ A state management library for react, based on Mobx
 * **Better encapsulation**: A component can fetch data only from it's direct controller and it's parent controllers. You cannot feth data from sibling component's Controllers. If you need some piece of data to be visible for two sibling components, it means that this data should sit within their first common parent. If you need a piece of data to be visible to all other component, put it in your AppController.
 
 
+## How
+Most of the heavy lifting is being done behind the scenes with the help of [Mobx](https://github.com/mobxjs/mobx).
+
 ### Example project
 after cloning the repository, nevigate to the example folder and type in your terminal:
 ```
