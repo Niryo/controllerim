@@ -1,0 +1,78 @@
+.theme1 .container{
+  display: inline-flex;
+  flex-direction: row;
+  border: 2px solid #B6DCFE;
+  border-radius: 5px;
+  background: #CDEDFD;
+  padding: 20px;
+  color: rgb(44, 143, 230);
+}
+
+.theme1 .leftPane {
+  margin-right: 50px;
+}
+.theme1 .listItem {
+  cursor: pointer;
+  padding: 2px;
+}
+.theme1 .listItem.selected {
+    font-weight: bold;
+}
+
+.theme1 textarea {
+  height: 100%;
+  font-size: 24px;
+  background-color: #B6DCFE;
+  border-color: transparent;    
+  resize: none;  
+}
+
+.theme1 input {
+  font-size: 18px;
+  background-color: #B6DCFE;
+  border-color: transparent;    
+  margin-top: 10px;
+}
+
+/* ============================= theme2 ========================== */
+
+.theme2 .container{
+  display: inline-flex;
+  flex-direction: column;
+  border: 2px solid #C62E65;
+  border-radius: 5px;
+  background: #F9D4E4;
+  padding: 20px;
+  color: #C62E65;
+  width: 400px;
+}
+
+
+.theme2 .listItem {
+  cursor: pointer;
+  padding: 2px;
+}
+.theme2 .listItem.selected {
+    font-weight: bold;
+}
+
+.theme2 .inputLabel {
+  display: inline-block;
+  margin-right: 13px;
+}
+.theme2 textarea {
+  width: 100%;
+  min-height: 130px; 
+  font-size: 24px;
+  background-color: #F9E0EB;
+  border-color: transparent;    
+  resize: none;  
+}
+
+.theme2 input {
+  font-size: 18px;
+  background-color: #F9E0EB;
+  border-color: transparent;    
+  margin-top: 10px;
+  margin-bottom: 30px;
+}

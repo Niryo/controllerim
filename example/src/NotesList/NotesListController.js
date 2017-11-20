@@ -1,10 +1,10 @@
 import { Controller } from 'react-view-controllers';
 
-export class TodoListController extends Controller {
+export class NotesListController extends Controller {
   constructor(compInstance) {
     super(compInstance);
     this.state = {
-      listItems: [{ title: 'firstItem', text: 'this is your first todo!' }],
+      listItems: [{ title: 'firstItem', text: 'this is your first todo!', id: 0}],
       selectedItem: {title:'',text:''},
       inputValue: ''
     };
@@ -26,12 +26,12 @@ export class TodoListController extends Controller {
     return this.state.listItems;
   }
 
-  addTodo() {
-    this.state.listItems.push({ title: this.state.inputValue, text: '' });
+  addNote() {
+    this.state.listItems.push({ title: this.state.inputValue, text: '' ,id: this.state.listItems.length});
     this.state.inputValue = '';
   }
 
-  editSelectedTodo(value) {
+  editSelectedNote(value) {
     this.state.selectedItem.text = value;
   }
 }

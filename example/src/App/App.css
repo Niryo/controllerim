@@ -1,9 +1,9 @@
-.todoContainer{
+.notesContainer{
   display: flex;
   flex-direction: row;
   justify-content: center;
 }
 
-.leftTodo{
+.leftNote{
   margin-right: 40px;
 }
