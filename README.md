@@ -1,5 +1,5 @@
 # react-view-controllers
-A state management library for react
+A state management library for react, based on Mobx
 
 ## Why 
 * **Zero boilerplate:** Controllers are just plain javascript classes. All you need to do in order to make your views react to changes in the controllers, is just to wrap them with `observer` and you are good to go.
