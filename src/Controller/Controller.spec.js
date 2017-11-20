@@ -98,16 +98,6 @@ describe('Controller', () => {
     parentComponentRenderCount = 0;
 
   });
-  it('should return the name of the controller', () => {
-    const someComponent = new SomeComponent();
-    class SomeController extends Controller {
-      constructor(instance){
-        super(instance);
-      }
-    }
-    const testController = new SomeController(someComponent);
-    expect(testController.getName()).toEqual('SomeController');
-  });
 
   it('should throw error if componentInstance was not pass to the controller constructor', () => {
     expect(() => {new Controller();}).toThrowError('Component instance is undefined. Make sure that you call \'new Controller(this)\' inside componentWillMount and that you are calling \'super(componentInstance)\' inside your controller constructor');

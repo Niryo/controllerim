@@ -12,10 +12,11 @@ class NotesList extends React.Component {
   renderListItems() {
     return this.controller.getListItems().map((item) => {
       return (
-        <li
+        <li 
           className={`listItem ${this.controller.getSelectedItem().id === item.id ? 'selected' : ''}`}
           onClick={() => this.controller.setSelectedItem(item)}
           key={item.id}
+          data-hook="listItem"
           >
           {item.title}
         </li>

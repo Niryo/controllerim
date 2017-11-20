@@ -1,15 +1,15 @@
 
 import { proxify } from './proxify';
 import { isPlainObject } from 'lodash';
-import {TestUtils} from '../TestUtils/testUtils';
+import {registerControllerForTest,isTestMod,getMockedParent} from '../TestUtils/testUtils';
 
 export class Controller {
   constructor(componentInstance) {
     if (!componentInstance) {
       throw new Error('Component instance is undefined. Make sure that you call \'new Controller(this)\' inside componentWillMount and that you are calling \'super(componentInstance)\' inside your controller constructor');
     }
-    if(TestUtils.isTestMod()){
-      TestUtils.registerControllerForTest(this, componentInstance);
+    if(isTestMod()){
+      registerControllerForTest(this, componentInstance);
     }
     this.component = componentInstance;
     let internalState = { value: {} };
@@ -29,18 +29,18 @@ export class Controller {
     swizzlify(this, internalState, noop);
   }
 
-  getName() {
-    return this.constructor.name;
-  }
 
   getParentController(parentControllerName) {
+    const controllerName = this.constructor.name;
+    if(isTestMod()){
+      return getMockedParent(controllerName);
+    }
     if (this.component.context === undefined) {
-      throw new Error(`Context is undefined. Make sure that you initialized ${this.getName()} in componentWillMount()`);
-
+      throw new Error(`Context is undefined. Make sure that you initialized ${controllerName} in componentWillMount()`);
     }
     const parentController = this.component.context.controllers && this.component.context.controllers[parentControllerName];
     if (!parentController) {
-      throw new Error(`Parent controller does not exist. make sure that ${parentControllerName} is parent of ${this.getName()} and that you provided it using ProvideController`);
+      throw new Error(`Parent controller does not exist. make sure that ${parentControllerName} is parent of ${controllerName} and that you provided it using ProvideController`);
     }
     return parentController;
   }

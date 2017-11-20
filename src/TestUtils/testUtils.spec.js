@@ -37,6 +37,19 @@ class TestNotObserved extends React.Component {
 }
 const Test = observer(TestNotObserved);
 
+
+class TestWithParentNotObserved extends React.Component {
+  componentWillMount() {
+    this.controller = new TestController(this);
+    this.parentController = this.controller.getParentController(FakeParent.name);
+  }
+
+  render() {
+    return <div data-hook="fakeProp">{this.parentController.getFakeProp()}</div>;
+  }
+}
+const TestWithParent = observer(TestWithParentNotObserved);
+
 describe('TestUtils', () => {
   beforeEach(() => {
     savedControllerInstance = undefined;
@@ -71,19 +84,17 @@ describe('TestUtils', () => {
     expect(component.find('[data-hook="name"]').text()).toEqual('mockedName');
   });
 
-  it('should expose a mockParent function on the controller', () => {
+  it('should allow mocking parent before controller created', () => {
     TestUtils.init();
-    const component = mount(<Test/>);
-    const controller = TestUtils.getControllerOf(component.instance());
-    controller.mockParent(FakeParent);
-    expect(controller.getParentController(FakeParent.name).getFakeProp()).toEqual('fakeProp');
+    TestUtils.mockControllerParent(TestController, FakeParent);
+    const component = mount(<TestWithParent/>);
+    expect(component.find('[data-hook="fakeProp"]').text()).toEqual('fakeProp');
   });
 
-  it('should expose a mockParent function on the controller', () => {
+  it('should allow mocking parent with state', () => {
     TestUtils.init();
-    const component = mount(<Test/>);
-    const controller = TestUtils.getControllerOf(component.instance());
-    controller.mockParent(FakeParent, {fakeProp: 'changed!'});
-    expect(controller.getParentController(FakeParent.name).getFakeProp()).toEqual('changed!');
+    TestUtils.mockControllerParent(TestController, FakeParent, {fakeProp: 'changed!'});
+    const component = mount(<TestWithParent/>);
+    expect(component.find('[data-hook="fakeProp"]').text()).toEqual('changed!');
   });
 });

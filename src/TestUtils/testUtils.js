@@ -1,5 +1,6 @@
 import * as React from 'react';
 let controllers = {};
+let mockedParentsOfControllers = {};
 let counter = 0;
 let _isTestMod = false;
 
@@ -11,31 +12,20 @@ class FakeComponent extends React.Component {
 }
 
 const TEST_ID = '__reactViewControllersIdForTesting';
-const isTestMod = () => {
+export const isTestMod = () => {
   return _isTestMod;
 };
-const registerControllerForTest = (controller, component) => {
+export const registerControllerForTest = (controller, component) => {
   component[TEST_ID] = counter;
   controllers[counter] = controller;
   counter++;
 
   attachMockState(controller);
-  attachMockParent(controller);
 };
 
 const attachMockState = (controller) => {
   controller.mockState = (state) => {
     Object.assign(controller.state, state);
-  };
-};
-
-const attachMockParent = (controller) => {
-  controller.mockParent = (ParentController, state) => {
-    const parentInstace = new ParentController(new FakeComponent);
-    Object.assign(parentInstace.state, state);
-    controller.component.context = controller.component.context || {};
-    controller.component.context.controllers = controller.component.context.controllers || {};
-    controller.component.context.controllers[ParentController.name] = parentInstace;
   };
 };
 
@@ -53,12 +43,23 @@ const clean = () => {
   _isTestMod = false;
   controllers = {};
   counter = 0;
+  mockedParentsOfControllers = {};
 };
 
+const mockControllerParent = (ControllerClass, ParentClass, state) => {
+  const parent = new ParentClass(FakeComponent);
+  mockedParentsOfControllers[ControllerClass.name] = parent;
+  if(state) {
+    Object.assign(parent.state, state);
+  }
+};
+
+export const getMockedParent = (name) => {
+  return mockedParentsOfControllers[name];
+};
 export const TestUtils = {
-  isTestMod,
-  registerControllerForTest,
   getControllerOf,
   init,
-  clean
+  clean,
+  mockControllerParent
 };
