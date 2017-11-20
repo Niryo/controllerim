@@ -46,9 +46,9 @@ const clean = () => {
   mockedParentsOfControllers = {};
 };
 
-const mockControllerParent = (ControllerClass, ParentClass, state) => {
+const mockControllerParent = (controllerName, ParentClass, state) => {
   const parent = new ParentClass(FakeComponent);
-  mockedParentsOfControllers[ControllerClass.name] = parent;
+  mockedParentsOfControllers[controllerName] = parent;
   if(state) {
     Object.assign(parent.state, state);
   }

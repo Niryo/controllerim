@@ -3,10 +3,12 @@ import {AppController} from '../App/AppController';
 import NotesList from './NotesList';
 import { mount } from 'enzyme';
 import { TestUtils } from 'react-view-controllers';
+import { NotesListController } from './NotesListController';
 
 describe('App', () => {
   beforeEach(() => {
     TestUtils.init();
+    TestUtils.mockControllerParent(NotesListController, AppController);    
   });
 
   afterEach(() => {
@@ -15,8 +17,7 @@ describe('App', () => {
 
   it('should show list of notes', () => {
     const component = mount(<NotesList />);
-    const 
-    expect(component.find('[data-hook="listItem"]').text()).toEqual('Total notes count: 2');
+    expect(component.find('[data-hook="listItem"]').text()).toEqual('firstItem');
   });
 });
 
