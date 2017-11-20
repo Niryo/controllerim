@@ -11,6 +11,13 @@ A state management library for react
 * **Better encapsulation**: A component can fetch data only from it's direct controller and it's parent controllers. You cannot feth data from sibling component's Controllers. If you need some piece of data to be visible for two sibling components, it means that this data should sit within their first common parent. If you need a piece of data to be visible to all other component, put it in your AppController.
 
 
+### Example project
+after cloning the repository, nevigate to the example folder and type in your terminal:
+```
+npm install
+npm start
+```
+
 ## Api
 ### `Controller(componentInstance)`
 Every view should have a controller that extends `Controller`. A controller is a plain javascript class that holds an observable state. a controller should contain only a **state** and methods that manipulate the state.
