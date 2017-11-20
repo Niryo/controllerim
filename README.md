@@ -1,11 +1,11 @@
 # react-view-controllers
 A state management library for react
 
-## Api:
+## Api
 ### `Controller(componentInstance)`
-Every view should have a controller that extends `Controller`. The controller holds an observable state.
+Every view should have a controller that extends `Controller`. A controller is a plain javascript class that holds an observable state. a controller should contain only a **state** and methods that manipulate the state.
 Make sure to call `super(componentInstance)` from your controller constructor.
-Every controller exposes `getParentController()`. See bellow for more details.
+Every controller exposes `getParentController()` (See bellow for more details).
 
 #### Usage example:
 ```javascript
@@ -14,7 +14,8 @@ import {Controller} from 'react-view-controllers';
 export class AppController extends Controller {
   constructor(comp) {
     super(comp);
-    this.state = {totalNotesCount: 2};
+    this.state = {totalNotesCount: 2}; //the state should be the only property of the controller, 
+                                       //and should be initialized in the constructor.
   }
 
   getTotalNotesCount() {
@@ -56,7 +57,7 @@ export default observer(SomeSmartComponent)
 
 
 ### `<ProvideController controller={controllerInstance}/>`:
-If you want your controller instance to be visible to your child component, you must explicitly provide it using ProvideController.
+If you want your controller instance to be visible to your child components, you must explicitly provide it using ProvideController.
 
 #### Usage example:
 ```javascript
@@ -86,11 +87,10 @@ In the above example, SomeChild and AnotherChild could make use of `SomeParentCo
 
 ### `getParentController(controllerName: string)`:
 Use this Controller method inside `componentWillMount` to get a parentController.
-The name of the parent controller is the name of the class, as return from Class.name.
+The name of the parent controller is the name of the class, as returned from Class.name.
 If for example your code looks like this: `class SomeParentController extends Controller{}`, then the name will be 'SomeParentController' (`SomeParentController.name`).
 Make sure that the parent controller is provided using `ProvideController`.
-You cannot get the controller of a sibling component. If you need to use some data from a sibling component, put this data in the first
-common parent of the two components.
+You cannot get the controller of a sibling component. If you need to use some data from a sibling component, put this data in the first common parent of the two components.
 
 #### Usage example:
 
