@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "npm run build && jest",
-    "build": "npm run eslint src && babel src -d dist"
+    "build": "eslint src && babel src -d dist"
   },
   "author": "niryosef89@gmail.com",
   "license": "MIT",
