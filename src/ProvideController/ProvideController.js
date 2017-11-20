@@ -8,9 +8,9 @@ export class ProvideController extends React.Component {
     return {controllers};
   }
 
-    render() {
-      return this.props.children;
-    }
+  render() {
+    return this.props.children;
+  }
 }
 
 ProvideController.childContextTypes = {

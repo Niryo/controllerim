@@ -13,7 +13,7 @@ class FakeComponent extends React.Component {
 const TEST_ID = '__reactViewControllersIdForTesting';
 const isTestMod = () => {
   return _isTestMod;
-}
+};
 const registerControllerForTest = (controller, component) => {
   component[TEST_ID] = counter;
   controllers[counter] = controller;
@@ -21,13 +21,13 @@ const registerControllerForTest = (controller, component) => {
 
   attachMockState(controller);
   attachMockParent(controller);
-}
+};
 
 const attachMockState = (controller) => {
   controller.mockState = (state) => {
     Object.assign(controller.state, state);
-  }
-}
+  };
+};
 
 const attachMockParent = (controller) => {
   controller.mockParent = (ParentController, state) => {
@@ -36,8 +36,8 @@ const attachMockParent = (controller) => {
     controller.component.context = controller.component.context || {};
     controller.component.context.controllers = controller.component.context.controllers || {};
     controller.component.context.controllers[ParentController.name] = parentInstace;
-  }
-}
+  };
+};
 
 const getControllerOf = (component) => {
   if (!isTestMod()) {
@@ -53,7 +53,7 @@ const clean = () => {
   _isTestMod = false;
   controllers = {};
   counter = 0;
-}
+};
 
 export const TestUtils = {
   isTestMod,
@@ -61,4 +61,4 @@ export const TestUtils = {
   getControllerOf,
   init,
   clean
-}
+};

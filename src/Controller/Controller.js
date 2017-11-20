@@ -6,7 +6,7 @@ import {TestUtils} from '../TestUtils/testUtils';
 export class Controller {
   constructor(componentInstance) {
     if (!componentInstance) {
-      throw new Error(`Component instance is undefined. Make sure that you call 'new Controller(this)' inside componentWillMount and that you are calling 'super(componentInstance)' inside your controller constructor`)
+      throw new Error('Component instance is undefined. Make sure that you call \'new Controller(this)\' inside componentWillMount and that you are calling \'super(componentInstance)\' inside your controller constructor');
     }
     if(TestUtils.isTestMod()){
       TestUtils.registerControllerForTest(this, componentInstance);
@@ -22,10 +22,10 @@ export class Controller {
           this.component.forceUpdate();
           previewsState = JSON.stringify(internalState.value);
         }
-      }
+      };
       swizzlify(this, internalState, funcToInject);
     }
-    const noop = () => { }
+    const noop = () => { };
     swizzlify(this, internalState, noop);
   }
 
@@ -58,10 +58,10 @@ const exposeInternalStateOnObject = (obj, internalState) => {
       return internalState.value;
     }
   });
-}
+};
 
 export const swizzlify = (context, internalState, injectedFunc) => {
-  const controllerProto = Reflect.getPrototypeOf(context)
+  const controllerProto = Reflect.getPrototypeOf(context);
   let methodNames = Reflect.ownKeys(controllerProto);
   methodNames = methodNames.filter((name) => name !== 'constructor' && name !== 'getName' && name !== 'getParentController');
   const newContext = { state: internalState.value };
@@ -77,6 +77,6 @@ export const swizzlify = (context, internalState, injectedFunc) => {
       const returnValue = originalMethod(...args);
       injectedFunc();
       return returnValue;
-    }
+    };
   });
-}
+};

@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "npm run build && jest",
-    "build": "babel src -d dist"
+    "build": "npm run eslint src && babel src -d dist"
   },
   "author": "niryosef89@gmail.com",
   "license": "MIT",
@@ -19,6 +19,8 @@
     "babel-preset-latest": "^6.24.1",
     "enzyme": "^3.2.0",
     "enzyme-adapter-react-16": "^1.1.0",
+    "eslint": "^4.11.0",
+    "eslint-plugin-react": "^7.5.1",
     "jest": "^21.2.1",
     "react": "^16.1.1",
     "react-dom": "^16.1.1"

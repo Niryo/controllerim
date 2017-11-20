@@ -27,7 +27,7 @@ export const proxify = (obj) => {
     }
   };
   return new Proxy(obj, handler);
-}
+};
 
 const createObservableMap = (obj) => {
   const tracker = observable.shallowMap();

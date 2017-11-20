@@ -7,4 +7,4 @@ export const observer = (ReactComponent) => {
   };
 
   return MobxReact.observer(ReactComponent);
-}
+};

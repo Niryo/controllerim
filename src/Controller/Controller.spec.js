@@ -5,7 +5,7 @@ import { ProvideController } from '../index';
 import { observer } from '../index';
 class SomeComponent extends React.Component {
   render() {
-    return <div>someComponent</div>
+    return <div>someComponent</div>;
   }
 }
 
@@ -26,7 +26,7 @@ class PrentController extends Controller {
   }
 
   changeBasicProp() {
-    this.state.basicProp = "changed!"
+    this.state.basicProp = 'changed!';
   }
 
   getObjectProp() {
@@ -88,7 +88,7 @@ class _Child extends React.Component {
     this.parentController = new Controller(this).getParentController('PrentController');
   }
   render() {
-    return <div data-hook="blamos">{this.parentController.getBasicProp()}</div>
+    return <div data-hook="blamos">{this.parentController.getBasicProp()}</div>;
   }
 }
 const Child = observer(_Child);
@@ -110,17 +110,17 @@ describe('Controller', () => {
   });
 
   it('should throw error if componentInstance was not pass to the controller constructor', () => {
-    expect(() => {new Controller()}).toThrowError(`Component instance is undefined. Make sure that you call 'new Controller(this)' inside componentWillMount and that you are calling 'super(componentInstance)' inside your controller constructor`);
+    expect(() => {new Controller();}).toThrowError('Component instance is undefined. Make sure that you call \'new Controller(this)\' inside componentWillMount and that you are calling \'super(componentInstance)\' inside your controller constructor');
   });
 
   it.skip('should throw error if componentInstance is not a react class', () => {
-    expect(() => {new Controller({someObj: 'bla'})}).toThrowError('bla');
+    expect(() => {new Controller({someObj: 'bla'});}).toThrowError('bla');
   });
 
 
   it('should allow to get parent controller', () => {
     const someComponent = new SomeComponent();
-    someComponent.context = { controllers: { someParent: 'mocekdParentController' } }
+    someComponent.context = { controllers: { someParent: 'mocekdParentController' } };
     const testController = new Controller(someComponent);
     expect(testController.getParentController('someParent')).toEqual('mocekdParentController');
   });
@@ -130,12 +130,12 @@ describe('Controller', () => {
     someComponent.context = { controllers: {} };
     let testController = new Controller(someComponent);
     expect(() => testController.getParentController('someParent'))
-      .toThrowError(`Parent controller does not exist. make sure that someParent is parent of Controller and that you provided it using ProvideController`);
+      .toThrowError('Parent controller does not exist. make sure that someParent is parent of Controller and that you provided it using ProvideController');
 
     someComponent.context = {};
     testController = new Controller(someComponent);
     expect(() => testController.getParentController('someParent'))
-      .toThrowError(`Parent controller does not exist. make sure that someParent is parent of Controller and that you provided it using ProvideController`);
+      .toThrowError('Parent controller does not exist. make sure that someParent is parent of Controller and that you provided it using ProvideController');
   });
 
   it('should throw an error if context is undefined', () => {
@@ -150,12 +150,12 @@ describe('Controller', () => {
     const testController = new Controller(Parent);
     testController.state = { hello: true };
     expect(testController.state).toEqual({ hello: true });
-    expect(() => { testController.state = true }).toThrowError('State should be initialize only with plain object');
-    expect(() => { testController.state = ['1', '2'] }).toThrowError('State should be initialize only with plain object');
-    expect(() => { testController.state = () => { } }).toThrowError('State should be initialize only with plain object');
-    expect(() => { testController.state = "string" }).toThrowError('State should be initialize only with plain object');
-    expect(() => { testController.state = 8 }).toThrowError('State should be initialize only with plain object');
-  })
+    expect(() => { testController.state = true; }).toThrowError('State should be initialize only with plain object');
+    expect(() => { testController.state = ['1', '2']; }).toThrowError('State should be initialize only with plain object');
+    expect(() => { testController.state = () => { }; }).toThrowError('State should be initialize only with plain object');
+    expect(() => { testController.state = 'string'; }).toThrowError('State should be initialize only with plain object');
+    expect(() => { testController.state = 8; }).toThrowError('State should be initialize only with plain object');
+  });
 
   describe('Complex tests', () => {
     it('e2e test', () => {
@@ -164,7 +164,7 @@ describe('Controller', () => {
     });
 
     it('should have an observable state', () => {
-      const OberverParent = observer(Parent)
+      const OberverParent = observer(Parent);
       const component = mount(<OberverParent />);
       expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('blamos');
       component.find('[data-hook="changeBasicPropButton"]').simulate('click');
@@ -172,9 +172,9 @@ describe('Controller', () => {
     });
 
     it('should observe on deep nested change', () => {
-      const OberverParent = observer(Parent)
+      const OberverParent = observer(Parent);
       const component = mount(<OberverParent />);
-      expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual("{}");
+      expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual('{}');
       component.find('[data-hook="addArrayToDynamicObjectButton"]').simulate('click');
       expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: [] }));
       component.find('[data-hook="addNameToDynamicObjectArrayButton"]').simulate('click');
@@ -183,19 +183,19 @@ describe('Controller', () => {
 
     //todo: try to fail the test
     it('should trigger only one render per setter', () => {
-      const OberverParent = observer(Parent)
+      const OberverParent = observer(Parent);
       const component = mount(<OberverParent />);
       expect(parentComponentRenderCount).toEqual(1);
       component.find('[data-hook="changeMultiPropsButton"]').simulate('click');
       expect(parentComponentRenderCount).toEqual(2);
-    })
+    });
 
     it('should allow setters with args', () => {
-      const OberverParent = observer(Parent)
+      const OberverParent = observer(Parent);
       const component = mount(<OberverParent />);
       component.find('[data-hook="applySetterWithArgsButton"]').simulate('click');
       expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('value1value2');
-    })
+    });
   });
 
 
@@ -207,7 +207,7 @@ describe('Controller', () => {
     });
 
     it('should have an observable state', () => {
-      const OberverParent = observer(Parent)
+      const OberverParent = observer(Parent);
       const component = mount(<OberverParent />);
       expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('blamos');
       global.Proxy = backupProxy;
@@ -216,9 +216,9 @@ describe('Controller', () => {
     });
 
     it('should observe on deep nested change', () => {
-      const OberverParent = observer(Parent)
+      const OberverParent = observer(Parent);
       const component = mount(<OberverParent />);
-      expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual("{}");
+      expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual('{}');
       global.Proxy = backupProxy;
       component.find('[data-hook="addArrayToDynamicObjectButton"]').simulate('click');
       expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: [] }));
@@ -228,20 +228,20 @@ describe('Controller', () => {
 
     //todo: try to fail the test
     it('should trigger only one render per setter', () => {
-      const OberverParent = observer(Parent)
+      const OberverParent = observer(Parent);
       const component = mount(<OberverParent />);
       expect(parentComponentRenderCount).toEqual(2); //todo: why 2? why we are wasting a render
       global.Proxy = backupProxy;      
       component.find('[data-hook="changeMultiPropsButton"]').simulate('click');
       expect(parentComponentRenderCount).toEqual(3);
-    })
+    });
 
     it('should allow setters with args', () => {
-      const OberverParent = observer(Parent)
+      const OberverParent = observer(Parent);
       const component = mount(<OberverParent />);
       global.Proxy = backupProxy;            
       component.find('[data-hook="applySetterWithArgsButton"]').simulate('click');
       expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('value1value2');
-    })
+    });
   });
 });

@@ -59,7 +59,7 @@ describe('TestUtils', () => {
 
   it('should not register controllers for tests if init was not called', () => {
     TestUtils.registerControllerForDebug = jest.fn();
-    const component = mount(<Test />);
+    mount(<Test />);
     expect(TestUtils.registerControllerForDebug.mock.calls.length).toEqual(0);
   });
 
@@ -67,20 +67,17 @@ describe('TestUtils', () => {
     TestUtils.init();
     const component = mount(<Test />);
     const controller = TestUtils.getControllerOf(component.instance());
-    console.log('*******************************************************',component.instance())
     controller.mockState({ name: 'mockedName' });
     expect(component.find('[data-hook="name"]').text()).toEqual('mockedName');
-  })
+  });
 
   it('should expose a mockParent function on the controller', () => {
     TestUtils.init();
     const component = mount(<Test/>);
-    console.log('*******************************************************',component.instance())
     const controller = TestUtils.getControllerOf(component.instance());
-    console.log(controller)
     controller.mockParent(FakeParent);
     expect(controller.getParentController(FakeParent.name).getFakeProp()).toEqual('fakeProp');
-  })
+  });
 
   it('should expose a mockParent function on the controller', () => {
     TestUtils.init();
@@ -88,5 +85,5 @@ describe('TestUtils', () => {
     const controller = TestUtils.getControllerOf(component.instance());
     controller.mockParent(FakeParent, {fakeProp: 'changed!'});
     expect(controller.getParentController(FakeParent.name).getFakeProp()).toEqual('changed!');
-  })
+  });
 });
