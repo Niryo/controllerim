@@ -4,9 +4,10 @@ A state management library for react, based on Mobx
 ## Why 
 * **Zero boilerplate:** Controllers are just plain javascript classes, and All you need to do in order to make your views react to changes in the controllers, is just to wrap them with `observer` and you are good to go.
 
-* **Never use a singleton again.** If you ever used Redux, you probably knows what happens when you forget to clean your stores when a component leave the screen- the next time it enters the screen, it fetches some old state-related data from the store and bad things happens. `Controllers` lifecycle is binded to the component lifecycle, so you get a fresh controller out of the box whenever a component enters the screen.
+* **No need for singleton stores:** If you ever used Redux, you probably knows what happens when you forget to clean your stores when a component leave the screen- the next time it enters the screen, it fetches some old state-related data from the store and bad things happens. You may say that stores should not contain state related data, but sometimes you just need to share state across multiple components, for example, `currentSelectedItem`, `isCartFull`, `canMoveToNextStep` etc. 
+`Controllers` lifecycle is binded to the component lifecycle, so you get a fresh controller out of the box whenever a component enters the screen.
 
-* **Reusability** Each component holds an instance of it's Controller (no singletons!), so you can instanciate **multiple  instances of your component** (see example project). When you have a singleton store its much more cumbersome to support multiple instance of a component. 
+* **Reusability:** Each component holds an *instance* of it's Controller (again, no singletons!), so you can create **multiple  instances of a component** (see example project). When you have a singleton store its much more cumbersome to support multiple instance of a component. 
 
 * **Better encapsulation**: A component can fetch data only from it's direct controller and it's parent controllers. You cannot feth data from sibling component's Controllers. If you need some piece of data to be visible for two sibling components, it means that this data should sit within their first common parent. If you need a piece of data to be visible to all other component, put it in your AppController.
 
