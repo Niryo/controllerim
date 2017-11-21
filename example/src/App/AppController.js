@@ -1,9 +1,12 @@
-import {Controller} from 'react-view-controllers';
+import { Controller } from 'react-view-controllers';
 
 export class AppController extends Controller {
   constructor(comp) {
     super(comp);
-    this.state = {totalNotesCount: 2};
+    this.state = {
+      totalNotesCount: 2,
+      userName: 'bob'
+    };
   }
 
   getTotalNotesCount() {
@@ -11,7 +14,13 @@ export class AppController extends Controller {
   }
 
   increaseCounter() {
-    this.state.totalNotesCount ++;
+    this.state.totalNotesCount++;
   }
 
+  getUserName() {
+    return this.state.userName;
+  }
+  setUserName(value){
+    this.state.userName = value;
+  }
 }

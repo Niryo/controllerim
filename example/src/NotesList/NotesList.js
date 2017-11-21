@@ -52,7 +52,7 @@ class NotesList extends React.Component {
               <textarea
                 value={this.controller.getSelectedItem().text}
                 onChange={(e) => this.controller.editSelectedNote(e.target.value)}
-                placeholder="Whats on your mind?"
+                placeholder={`Hello ${this.appController.getUserName()}, Whats on your mind?`}
               />
             </div>
           </div>

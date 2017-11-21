@@ -1,5 +1,5 @@
 import { Controller } from 'react-view-controllers';
-
+import {AppController} from '../App/AppController';
 export class NotesListController extends Controller {
   constructor(compInstance) {
     super(compInstance);
@@ -29,7 +29,7 @@ export class NotesListController extends Controller {
   addNote() {
     this.state.listItems.push({ title: this.state.inputValue, text: '' ,id: this.state.listItems.length});
     this.state.inputValue = '';
-    super.getParentController('AppController').increaseCounter();
+    super.getParentController(AppController.name).increaseCounter();
   }
 
   editSelectedNote(value) {
