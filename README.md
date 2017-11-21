@@ -74,6 +74,14 @@ npm start
 Every view should have a controller that extends `Controller`. A controller is a plain javascript class that holds an observable state. a controller should contain only a **state** and methods that manipulate the state.
 Make sure to call `super(componentInstance)` from your controller constructor.
 Every controller exposes `getParentController()` (See bellow for more details).
+#### state: 
+Every controllers has a state prop. You should initiate the state inside the controller's constructor.
+The observers (React Components that you wrapped within `observer`) will react to any change in the state, even changes of deep nested properties. for example:
+```javascript
+changeName(){
+  this.state.listOfItems[0].name = 'foo';
+}
+```
 
 #### Usage example:
 ```javascript
