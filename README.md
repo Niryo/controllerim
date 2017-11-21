@@ -1,4 +1,4 @@
-# react-view-controllers
+# React View Controllers
 A state management library for react, based on Mobx
 
 ## Why 
