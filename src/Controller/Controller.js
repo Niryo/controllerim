@@ -63,8 +63,8 @@ const exposeInternalStateOnObject = (obj, internalState) => {
 export const swizzlify = (context, internalState, injectedFunc) => {
   const controllerProto = Reflect.getPrototypeOf(context);
   let methodNames = Reflect.ownKeys(controllerProto);
-  methodNames = methodNames.filter((name) => name !== 'constructor' && name !== 'getName' && name !== 'getParentController');
-  const newContext = { state: internalState.value };
+  methodNames = methodNames.filter((name) => name !== 'constructor' && name !== 'getParentController');
+  const newContext = { state: internalState.value, component: context.component };
   exposeInternalStateOnObject(newContext, internalState);
 
   methodNames.forEach((name) => {

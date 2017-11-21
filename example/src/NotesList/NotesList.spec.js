@@ -8,7 +8,7 @@ import { NotesListController } from './NotesListController';
 describe('App', () => {
   beforeEach(() => {
     TestUtils.init();
-    TestUtils.mockControllerParent(NotesListController, AppController);    
+    TestUtils.mockControllerParent(NotesListController.name, AppController);    
   });
 
   afterEach(() => {
@@ -18,6 +18,14 @@ describe('App', () => {
   it('should show list of notes', () => {
     const component = mount(<NotesList />);
     expect(component.find('[data-hook="listItem"]').text()).toEqual('firstItem');
+  });
+
+  it.skip('should allow adding new note', () => {
+    const component = mount(<NotesList />);
+    const test = TestUtils.getControllerOf(component.instance());
+    const test2 = test.getParentController('AppController');
+    component.find('[data-hook="input"]').instance().value = 'bla';
+    component.find('[data-hook="input"]').simulate('keyDown', {which: 13});
   });
 });
 

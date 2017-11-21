@@ -11,7 +11,7 @@ class SomeComponent extends React.Component {
 
 let parentComponentRenderCount = 0;
 
-class PrentController extends Controller {
+class ParentController extends Controller {
   constructor(componentInstance) {
     super(componentInstance);
     this.state = {
@@ -27,7 +27,7 @@ class PrentController extends Controller {
 
   changeBasicProp() {
     this.state.basicProp = 'changed!';
-  }
+  } 
 
   getObjectProp() {
     return this.state.objectProp;
@@ -56,11 +56,15 @@ class PrentController extends Controller {
   setBasicProp(value1,value2){
     this.state.basicProp = value1+value2;
   }
+
+  testSuper() {
+    return super.getParentController('fakeParent');
+  }
 }
 
 class Parent extends React.Component {
   componentWillMount() {
-    this.controller = new PrentController(this);
+    this.controller = new ParentController(this);
   }
 
   render() {
@@ -85,7 +89,7 @@ class Parent extends React.Component {
 
 class _Child extends React.Component {
   componentWillMount() {
-    this.parentController = new Controller(this).getParentController('PrentController');
+    this.parentController = new Controller(this).getParentController(ParentController.name);
   }
   render() {
     return <div data-hook="blamos">{this.parentController.getBasicProp()}</div>;
@@ -113,6 +117,13 @@ describe('Controller', () => {
     someComponent.context = { controllers: { someParent: 'mocekdParentController' } };
     const testController = new Controller(someComponent);
     expect(testController.getParentController('someParent')).toEqual('mocekdParentController');
+  });
+
+  it('should allow to get parent controller using super', () => {
+    const someComponent = new SomeComponent();
+    someComponent.context = { controllers: { fakeParent: 'mocekdParentController' } };
+    const testController = new ParentController(someComponent);
+    expect(testController.testSuper()).toEqual('mocekdParentController');
   });
 
   it('should throw an error if parent controller does not exist', () => {

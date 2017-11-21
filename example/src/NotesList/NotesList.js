@@ -28,7 +28,6 @@ class NotesList extends React.Component {
     const value = e.target.value;
     if (e.keyCode === 13 && value !== '') {
       this.controller.addNote();
-      this.appController.increaseCounter();
     }
   }
 
@@ -45,7 +44,9 @@ class NotesList extends React.Component {
               <input
                 value={this.controller.getInputValue()}
                 onChange={(e) => this.controller.setInputValue(e.target.value)}
-                onKeyDown={this.handleOnKeyDown} />
+                onKeyDown={this.handleOnKeyDown}
+                data-hook="input"
+                />
             </div>
             <div className="rightPane">
               <textarea
