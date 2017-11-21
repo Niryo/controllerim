@@ -74,8 +74,8 @@ npm start
 Every view should have a controller that extends `Controller`. A controller is a plain javascript class that holds an observable state. a controller should contain only a **state** and methods that manipulate the state.
 Make sure to call `super(componentInstance)` from your controller constructor.
 Every controller exposes `getParentController()` (See bellow for more details).
-#### state: 
-Every controllers has a state prop. You should initiate the state inside the controller's constructor.
+* #### state: 
+Every controller has a state prop. You should initiate the state inside the controller's constructor.
 The observers (React Components that you wrapped within `observer`) will react to any change in the state, even changes of deep nested properties. for example:
 ```javascript
 changeName(){
@@ -83,9 +83,35 @@ changeName(){
 }
 ```
 
+* #### `getParentController(controllerName: string)`:
+Use this Controller method when you need to fetch data from a parent controller (not necessarily a direct parent).
+The name of the parent controller is the name of the class, as returned from Class.name.
+If for example your code looks like this: 
+```javascript
+class SomeParentController extends Controller{}
+````
+then the name will be 'SomeParentController' (`SomeParentController.name`).
+Make sure that the parent controller is provided using `ProvideController`.
+You cannot get the controller of a sibling component. If you need to use some data from a sibling component, put this data in the first common parent of the two components.
+
+If you need to interact with a parent controller from your React component, you can do something like this:
+```javascript
+ componentWillMount() {
+    this.controller = new SomeChild(this);
+    this.parentController = this.controller.getParentController(SomeParentController.name);
+  }
+```
+Or directly:
+```javascript
+ componentWillMount() {
+    this.parentController = new Controller(this).getParentController(SomeParentController.name);
+  }
+```
+
 #### Usage example:
 ```javascript
 import {Controller} from 'react-view-controllers';
+import {SomeParentController} from './SomeParentController';
 
 export class AppController extends Controller {
   constructor(comp) {
@@ -100,6 +126,11 @@ export class AppController extends Controller {
 
   increaseCounter() {
     this.state.totalNotesCount ++;
+  }
+  
+  getSomePropFromParentController() {
+  const someProp = super.getParentController(SomeParentController.name); //you can use the name of the controller as string,                                                                          //but this way is safer.
+  //do something with someProp...
   }
 }
 ```
@@ -161,28 +192,4 @@ class SomeParentComponent extends React.Component {
 In the above example, SomeChild and AnotherChild could make use of `SomeParentComponentController` using `getParentController()`.
 
 
-### `getParentController(controllerName: string)`:
-Use this Controller method inside `componentWillMount` to get a parentController.
-The name of the parent controller is the name of the class, as returned from Class.name.
-If for example your code looks like this: `class SomeParentController extends Controller{}`, then the name will be 'SomeParentController' (`SomeParentController.name`).
-Make sure that the parent controller is provided using `ProvideController`.
-You cannot get the controller of a sibling component. If you need to use some data from a sibling component, put this data in the first common parent of the two components.
-
-#### Usage example:
-
-```javascript
-import * as React from 'react';
-import SomeChildController from './SomeParentComponentController';
-
-class SomeChild extends React.Component {
-  componentWillMount() {
-    this.controller = new SomeChild(this);
-    this.parentController = this.controller.getParentController('SomeParentController');
-  }
-...
-}
-
-```
-
-In the example above we need to make sure that SomeParentController is provided using ProvideController.
 
