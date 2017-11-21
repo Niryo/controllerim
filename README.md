@@ -1,6 +1,9 @@
 # React View Controllers
 A state management library for react, based on Mobx
 
+## Installation
+`npm install react-view-controllers --save`
+
 ## Why 
 * **Zero boilerplate:** Controllers are just plain javascript classes, and All you need to do in order to make your views react to changes in the controllers, is just to wrap them with `observer` and you are good to go.
 
@@ -9,7 +12,7 @@ A state management library for react, based on Mobx
 
 * **Reusability:** Each component holds an *instance* of it's Controller (again, no singletons!), so you can create **multiple  instances of a component** (see example project). When you have a singleton store its much more cumbersome to support multiple instance of a component. 
 
-* **Better encapsulation**: A component can fetch data only from it's direct controller and it's parent controllers. You cannot feth data from sibling component's Controllers. If you need some piece of data to be visible for two sibling components, it means that this data should sit within their first common parent. If you need a piece of data to be visible to all other component, put it in your AppController.
+* **Better encapsulation**: A component can fetch data only from it's direct controller and it's parents controllers. You cannot feth data from sibling component's Controllers. If you need some piece of data to be visible for two sibling components, it means that this data should sit within their first common parent. If you need a piece of data to be visible to all other component, put it in your AppController.
 
 
 ## How
