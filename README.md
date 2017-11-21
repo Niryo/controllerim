@@ -4,6 +4,15 @@ A state management library for react, based on Mobx
 ## Installation
 `npm install react-view-controllers --save`
 
+## Agenda:
+* Every 'smart component' should have a controller.
+* A controller is a plain Javascript class and is not aware of the view it controls. A view could be easly replaced without the need for making changes in the controller. 
+* The controller holds a state and methods for manipulating the state. 
+* The controller's lifecycle should be bounded to the component's lifecycle. when a component enters the screen, A new fresh controller will be created, and when the component is destroyed the controller will be destroyed.
+* A component can get and set data from parents controllers (not necessarily direct parents), but it cannot use data from the controllers of sibling components.
+* Every controller should be explicitly provided in order to be used by child components.
+* Any change in the controller state will be automatically reflected in the view.
+
 ## Why 
 * **Zero boilerplate:** Controllers are just plain javascript classes, and All you need to do in order to make your views react to changes in the controllers, is just to wrap them with `observer` and you are good to go.
 
