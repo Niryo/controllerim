@@ -2,17 +2,64 @@
 A state management library for react, based on Mobx
 
 ## Why 
-* **Zero boilerplate:** Controllers are just plain javascript classes. All you need to do in order to make your views react to changes in the controllers, is just to wrap them with `observer` and you are good to go.
+* **Zero boilerplate:** Controllers are just plain javascript classes, and All you need to do in order to make your views react to changes in the controllers, is just to wrap them with `observer` and you are good to go.
 
-* **Never use a singleton again.** If you ever used Redux, you probably knows what happens when you forget to clean your stores when a component leave the screen- the next time it enters the screen, it fetch some old state related data from the store and bad things happens. `Controllers` lifecycle is binded to the component lifecycle, so you get a fresh controller out of the box whenever a component enters the screen.
+* **Never use a singleton again.** If you ever used Redux, you probably knows what happens when you forget to clean your stores when a component leave the screen- the next time it enters the screen, it fetches some old state-related data from the store and bad things happens. `Controllers` lifecycle is binded to the component lifecycle, so you get a fresh controller out of the box whenever a component enters the screen.
 
-* **Multiple instance support:** Each component holds an instance of it's Controller (no singletons!), so you can instanciate has many insctances of your component has you want.(see example project).
+* **Reusability** Each component holds an instance of it's Controller (no singletons!), so you can instanciate **multiple  instances of your component** (see example project). When you have a singleton store its much more cumbersome to support multiple instance of a component. 
 
 * **Better encapsulation**: A component can fetch data only from it's direct controller and it's parent controllers. You cannot feth data from sibling component's Controllers. If you need some piece of data to be visible for two sibling components, it means that this data should sit within their first common parent. If you need a piece of data to be visible to all other component, put it in your AppController.
 
 
 ## How
 Most of the heavy lifting is being done behind the scenes with the help of [Mobx](https://github.com/mobxjs/mobx).
+
+## How does it look:
+Inside `NotesListController.js`: 
+```javascript
+import { Controller } from 'react-view-controllers';
+
+export class NotesListController extends Controller {
+  constructor(compInstance) {
+    super(compInstance);
+    this.state = {
+      message: 'hello' 
+    };
+  }
+  getMessage() {
+    return this.state.message;
+  }
+  setMessage(value) {
+    this.state.message = value;
+  }
+}
+
+```
+
+Inside `NotesList.jsx`:
+```javascript
+import React, { Component } from 'react';
+import { observer } from 'react-view-controllers';
+import { NotesListController } from './NotesListController';
+
+class NotesList extends Component {
+  componentWillMount() {
+    this.controller = new NotesListController(this);
+  }
+
+  render() {
+    return (
+      <div>
+        <div>{this.controller.getMessage()}</div>
+        <button onClick={() => this.controller.setMessage('hello world!')}>Click me to change message</button>
+      </div>
+    );
+  }
+}
+
+export default observer(NotesList);
+
+```
 
 ### Example project
 after cloning the repository, nevigate to the example folder and type in your terminal:
