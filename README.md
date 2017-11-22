@@ -5,6 +5,7 @@ A state management library for react, based on Mobx
 `npm install react-view-controllers --save`
 
 ## Agenda:
+* React componets state is really good for dumb components, but its not so good for smart components. It cannot be esaly shared to deep nested children, it prevents separation of logic and view to different files, and it is not easly testable. React view controllers tackles exactluy those points.
 * Every 'smart component' should have a controller.
 * A controller is a plain Javascript class and is not aware of the view it controls. A view could be easly replaced without the need for making changes in the controller. 
 * The controller holds a state and methods for manipulating the state. 
