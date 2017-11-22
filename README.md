@@ -75,7 +75,10 @@ export default observer(NotesList);
 ```
 
 ### Example project
-after cloning the repository, nevigate to the example folder and type in your terminal:
+Here is a [Simple example project](https://niryo.github.io/react-view-controllers/)
+You can see the source code under the example folder: [example/src](example/src)
+If you want to run it locally:
+After cloning the repository, nevigate to the example folder and type in your terminal:
 ```
 npm install
 npm start
