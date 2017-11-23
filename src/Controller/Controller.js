@@ -1,18 +1,18 @@
 
 import { proxify } from './proxify';
 import { isPlainObject } from 'lodash';
-import {registerControllerForTest,isTestMod,getMockedParent} from '../TestUtils/testUtils';
+import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
 
 export class Controller {
   constructor(componentInstance) {
     if (!componentInstance) {
       throw new Error('Component instance is undefined. Make sure that you call \'new Controller(this)\' inside componentWillMount and that you are calling \'super(componentInstance)\' inside your controller constructor');
     }
-    if(isTestMod()){
+    if (isTestMod()) {
       registerControllerForTest(this, componentInstance);
     }
     this.component = componentInstance;
-    let internalState = { value: {} };
+    let internalState = { value: {}, isStateLocked: true, isAlreadySet: false};
     exposeInternalStateOnObject(this, internalState);
     if (!global.Proxy) {
       let previewsState = JSON.stringify(internalState.value);
@@ -27,12 +27,12 @@ export class Controller {
     }
     const noop = () => { };
     swizzlify(this, internalState, noop);
+    addMockStateFunction(this, internalState);
   }
-
 
   getParentController(parentControllerName) {
     const controllerName = this.constructor.name;
-    if(isTestMod()){
+    if (isTestMod()) {
       return getMockedParent(controllerName);
     }
     if (this.component.context === undefined) {
@@ -45,6 +45,12 @@ export class Controller {
     return parentController;
   }
 }
+const stateGuard = (internalState) => {
+  if (internalState.isStateLocked && internalState.isAlreadySet) {
+    throw new Error('Cannot touch state outside of controller');
+  }
+  internalState.isAlreadySet = true;
+};
 
 const exposeInternalStateOnObject = (obj, internalState) => {
   Object.defineProperty(obj, 'state', {
@@ -52,9 +58,11 @@ const exposeInternalStateOnObject = (obj, internalState) => {
       if (!isPlainObject(value)) {
         throw new Error('State should be initialize only with plain object');
       }
+      stateGuard(internalState);
       internalState.value = global.Proxy ? proxify(value) : value;
     },
     get: function () {
+      stateGuard(internalState);
       return internalState.value;
     }
   });
@@ -74,9 +82,25 @@ export const swizzlify = (context, internalState, injectedFunc) => {
   methodNames.forEach((name) => {
     const originalMethod = newContext[name];
     context[name] = (...args) => {
+      internalState.isStateLocked = false;
       const returnValue = originalMethod(...args);
+      internalState.isStateLocked = true;
       injectedFunc();
       return returnValue;
     };
+  });
+};
+
+const addMockStateFunction = (obj, internalState) => {
+  Object.defineProperty(obj, 'mockState', {
+    enumerable: false,
+    get: () => {
+      return (state) => {
+        if(!isTestMod()){
+          throw new Error('mockState can be used only in test mode. if you are using it inside your tests, make sure that you are calling TestUtils.init()');
+        }
+        Object.assign(internalState.value, state);
+      };
+    }
   });
 };

@@ -19,14 +19,6 @@ export const registerControllerForTest = (controller, component) => {
   component[TEST_ID] = counter;
   controllers[counter] = controller;
   counter++;
-
-  attachMockState(controller);
-};
-
-const attachMockState = (controller) => {
-  controller.mockState = (state) => {
-    Object.assign(controller.state, state);
-  };
 };
 
 const getControllerOf = (component) => {
@@ -49,8 +41,8 @@ const clean = () => {
 const mockControllerParent = (controllerName, ParentClass, state) => {
   const parent = new ParentClass(FakeComponent);
   mockedParentsOfControllers[controllerName] = parent;
-  if(state) {
-    Object.assign(parent.state, state);
+  if (state) {
+    parent.mockState(state);
   }
 };
 

@@ -84,6 +84,11 @@ describe('TestUtils', () => {
     expect(component.find('[data-hook="name"]').text()).toEqual('mockedName');
   });
 
+  it('mockState should throw an error if not in test mode (not calling init)', () => {
+    const controller = new Controller(new Test());
+    expect(() => controller.mockState({ name: 'mockedName' })).toThrowError('mockState can be used only in test mode. if you are using it inside your tests, make sure that you are calling TestUtils.init()');
+  });
+
   it('should allow mocking parent before controller created', () => {
     TestUtils.init();
     TestUtils.mockControllerParent(TestController.name, FakeParent);

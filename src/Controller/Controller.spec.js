@@ -9,6 +9,19 @@ class SomeComponent extends React.Component {
   }
 }
 
+class TestStateInitController extends Controller {
+  constructor(comp) {
+    super(comp);
+    this.state = {};
+  }
+  setState(state) {
+    this.state = state;
+  }
+  getState() {
+    return this.state;
+  }
+}
+
 let parentComponentRenderCount = 0;
 
 class ParentController extends Controller {
@@ -27,7 +40,7 @@ class ParentController extends Controller {
 
   changeBasicProp() {
     this.state.basicProp = 'changed!';
-  } 
+  }
 
   getObjectProp() {
     return this.state.objectProp;
@@ -53,8 +66,8 @@ class ParentController extends Controller {
     this.state.dynamicObject.foo = Math.random();
   }
 
-  setBasicProp(value1,value2){
-    this.state.basicProp = value1+value2;
+  setBasicProp(value1, value2) {
+    this.state.basicProp = value1 + value2;
   }
 
   testSuper() {
@@ -80,7 +93,7 @@ class Parent extends React.Component {
         <button data-hook="addArrayToDynamicObjectButton" onClick={() => this.controller.addArrayToDynamicObject()} />
         <button data-hook="addNameToDynamicObjectArrayButton" onClick={() => this.controller.addNameToDynamicObjectArray()} />
         <button data-hook="changeMultiPropsButton" onClick={() => this.controller.changeMultiPropsButton()} />
-        <button data-hook="applySetterWithArgsButton" onClick={() => this.controller.setBasicProp('value1','value2')} />
+        <button data-hook="applySetterWithArgsButton" onClick={() => this.controller.setBasicProp('value1', 'value2')} />
 
       </div>
     </ProvideController>;
@@ -104,11 +117,11 @@ describe('Controller', () => {
   });
 
   it('should throw error if componentInstance was not pass to the controller constructor', () => {
-    expect(() => {new Controller();}).toThrowError('Component instance is undefined. Make sure that you call \'new Controller(this)\' inside componentWillMount and that you are calling \'super(componentInstance)\' inside your controller constructor');
+    expect(() => { new Controller(); }).toThrowError('Component instance is undefined. Make sure that you call \'new Controller(this)\' inside componentWillMount and that you are calling \'super(componentInstance)\' inside your controller constructor');
   });
 
   it.skip('should throw error if componentInstance is not a react class', () => {
-    expect(() => {new Controller({someObj: 'bla'});}).toThrowError('bla');
+    expect(() => { new Controller({ someObj: 'bla' }); }).toThrowError('bla');
   });
 
 
@@ -148,14 +161,22 @@ describe('Controller', () => {
   });
 
   it('should allow setting the state only with object', () => {
+    const controller = new TestStateInitController(Parent);
+    controller.setState({ hello: true });
+    expect(controller.getState()).toEqual({ hello: true });
+    expect(() =>  controller.setState(true) ).toThrowError('State should be initialize only with plain object');
+    expect(() => controller.setState(['1', '2'])).toThrowError('State should be initialize only with plain object');
+    expect(() => controller.setState(() => {})).toThrowError('State should be initialize only with plain object');
+    expect(() => controller.setState('string')).toThrowError('State should be initialize only with plain object');
+    expect(() => controller.setState(['1', '2'])).toThrowError('State should be initialize only with plain object');
+  });
+
+  it('should throw an error when trying to change the state from outside of the contoller', () => {
     const testController = new Controller(Parent);
-    testController.state = { hello: true };
-    expect(testController.state).toEqual({ hello: true });
-    expect(() => { testController.state = true; }).toThrowError('State should be initialize only with plain object');
-    expect(() => { testController.state = ['1', '2']; }).toThrowError('State should be initialize only with plain object');
-    expect(() => { testController.state = () => { }; }).toThrowError('State should be initialize only with plain object');
-    expect(() => { testController.state = 'string'; }).toThrowError('State should be initialize only with plain object');
-    expect(() => { testController.state = 8; }).toThrowError('State should be initialize only with plain object');
+    testController.state = { FirstChangeAllwaysAllowed: 'change' };
+    //after state is set for the first time, no changes outside the controller are allowed:
+    expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot touch state outside of controller');
+    expect(() => testController.state.bla = 'bla').toThrowError('Cannot touch state outside of controller');
   });
 
   describe('Complex tests', () => {
@@ -232,7 +253,7 @@ describe('Controller', () => {
       const OberverParent = observer(Parent);
       const component = mount(<OberverParent />);
       expect(parentComponentRenderCount).toEqual(2); //todo: why 2? why we are wasting a render
-      global.Proxy = backupProxy;      
+      global.Proxy = backupProxy;
       component.find('[data-hook="changeMultiPropsButton"]').simulate('click');
       expect(parentComponentRenderCount).toEqual(3);
     });
@@ -240,7 +261,7 @@ describe('Controller', () => {
     it('should allow setters with args', () => {
       const OberverParent = observer(Parent);
       const component = mount(<OberverParent />);
-      global.Proxy = backupProxy;            
+      global.Proxy = backupProxy;
       component.find('[data-hook="applySetterWithArgsButton"]').simulate('click');
       expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('value1value2');
     });
