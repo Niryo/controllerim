@@ -5,7 +5,7 @@ A state management library for react, based on Mobx
 `npm install react-view-controllers --save`
 
 
-## How does it look:
+## Usage:
 Inside `NotesListController.js`: 
 ```javascript
 import { Controller } from 'react-view-controllers';
