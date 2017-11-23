@@ -5,7 +5,7 @@ A state management library for react, based on Mobx
 `npm install react-view-controllers --save`
 
 
-## Usage:
+## Baic usage example:
 Inside `NotesListController.js`: 
 ```javascript
 import { Controller } from 'react-view-controllers';
@@ -54,13 +54,12 @@ export default observer(NotesList);
 ## Agenda:
 * Data flow is unidirectional- from parent down to the children. A parent cannot fetch data from child controllers.
 * Every 'smart component' should have a controller.
-* A controller is a plain Javascript class and is not aware of the view it controls. A view could be easly replaced without the need for making changes in the controller. 
+* A controller is a plain Javascript class and is not tightly coupled to any view.
 * The controller holds a state and methods for manipulating the state. 
 * The controller's lifecycle should be bounded to the component's lifecycle. when a component enters the screen, A new fresh controller will be created, and when the component is destroyed the controller will be destroyed.
-* A component can get and set data from parents controllers (not necessarily direct parents), but it cannot use data from the controllers of sibling components.
-* Every controller should be explicitly provided in order to be used by child components.
-* Any change in the controller state will be automatically reflected in the view.
-* React basic state (componet's state) is really good for dumb components, but its not so good for smart components. It cannot be esaly shared to deep nested children, it prevents separation of logic and view to different files, and it is not easly testable. React view controllers tackles exactly those points.
+* A component can get and set data from parents' controllers (not necessarily direct parents), but it cannot use data from the controllers of sibling components.
+* Every controller should be explicitly exposed (provided) in order to be used by child components.
+* Any changes to the controller state will be automatically reflected by the view.
 
 ## Why 
 * **Zero boilerplate:** Controllers are just plain javascript classes, and All you need to do in order to make your views react to changes in the controllers, is just to wrap them with `observer` and you are good to go.
@@ -72,6 +71,7 @@ export default observer(NotesList);
 
 * **Better encapsulation**: A component can fetch data only from it's direct controller and it's parents controllers. You cannot feth data from sibling component's Controllers. If you need some piece of data to be visible for two sibling components, it means that this data should sit within their first common parent. If you need a piece of data to be visible to all other component, put it in your AppController.
 
+* **Mimics React's basic state (native componet's state):** React state is really good for dumb components, but its not so good for smart components. It cannot be esaly shared to deep nested children, it prevents separation of logic and view to different files, and it is not easly testable. React view controllers tackles exactly those points.
 
 ## How
 Most of the heavy lifting is being done behind the scenes with the help of [Mobx](https://github.com/mobxjs/mobx).
