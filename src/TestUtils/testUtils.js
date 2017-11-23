@@ -38,7 +38,7 @@ const clean = () => {
   mockedParentsOfControllers = {};
 };
 
-const mockControllerParent = (controllerName, ParentClass, state) => {
+const mockParentOf = (controllerName, ParentClass, state) => {
   const parent = new ParentClass(FakeComponent);
   mockedParentsOfControllers[controllerName] = parent;
   if (state) {
@@ -53,5 +53,5 @@ export const TestUtils = {
   getControllerOf,
   init,
   clean,
-  mockControllerParent
+  mockParentOf
 };

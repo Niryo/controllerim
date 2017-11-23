@@ -91,14 +91,14 @@ describe('TestUtils', () => {
 
   it('should allow mocking parent before controller created', () => {
     TestUtils.init();
-    TestUtils.mockControllerParent(TestController.name, FakeParent);
+    TestUtils.mockParentOf(TestController.name, FakeParent);
     const component = mount(<TestWithParent/>);
     expect(component.find('[data-hook="fakeProp"]').text()).toEqual('fakeProp');
   });
 
   it('should allow mocking parent with state', () => {
     TestUtils.init();
-    TestUtils.mockControllerParent(TestController.name, FakeParent, {fakeProp: 'changed!'});
+    TestUtils.mockParentOf(TestController.name, FakeParent, {fakeProp: 'changed!'});
     const component = mount(<TestWithParent/>);
     expect(component.find('[data-hook="fakeProp"]').text()).toEqual('changed!');
   });
