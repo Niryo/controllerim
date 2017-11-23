@@ -5,14 +5,14 @@ import { mount } from 'enzyme';
 import { TestUtils } from 'react-view-controllers';
 import { NotesListController } from './NotesListController';
 
-describe('App', () => {
+describe('NotesList', () => {
   beforeEach(() => {
     TestUtils.init();
-    TestUtils.mockControllerParent(NotesListController.name, AppController);    
+    TestUtils.mockParentOf(NotesListController.name, AppController);    
   });
 
   afterEach(() => {
-    TestUtils.clean;
+    TestUtils.clean();
   });
 
   it('should show list of notes', () => {
