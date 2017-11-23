@@ -169,7 +169,6 @@ class App extends React.Component {
 #### `observer(ReactComponent)`
 To become reactive, every React component that uses a controller should be wrapped within `observer`. 
 
-#### Usage example:
 ```javascript
 import {observer} from 'react-view-controllers';
 
@@ -184,7 +183,6 @@ export default observer(SomeSmartComponent)
 #### `<ProvideController controller={controllerInstance}/>`:
 If you want your controller instance to be visible to your child components, you must explicitly provide it using ProvideController.
 
-#### Usage example:
 ```javascript
 import * as React from 'react';
 import SomeParentComponentController from './SomeParentComponentController';
