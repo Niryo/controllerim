@@ -1,6 +1,7 @@
 # React View Controllers
 A state management library for react, based on Mobx
 
+[![npm version](https://img.shields.io/npm/v/react-view-controllers.svg)](https://www.npmjs.com/package/react-view-controllers)
 ## Installation
 `npm install react-view-controllers --save`
 
