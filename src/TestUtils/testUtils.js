@@ -46,6 +46,10 @@ const mockParentOf = (controllerName, ParentClass, state) => {
   }
 };
 
+const mockStateOf = (controllerInstance, state) => {
+  controllerInstance.mockState(state);
+};
+
 export const getMockedParent = (name) => {
   return mockedParentsOfControllers[name];
 };
@@ -53,5 +57,6 @@ export const TestUtils = {
   getControllerOf,
   init,
   clean,
-  mockParentOf
+  mockParentOf,
+  mockStateOf
 };

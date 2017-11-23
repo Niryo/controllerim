@@ -76,11 +76,11 @@ describe('TestUtils', () => {
     expect(TestUtils.registerControllerForDebug.mock.calls.length).toEqual(0);
   });
 
-  it('should expose a mockState function on the controller', () => {
+  it('should allow mocking the state of a controller', () => {
     TestUtils.init();
     const component = mount(<Test />);
     const controller = TestUtils.getControllerOf(component.instance());
-    controller.mockState({ name: 'mockedName' });
+    TestUtils.mockStateOf(controller,{ name: 'mockedName' });
     expect(component.find('[data-hook="name"]').text()).toEqual('mockedName');
   });
 
