@@ -87,7 +87,7 @@ npm start
 ```
 
 ## Api
-### `Controller(componentInstance)`
+#### `Controller(componentInstance)`
 Every view should have a controller that extends `Controller`. A controller is a plain javascript class that holds an observable state. a controller should contain only a **state** and methods that manipulate the state.
 Make sure to call `super(componentInstance)` from your controller constructor.
 Every controller exposes `getParentController()` (See bellow for more details).
@@ -165,7 +165,7 @@ class App extends React.Component {
 ```
 
 
-### `observer(ReactComponent)`
+#### `observer(ReactComponent)`
 To become reactive, every React component that uses a controller should be wrapped within `observer`. 
 
 #### Usage example:
@@ -180,7 +180,7 @@ export default observer(SomeSmartComponent)
 ```
 
 
-### `<ProvideController controller={controllerInstance}/>`:
+#### `<ProvideController controller={controllerInstance}/>`:
 If you want your controller instance to be visible to your child components, you must explicitly provide it using ProvideController.
 
 #### Usage example:
@@ -209,4 +209,52 @@ class SomeParentComponent extends React.Component {
 In the above example, SomeChild and AnotherChild could make use of `SomeParentComponentController` using `getParentController()`.
 
 
+## Testing Api
+#### `TestUtils.init()`:
+You must call this method before using any other test utils.
+
+#### `TestUtils.clean()`:
+You must call this method after each test (if you used TestUtils.init());
+
+```javascript
+import {TestUtils} from 'react-view-controllers';
+
+beforeEach(() => {
+   TestUtils.init();
+ });
+ 
+ afterEach(() => {
+   TestUtils.clean();
+ });
+
+```
+#### `getControllerOf(componentInstance)`:
+use this method to extract component's controller for testing.
+
+#### `mockStateOf(controllerInstance: controller, state: object)`:
+use this method when you need to mock a state of a controller.
+
+```javascript
+  it('some Test', () => {
+    TestUtils.init();
+    const component = mount(<Test />);
+    const controller = TestUtils.getControllerOf(component.instance());
+    TestUtils.mockStateOf(controller,{ name: 'mockedName' });
+    expect(component.find('[data-hook="name"]').text()).toEqual('mockedName');
+  });
+```
+
+#### `mockParentOf(controllerName: string, ParentController: Controller, parentState?: object)`:
+Use this method if you need to mock parent controllers of component.
+* **controllerName**: The name of the controller which his parent needs to be mocked
+* **ParentController** The parent controller class that will be mocked.
+* **parentState** The state of the mocekd parent.
+
+```javascript
+  beforeEach(() => {
+    TestUtils.init();
+    TestUtils.mockParentOf(NotesListController.name, AppController);    
+  });
+
+```
 
