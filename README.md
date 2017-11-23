@@ -52,6 +52,7 @@ export default observer(NotesList);
 
 ```
 ## Agenda:
+* Data flow is unidirectional- from parent down to the children. A parent cannot fetch data from child controllers.
 * Every 'smart component' should have a controller.
 * A controller is a plain Javascript class and is not aware of the view it controls. A view could be easly replaced without the need for making changes in the controller. 
 * The controller holds a state and methods for manipulating the state. 
