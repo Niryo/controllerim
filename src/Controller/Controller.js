@@ -31,7 +31,7 @@ export class Controller {
   }
 
   getParentController(parentControllerName) {
-    const controllerName = this.constructor.name;
+    const controllerName = this.__controllerName || this.constructor.name;
     if (this.component.context === undefined) {
       throw new Error(`Context is undefined. Make sure that you initialized ${controllerName} in componentWillMount()`);
     }
@@ -73,7 +73,7 @@ export const swizzlify = (context, internalState, injectedFunc) => {
   const controllerProto = Reflect.getPrototypeOf(context);
   let methodNames = Reflect.ownKeys(controllerProto);
   methodNames = methodNames.filter((name) => name !== 'constructor' && name !== 'getParentController');
-  const newContext = { state: internalState.value, component: context.component };
+  const newContext = { state: internalState.value, component: context.component, __controllerName: context.constructor.name };
   exposeInternalStateOnObject(newContext, internalState);
 
   methodNames.forEach((name) => {

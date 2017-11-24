@@ -23,6 +23,9 @@ class TestController extends Controller {
   getName() {
     return this.state.name;
   }
+  getFakeParentControllerProp() {
+    return super.getParentController(FakeParent.name).getFakeProp();
+  }
 }
 
 class TestNotObserved extends React.Component {
@@ -94,6 +97,13 @@ describe('TestUtils', () => {
     TestUtils.mockParentOf(TestController.name, FakeParent);
     const component = mount(<TestWithParent/>);
     expect(component.find('[data-hook="fakeProp"]').text()).toEqual('fakeProp');
+  });
+
+  it('should allow mocking parent when using super', () => {
+    TestUtils.init();
+    TestUtils.mockParentOf(TestController.name, FakeParent);
+    const controller = new TestController({context: {}});
+    expect(controller.getFakeParentControllerProp()).toEqual('fakeProp');
   });
 
   it('should return a real parent if exists', () => {
