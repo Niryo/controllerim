@@ -1,7 +1,7 @@
 {
   "name": "react-view-controllers",
   "version": "1.19.0",
-  "description": "State management library for react, based on Mobx",
+  "description": "A State management library for react, based on Mobx",
   "main": "dist/index.js",
   "scripts": {
     "test": "npm run build && jest",
