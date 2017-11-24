@@ -2,6 +2,7 @@
 import { proxify } from './proxify';
 import { isPlainObject } from 'lodash';
 import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
+import {transaction} from 'mobx';
 
 export class Controller {
   constructor(componentInstance) {
@@ -62,7 +63,7 @@ const exposeInternalStateOnObject = (obj, internalState) => {
       stateGuard(internalState);
       internalState.value = global.Proxy ? proxify(value) : value;
     },
-    get: function () {
+    get: function () {  
       stateGuard(internalState);
       return internalState.value;
     }
@@ -84,8 +85,11 @@ export const swizzlify = (context, internalState, injectedFunc) => {
     const originalMethod = newContext[name];
     context[name] = (...args) => {
       internalState.isStateLocked = false;
-      const returnValue = originalMethod(...args);
-      internalState.isStateLocked = true;
+      let returnValue;
+      transaction(() => {
+        returnValue = originalMethod(...args);
+      });
+      internalState.isStateLocked = true;      
       injectedFunc();
       return returnValue;
     };

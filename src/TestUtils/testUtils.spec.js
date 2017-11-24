@@ -8,11 +8,24 @@ let savedControllerInstance = undefined;
 class FakeParent extends Controller {
   constructor(comp) {
     super(comp);
-    this.state = { fakeProp: 'fakeProp' };
+    this.state = { fakeProp: 'fakeProp', foo: 'bar', counter: 0 };
   }
 
   getFakeProp() {
     return this.state.fakeProp;
+  }
+
+  increasCounter() {
+    this.state.fakeProp = 'bla';
+    this.state.counter+=1;
+  }
+
+  setMultipleProp() {
+    this.state.fakeProp ='hello';
+    this.state.foo = 'not a bar';
+  }
+  getCounter() {
+    return this.state.counter;
   }
 }
 class TestController extends Controller {
@@ -25,6 +38,10 @@ class TestController extends Controller {
   }
   getFakeParentControllerProp() {
     return super.getParentController(FakeParent.name).getFakeProp();
+  }
+
+  increasCounterInParent() {
+    super.getParentController(FakeParent.name).increasCounter();
   }
 }
 
@@ -113,6 +130,19 @@ describe('TestUtils', () => {
     expect(component.find('[data-hook="fakeProp"]').text()).toEqual('fakeProp');
   });
 
+  it('setting multiple props', () => {
+    //this test is a result of a specific bug when setting multiple props.
+    //caused the component to rerender and try to fetch props in locked state.
+    //todo: remove transaction from controller and understand why it happens only in tests.
+    TestUtils.init();
+    TestUtils.mockParentOf(TestController.name, FakeParent);
+    const component = mount(<TestWithParent />);
+    const testController = TestUtils.getControllerOf(component.instance());    
+    const fakeParentController = testController.getParentController(FakeParent.name);
+    testController.increasCounterInParent();
+    expect(fakeParentController.getCounter()).toEqual(1);
+  });
+
   it('should allow mocking parent with state', () => {
     TestUtils.init();
     TestUtils.mockParentOf(TestController.name, FakeParent, {fakeProp: 'changed!'});
@@ -120,3 +150,4 @@ describe('TestUtils', () => {
     expect(component.find('[data-hook="fakeProp"]').text()).toEqual('changed!');
   });
 });
+
