@@ -13,7 +13,7 @@ class App extends Component {
   render() {
     return (
       <ProvideController controller={this.controller}>
-        <div class="appContainer">
+        <div className="appContainer">
           <h1>This is an example of multiple instacne of the same component (with different themes)</h1>
           <h2 data-hook="counter">Total notes count: {this.controller.getTotalNotesCount()}</h2>
           <label className="userNameInputLabel">Enter Your Name:</label>

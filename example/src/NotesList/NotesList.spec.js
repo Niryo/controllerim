@@ -20,12 +20,19 @@ describe('NotesList', () => {
     expect(component.find('[data-hook="listItem"]').text()).toEqual('firstItem');
   });
 
-  it.skip('should allow adding new note', () => {
+  it('should allow adding new note', () => {
     const component = mount(<NotesList />);
-    const test = TestUtils.getControllerOf(component.instance());
-    const test2 = test.getParentController('AppController');
-    component.find('[data-hook="input"]').instance().value = 'bla';
-    component.find('[data-hook="input"]').simulate('keyDown', {which: 13});
+    component.find('[data-hook="input"]').simulate('change', {target: {value: 'bla'}});
+    component.find('[data-hook="input"]').simulate('keyDown', {keyCode: 13, target: {value: 'bla'}});
+    expect(component.find('[data-hook="listItem"]').at(1).text()).toBe('bla');
+  });
+
+  it('should increase counter when adding new note', () => {
+    const component = mount(<NotesList />);
+    const notesController = TestUtils.getControllerOf(component.instance());
+    const appController = notesController.getParentController('AppController');
+    notesController.addNote();
+    expect(appController.getTotalNotesCount()).toEqual(3);
   });
 });
 
