@@ -1,6 +1,6 @@
 {
   "name": "react-view-controllers",
-  "version": "1.20.0",
+  "version": "1.21.0",
   "description": "A State management library for react, based on Mobx",
   "main": "dist/index.js",
   "scripts": {
