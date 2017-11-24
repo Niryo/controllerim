@@ -32,15 +32,16 @@ export class Controller {
 
   getParentController(parentControllerName) {
     const controllerName = this.constructor.name;
-    if (isTestMod()) {
-      return getMockedParent(controllerName);
-    }
     if (this.component.context === undefined) {
       throw new Error(`Context is undefined. Make sure that you initialized ${controllerName} in componentWillMount()`);
     }
     const parentController = this.component.context.controllers && this.component.context.controllers[parentControllerName];
     if (!parentController) {
-      throw new Error(`Parent controller does not exist. make sure that ${parentControllerName} is parent of ${controllerName} and that you provided it using ProvideController`);
+      if (isTestMod()) {
+        return getMockedParent(controllerName);
+      } else {
+        throw new Error(`Parent controller does not exist. make sure that ${parentControllerName} is parent of ${controllerName} and that you provided it using ProvideController`);
+      }
     }
     return parentController;
   }

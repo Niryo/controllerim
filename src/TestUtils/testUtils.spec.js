@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Controller, observer } from '../index';
+import { Controller, observer, ProvideController } from '../index';
 import { mount } from 'enzyme';
 import { TestUtils } from '../index';
 
@@ -93,6 +93,13 @@ describe('TestUtils', () => {
     TestUtils.init();
     TestUtils.mockParentOf(TestController.name, FakeParent);
     const component = mount(<TestWithParent/>);
+    expect(component.find('[data-hook="fakeProp"]').text()).toEqual('fakeProp');
+  });
+
+  it('should return a real parent if exists', () => {
+    TestUtils.init();
+    const fakeParentController = new FakeParent(new Test());
+    const component = mount(<ProvideController controller={fakeParentController}><TestWithParent/></ProvideController>);
     expect(component.find('[data-hook="fakeProp"]').text()).toEqual('fakeProp');
   });
 
