@@ -1,7 +1,7 @@
 import React from 'react';
 import App from './App';
 import { mount } from 'enzyme';
-import { TestUtils } from 'react-view-controllers';
+import { TestUtils } from 'controllerim';
 describe('App', () => {
   beforeEach(() => {
     TestUtils.init();

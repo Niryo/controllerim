@@ -1,4 +1,4 @@
-import { Controller } from 'react-view-controllers';
+import { Controller } from 'controllerim';
 import {AppController} from '../App/AppController';
 export class NotesListController extends Controller {
   constructor(compInstance) {

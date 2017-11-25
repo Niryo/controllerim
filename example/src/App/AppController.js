@@ -1,4 +1,4 @@
-import { Controller } from 'react-view-controllers';
+import { Controller } from 'controllerim';
 
 export class AppController extends Controller {
   constructor(comp) {

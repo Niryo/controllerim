@@ -2,7 +2,7 @@ import React from 'react';
 import {AppController} from '../App/AppController';
 import NotesList from './NotesList';
 import { mount } from 'enzyme';
-import { TestUtils } from 'react-view-controllers';
+import { TestUtils } from 'controllerim';
 import { NotesListController } from './NotesListController';
 
 describe('NotesList', () => {

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { NotesListController } from './NotesListController';
-import { observer } from 'react-view-controllers';
+import { observer } from 'controllerim';
 import {AppController} from '../App/AppController';
 import './NotesList.css';
 class NotesList extends React.Component {

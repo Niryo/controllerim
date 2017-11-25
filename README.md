@@ -1,15 +1,15 @@
-# React View Controllers
+# Controllerim
 A state management library for react, based on Mobx
 
-[![npm version](https://img.shields.io/npm/v/react-view-controllers.svg)](https://www.npmjs.com/package/react-view-controllers)
+[![npm version](https://img.shields.io/npm/v/controllerim.svg)](https://www.npmjs.com/package/controllerim)
 ## Installation
-`npm install react-view-controllers --save`
+`npm install controllerim --save`
 
 
 ## Basic usage example:
 Inside `NotesListController.js`: 
 ```javascript
-import { Controller } from 'react-view-controllers';
+import { Controller } from 'controllerim';
 
 export class NotesListController extends Controller {
   constructor(compInstance) {
@@ -31,7 +31,7 @@ export class NotesListController extends Controller {
 Inside `NotesList.jsx`:
 ```javascript
 import React, { Component } from 'react';
-import { observer } from 'react-view-controllers';
+import { observer } from 'controllerim';
 import { NotesListController } from './NotesListController';
 
 class NotesList extends Component {
@@ -72,13 +72,13 @@ export default observer(NotesList);
 
 * **Better encapsulation**: A component can fetch data only from it's direct controller and it's parents controllers. You cannot feth data from sibling component's Controllers. If you need some piece of data to be visible for two sibling components, it means that this data should sit within their first common parent. If you need a piece of data to be visible to all other component, put it in your AppController.
 
-* **Mimics React's basic state (native componet's state):** React state is really good for dumb components, but its not so good for smart components. It cannot be esaly shared to deep nested children, it prevents separation of logic and view to different files, and it is not easly testable. React view controllers tackles exactly those points.
+* **Mimics React's basic state (native componet's state):** React state is really good for dumb components, but its not so good for smart components. It cannot be esaly shared to deep nested children, it prevents separation of logic and view to different files, and it is not easly testable. controllerim tackles exactly those points.
 
 ## How
 Most of the heavy lifting is being done behind the scenes with the help of [Mobx](https://github.com/mobxjs/mobx).
 
 ### Example project
-Here is a [Simple example project](https://niryo.github.io/react-view-controllers/)
+Here is a [Simple example project](https://niryo.github.io/controllerim/)
 You can see the source code under the example folder: [example/src](example/src)
 If you want to run it locally:
 After cloning the repository, nevigate to the example folder and type in your terminal:
@@ -128,7 +128,7 @@ Or directly:
 
 #### Usage example:
 ```javascript
-import {Controller} from 'react-view-controllers';
+import {Controller} from 'controllerim';
 import {SomeParentController} from './SomeParentController';
 
 export class AppController extends Controller {
@@ -156,7 +156,7 @@ export class AppController extends Controller {
 Your React component will create an instance of the Controller inside **`componentWillMount`** like this:
 
 ```javascript
-import {AppController} from 'react-view-controllers';
+import {AppController} from 'controllerim';
 
 class App extends React.Component {
    componentWillMount() {
@@ -170,7 +170,7 @@ class App extends React.Component {
 To become reactive, every React component that uses a controller should be wrapped within `observer`. 
 
 ```javascript
-import {observer} from 'react-view-controllers';
+import {observer} from 'controllerim';
 
 class SomeSmartComponent extends React.Component {
 ...
@@ -186,7 +186,7 @@ If you want your controller instance to be visible to your child components, you
 ```javascript
 import * as React from 'react';
 import SomeParentComponentController from './SomeParentComponentController';
-import { observer, ProvideController } from 'react-view-controllers';
+import { observer, ProvideController } from 'controllerim';
 
 class SomeParentComponent extends React.Component {
   componentWillMount() {
@@ -216,7 +216,7 @@ You must call this method before using any other test utils.
 You must call this method after each test (if you used TestUtils.init());
 
 ```javascript
-import {TestUtils} from 'react-view-controllers';
+import {TestUtils} from 'controllerim';
 
 beforeEach(() => {
    TestUtils.init();

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import NotesList from '../NotesList/NotesList';
-import { observer, ProvideController } from 'react-view-controllers';
+import { observer, ProvideController } from 'controllerim';
 
 import { AppController } from './AppController';
 
