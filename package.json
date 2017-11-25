@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "npm run build && jest",
-    "build": "eslint src --fix && babel src -d dist",
+    "build": "eslint src --fix && jest && babel src -d dist",
     "minorUpdate": "npm run build && npm version minor && npm publish"
   },
   "author": "niryosef89@gmail.com",
@@ -31,7 +31,8 @@
       "./jestSetup.js"
     ],
     "testPathIgnorePatterns": [
-      "./dist"
+      "./dist",
+      "./example"
     ]
   },
   "babel": {
