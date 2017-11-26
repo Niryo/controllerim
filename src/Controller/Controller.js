@@ -49,7 +49,7 @@ export class Controller {
 }
 const stateGuard = (internalState) => {// eslint-disable-line no-unused-vars
   if (internalState.isStateLocked && internalState.isAlreadySet) {
-    throw new Error('Cannot touch state outside of controller');
+    throw new Error('Cannot set state from outside of a controller');
   }
   internalState.isAlreadySet = true;
 };
@@ -60,11 +60,10 @@ const exposeInternalStateOnObject = (obj, internalState) => {
       if (!isPlainObject(value)) {
         throw new Error('State should be initialize only with plain object');
       }
-      // stateGuard(internalState);
+      stateGuard(internalState);
       internalState.value = global.Proxy ? proxify(value) : value;
     },
     get: function () {  
-      // stateGuard(internalState);
       return internalState.value;
     }
   });

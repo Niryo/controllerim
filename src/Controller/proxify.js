@@ -2,6 +2,16 @@
 import { observable } from 'mobx';
 import { keys, isObjectLike, isString } from 'lodash';
 
+const alreadyProxiedObjects = new WeakMap();
+
+const markAsProxified = (obj) => {
+  alreadyProxiedObjects.set(obj, true);
+};
+
+const isAlreadyProxified = (obj) => {
+  return alreadyProxiedObjects.has(obj);
+};
+
 export const proxify = (obj) => {
   const tracker = createObservableMap(obj);
   const handler = {
@@ -19,6 +29,9 @@ export const proxify = (obj) => {
     set: (target, prop, value) => {
       let newValue = value;
       if (isObjectLike(value)) {
+        if(isAlreadyProxified(value)) {
+          throw new Error(`Cannot set state with other controller's state.`);
+        }
         newValue = proxify(value);
       }
       target[prop] = newValue;
@@ -26,7 +39,9 @@ export const proxify = (obj) => {
       return true;
     }
   };
-  return new Proxy(obj, handler);
+  const proxifiedObject = new Proxy(obj, handler);
+  markAsProxified(proxifiedObject);
+  return proxifiedObject;
 };
 
 const createObservableMap = (obj) => {

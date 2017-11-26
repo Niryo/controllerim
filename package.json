@@ -4,8 +4,10 @@
   "description": "A State management library for react, based on Mobx",
   "main": "dist/index.js",
   "scripts": {
-    "test": "npm run build && jest",
-    "build": "eslint src --fix && jest && babel src -d dist",
+    "test": "npm run babel && jest",
+    "lint": "eslint src --fix ",
+    "babel": " babel src -d dist",
+    "build": "npm run lint && jest && npm run babel",
     "minorUpdate": "npm run build && npm version minor && npm publish"
   },
   "author": "niryosef89@gmail.com",

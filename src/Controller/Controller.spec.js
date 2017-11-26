@@ -75,6 +75,10 @@ class ParentController extends Controller {
   testSuper() {
     return super.getParentController('fakeParent');
   }
+
+  getState() {
+    return this.state;
+  }
 }
 
 class Parent extends React.Component {
@@ -172,13 +176,28 @@ describe('Controller', () => {
     expect(() => controller.setState(['1', '2'])).toThrowError('State should be initialize only with plain object');
   });
 
-  // it('should throw an error when trying to change the state from outside of the contoller', () => {
-  //   const testController = new Controller(new Parent());
-  //   testController.state = { FirstChangeAllwaysAllowed: 'change' };
-  //   //after state is set for the first time, no changes outside the controller are allowed:
-  //   expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot touch state outside of controller');
-  //   expect(() => testController.state.bla = 'bla').toThrowError('Cannot touch state outside of controller');
-  // });
+  it(`should throw an error if trying to save into state other controller's state`, () => {
+    const TestController = class extends Controller {
+      constructor(comp) {
+        super(comp);
+        this.state = {};
+      }
+      setOtherState(state) {
+        this.state.otherState = state;
+      }
+    };
+
+    const testController = new TestController({ context: {} });
+    const otherController = new ParentController({ context: {} });
+    expect(() => testController.setOtherState(otherController.getState())).toThrowError(`Cannot set state with other controller's state.`);
+  });
+
+  it('should throw an error when trying to set the state from outside of the contoller', () => {
+    const testController = new Controller(new Parent());
+    testController.state = { FirstChangeAllwaysAllowed: 'change' };
+    //after state is set for the first time, no changes outside the controller are allowed:
+    expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot set state from outside of a controller');
+  });
 
   // it('should memoize values', () => {
   //   const parentController = new ParentController(new Parent());
