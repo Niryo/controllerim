@@ -38,6 +38,11 @@ class ParentController extends Controller {
     return this.state.basicProp;
   }
 
+  testMemoizeByReturningRandom() {
+    const basicProp = this.state.basicProp;
+    return basicProp + Math.random();
+  }
+
   changeBasicProp() {
     this.state.basicProp = 'changed!';
   }
@@ -167,29 +172,36 @@ describe('Controller', () => {
     expect(() => controller.setState(['1', '2'])).toThrowError('State should be initialize only with plain object');
   });
 
-  it('should throw an error when trying to change the state from outside of the contoller', () => {
-    const testController = new Controller(Parent);
-    testController.state = { FirstChangeAllwaysAllowed: 'change' };
-    //after state is set for the first time, no changes outside the controller are allowed:
-    expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot touch state outside of controller');
-    expect(() => testController.state.bla = 'bla').toThrowError('Cannot touch state outside of controller');
-  });
+  // it('should throw an error when trying to change the state from outside of the contoller', () => {
+  //   const testController = new Controller(new Parent());
+  //   testController.state = { FirstChangeAllwaysAllowed: 'change' };
+  //   //after state is set for the first time, no changes outside the controller are allowed:
+  //   expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot touch state outside of controller');
+  //   expect(() => testController.state.bla = 'bla').toThrowError('Cannot touch state outside of controller');
+  // });
+
+  // it('should memoize values', () => {
+  //   const parentController = new ParentController(new Parent());
+  //   const value1 = parentController.testMemoizeByReturningRandom();
+  //   const value2 = parentController.testMemoizeByReturningRandom();
+  //   expect(value1).toEqual(value2);
+  // });
 
   describe('Tests with mounting component', () => {
-    const backupProxy =  global.Proxy;
-  
+    const backupProxy = global.Proxy;
+
     describe('without Proxy', () => {
       beforeEach(() => {
         global.Proxy = undefined;
-        parentComponentRenderCount = 0;      
+        parentComponentRenderCount = 0;
       });
-  
+
       afterEach(() => {
         global.Proxy = backupProxy;
       });
-    
+
       runTests();
-  
+
     });
     describe('with Proxy', () => {
       beforeEach(() => {
@@ -197,13 +209,13 @@ describe('Controller', () => {
       });
       runTests();
     });
-  
+
     function runTests() {
       it('sanity check', () => {
         const component = mount(<Parent />);
         expect(component.find('[data-hook="blamos"]').text()).toEqual('blamos');
       });
-  
+
       it('should have an observable state', () => {
         const OberverParent = observer(Parent);
         const component = mount(<OberverParent />);
@@ -212,7 +224,7 @@ describe('Controller', () => {
         component.find('[data-hook="changeBasicPropButton"]').simulate('click');
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('changed!');
       });
-  
+
       it('should observe on deep nested change', () => {
         const OberverParent = observer(Parent);
         const component = mount(<OberverParent />);
@@ -223,7 +235,7 @@ describe('Controller', () => {
         component.find('[data-hook="addNameToDynamicObjectArrayButton"]').simulate('click');
         expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: ['alice'] }));
       });
-  
+
       // todo: try to fail the test
       it('should trigger only one render per setter', () => {
         const OberverParent = observer(Parent);
@@ -233,7 +245,7 @@ describe('Controller', () => {
         component.find('[data-hook="changeMultiPropsButton"]').simulate('click');
         expect(parentComponentRenderCount).toBeLessThanOrEqual(3);
       });
-  
+
       it('should allow setters with args', () => {
         const ObserverParent = observer(Parent);
         const component = mount(<ObserverParent />);
