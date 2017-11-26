@@ -1,6 +1,6 @@
 
 import { proxify } from './proxify';
-import { isPlainObject } from 'lodash';
+import { isPlainObject, cloneDeep } from 'lodash';
 import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
 import {transaction} from 'mobx';
 
@@ -13,7 +13,7 @@ export class Controller {
       registerControllerForTest(this, componentInstance);
     }
     this.component = componentInstance;
-    let internalState = { value: {}, isStateLocked: true, isAlreadySet: false};
+    let internalState = { value: {}, isStateLocked: true, initialState: undefined};
     exposeInternalStateOnObject(this, internalState);
     if (!global.Proxy) {
       let previewsState = JSON.stringify(internalState.value);
@@ -29,7 +29,12 @@ export class Controller {
     const noop = () => { };
     swizzlify(this, internalState, noop);
     addMockStateFunction(this, internalState);
+    this.clearState = () => {
+      internalState.value = internalState.initialState;
+      this.component.forceUpdate();
+    };
   }
+
 
   getParentController(parentControllerName) {
     const controllerName = this.__controllerName || this.constructor.name;
@@ -47,11 +52,10 @@ export class Controller {
     return parentController;
   }
 }
-const stateGuard = (internalState) => {// eslint-disable-line no-unused-vars
-  if (internalState.isStateLocked && internalState.isAlreadySet) {
+const stateGuard = (internalState) => {
+  if (internalState.isStateLocked && internalState.initialState !== undefined) {
     throw new Error('Cannot set state from outside of a controller');
   }
-  internalState.isAlreadySet = true;
 };
 
 const exposeInternalStateOnObject = (obj, internalState) => {
@@ -61,6 +65,9 @@ const exposeInternalStateOnObject = (obj, internalState) => {
         throw new Error('State should be initialize only with plain object');
       }
       stateGuard(internalState);
+      if(internalState.initialState === undefined) {
+        internalState.initialState = cloneDeep(value);
+      }
       internalState.value = global.Proxy ? proxify(value) : value;
     },
     get: function () {  
