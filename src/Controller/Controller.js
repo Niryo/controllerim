@@ -20,6 +20,7 @@ export class Controller {
     exposeStateOnScope(this, privateScope);
     exposeGetParentControllerOnScope(this, privateScope);
     exposeMockStateOnScope(this, privateScope);
+    exposeClearStateOnScope(this, privateScope);
     swizzleOwnMethods(this, privateScope);
   }
 }
@@ -118,5 +119,12 @@ const getInjectedFunctionForNonProxyMode = (privateScope) => {
       privateScope.component.forceUpdate();
       previewsState = JSON.stringify(privateScope.internalState.value);
     }
+  };
+};
+
+const exposeClearStateOnScope = (publicScope, privateScope) => {
+  publicScope.clearState = () => {
+    privateScope.internalState.value = privateScope.internalState.initialState;
+    privateScope.component.forceUpdate();
   };
 };
