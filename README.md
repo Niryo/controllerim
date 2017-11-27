@@ -126,6 +126,18 @@ Or directly:
   }
 ```
 
+Or within your controller:
+```javascript
+class SomeChild extends Controller{ 
+  constructor(comp){
+    super(comp);
+  }
+  getPropFromParentController() {
+    return this.getParentController(SomeParentController.name).getSomeProp();
+  }
+}
+```
+
 #### Usage example:
 ```javascript
 import {Controller} from 'controllerim';
