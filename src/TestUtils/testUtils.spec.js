@@ -37,11 +37,11 @@ class TestController extends Controller {
     return this.state.name;
   }
   getFakeParentControllerProp() {
-    return super.getParentController(FakeParent.name).getFakeProp();
+    return this.getParentController(FakeParent.name).getFakeProp();
   }
 
   increasCounterInParent() {
-    super.getParentController(FakeParent.name).increasCounter();
+    this.getParentController(FakeParent.name).increasCounter();
   }
 }
 

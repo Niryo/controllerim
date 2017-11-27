@@ -72,8 +72,8 @@ class ParentController extends Controller {
     this.state.basicProp = value1 + value2;
   }
 
-  testSuper() {
-    return super.getParentController('fakeParent');
+  testCallingGetParrentFromInsideController() {
+    return this.getParentController('fakeParent');
   }
 
   getState() {
@@ -141,7 +141,7 @@ describe('Controller', () => {
     const someComponent = new SomeComponent();
     someComponent.context = { controllers: { fakeParent: 'mocekdParentController' } };
     const testController = new ParentController(someComponent);
-    expect(testController.testSuper()).toEqual('mocekdParentController');
+    expect(testController.testCallingGetParrentFromInsideController()).toEqual('mocekdParentController');
   });
 
   it('should throw an error if parent controller does not exist', () => {
@@ -199,27 +199,27 @@ describe('Controller', () => {
     expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot set state from outside of a controller');
   });
 
-  it('should expose a clearState method', () => {
-    class TestController extends Controller {
-      constructor(comp) {
-        super(comp);
-        this.state = { someProp: 'hello world' };
-      }
-      getProp() {
-        return this.state.someProp;
-      }
-      changeProp() {
-        this.state.someProp = 'changed';
-      }
-    }
-    const fakeComponent = {forceUpdate: jest.fn()};
-    const testController = new TestController(fakeComponent);
-    testController.changeProp();
-    expect(testController.getProp()).toEqual('changed');
-    testController.clearState();
-    expect(testController.getProp()).toEqual('hello world'); 
-    expect(fakeComponent.forceUpdate.mock.calls.length).toEqual(1);   
-  });
+  // it('should expose a clearState method', () => {
+  //   class TestController extends Controller {
+  //     constructor(comp) {
+  //       super(comp);
+  //       this.state = { someProp: 'hello world' };
+  //     }
+  //     getProp() {
+  //       return this.state.someProp;
+  //     }
+  //     changeProp() {
+  //       this.state.someProp = 'changed';
+  //     }
+  //   }
+  //   const fakeComponent = {forceUpdate: jest.fn()};
+  //   const testController = new TestController(fakeComponent);
+  //   testController.changeProp();
+  //   expect(testController.getProp()).toEqual('changed');
+  //   testController.clearState();
+  //   expect(testController.getProp()).toEqual('hello world'); 
+  //   expect(fakeComponent.forceUpdate.mock.calls.length).toEqual(1);   
+  // });
 
   // it('should memoize values', () => {
   //   const parentController = new ParentController(new Parent());
