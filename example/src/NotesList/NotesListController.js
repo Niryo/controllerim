@@ -29,7 +29,7 @@ export class NotesListController extends Controller {
   addNote() {
     this.state.listItems.push({ title: this.state.inputValue, text: '' ,id: this.state.listItems.length});
     this.state.inputValue = '';
-    super.getParentController(AppController.name).increaseCounter();
+    this.getParentController(AppController.name).increaseCounter();
   }
 
   editSelectedNote(value) {
