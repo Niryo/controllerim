@@ -125,8 +125,18 @@ Or directly:
     this.parentController = new Controller(this).getParentController(SomeParentController.name);
   }
 ```
-
-#### Usage example:
+Or within your controller:
+```javascript
+class SomeChild extends Controller{ 
+  constructor(comp){
+    super(comp);
+  }
+  getPropFromParentController() {
+    return this.getParentController(SomeParentController.name).getSomeProp();
+  }
+}
+```
+#### Controller Usage example:
 ```javascript
 import {Controller} from 'controllerim';
 import {SomeParentController} from './SomeParentController';
@@ -147,7 +157,7 @@ export class AppController extends Controller {
   }
   
   getSomePropFromParentController() {
-  const someProp = super.getParentController(SomeParentController.name); //you can use the name of the controller as string,                                                                          //but this way is safer.
+  const someProp = this.getParentController(SomeParentController.name); //you can use the name of the controller as string,                                                                          //but this way is safer.
   //do something with someProp...
   }
 }
