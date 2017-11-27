@@ -126,18 +126,6 @@ Or directly:
   }
 ```
 
-Or within your controller:
-```javascript
-class SomeChild extends Controller{ 
-  constructor(comp){
-    super(comp);
-  }
-  getPropFromParentController() {
-    return this.getParentController(SomeParentController.name).getSomeProp();
-  }
-}
-```
-
 #### Usage example:
 ```javascript
 import {Controller} from 'controllerim';
@@ -176,8 +164,24 @@ class App extends React.Component {
    }
 }
 ```
+* #### `clearState()`:
+Clears the state back to it's initial value.
 
+```javascript
+class someController extends Controller {
+  constructor(comp) {
+    super(comp);
+    this.state = {someValue: 'bla', someArray: []};
+  }
+  //...
+  
+ doSomething() {
+    //...
+    this.clearState(); //state now equals {someValue: 'bla', someArray: []}
+ }
+}
 
+```
 #### `observer(ReactComponent)`
 To become reactive, every React component that uses a controller should be wrapped within `observer`. 
 
