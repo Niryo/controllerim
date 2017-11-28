@@ -81,7 +81,7 @@ class ParentController extends Controller {
   }
 }
 
-class Parent extends React.Component {
+const Parent = observer(class extends React.Component {
   componentWillMount() {
     this.controller = new ParentController(this);
   }
@@ -103,17 +103,16 @@ class Parent extends React.Component {
       </div>
     </ProvideController>;
   }
-}
+});
 
-class _Child extends React.Component {
+const Child = observer( class extends React.Component {
   componentWillMount() {
     this.parentController = new Controller(this).getParentController(ParentController.name);
   }
   render() {
     return <div data-hook="blamos">{this.parentController.getBasicProp()}</div>;
   }
-}
-const Child = observer(_Child);
+});
 
 describe('Controller', () => {
   beforeEach(() => {
@@ -261,8 +260,7 @@ describe('Controller', () => {
       });
 
       it('should have an observable state', () => {
-        const OberverParent = observer(Parent);
-        const component = mount(<OberverParent />);
+        const component = mount(<Parent />);
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('blamos');
         global.Proxy = backupProxy;
         component.find('[data-hook="changeBasicPropButton"]').simulate('click');
@@ -270,8 +268,7 @@ describe('Controller', () => {
       });
 
       it('should observe on deep nested change', () => {
-        const OberverParent = observer(Parent);
-        const component = mount(<OberverParent />);
+        const component = mount(<Parent />);
         expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual('{}');
         global.Proxy = backupProxy;
         component.find('[data-hook="addArrayToDynamicObjectButton"]').simulate('click');
@@ -282,8 +279,7 @@ describe('Controller', () => {
 
       // todo: try to fail the test
       it('should trigger only one render per setter', () => {
-        const OberverParent = observer(Parent);
-        const component = mount(<OberverParent />);
+        const component = mount(<Parent />);
         expect(parentComponentRenderCount).toBeLessThanOrEqual(2);
         global.Proxy = backupProxy;
         component.find('[data-hook="changeMultiPropsButton"]').simulate('click');
@@ -291,8 +287,7 @@ describe('Controller', () => {
       });
 
       it('should allow setters with args', () => {
-        const ObserverParent = observer(Parent);
-        const component = mount(<ObserverParent />);
+        const component = mount(<Parent />);
         global.Proxy = backupProxy;
         component.find('[data-hook="applySetterWithArgsButton"]').simulate('click');
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('value1value2');

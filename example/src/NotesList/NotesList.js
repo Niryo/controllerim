@@ -3,7 +3,8 @@ import { NotesListController } from './NotesListController';
 import { observer } from 'controllerim';
 import {AppController} from '../App/AppController';
 import './NotesList.css';
-class NotesList extends React.Component {
+
+export const NotesList = observer(class extends React.Component {
   componentWillMount() {
     this.controller = new NotesListController(this);
     this.appController = this.controller.getParentController(AppController.name);
@@ -59,6 +60,5 @@ class NotesList extends React.Component {
         </div>
     );
   }
-}
+});
 
-export default observer(NotesList);

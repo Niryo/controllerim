@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import './App.css';
-import NotesList from '../NotesList/NotesList';
+import {NotesList} from '../NotesList/NotesList';
 import { observer, ProvideController } from 'controllerim';
 
 import { AppController } from './AppController';
 
-class App extends Component {
+export const App = observer(class extends Component {
   componentWillMount() {
     this.controller = new AppController(this);
   }
@@ -33,6 +33,4 @@ class App extends Component {
       </ProvideController>
     );
   }
-}
-
-export default observer(App);
+});

@@ -96,6 +96,8 @@ const exposeMockStateOnScope = (publicScope, privateScope) => {
 
 const exposeGetParentControllerOnScope = (publicScope, privateScope) => {
   publicScope.getParentController = (parentControllerName) => {
+    console.log(parentControllerName)
+    console.log(privateScope.component.context)
     const controllerName = privateScope.controllerName;
     if (privateScope.component.context === undefined) {
       throw new Error(`Context is undefined. Make sure that you initialized ${controllerName} in componentWillMount()`);

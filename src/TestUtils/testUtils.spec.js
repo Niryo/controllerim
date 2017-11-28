@@ -17,11 +17,11 @@ class FakeParent extends Controller {
 
   increasCounter() {
     this.state.fakeProp = 'bla';
-    this.state.counter+=1;
+    this.state.counter += 1;
   }
 
   setMultipleProp() {
-    this.state.fakeProp ='hello';
+    this.state.fakeProp = 'hello';
     this.state.foo = 'not a bar';
   }
   getCounter() {
@@ -45,7 +45,7 @@ class TestController extends Controller {
   }
 }
 
-class TestNotObserved extends React.Component {
+const Test = observer(class extends React.Component {
   componentWillMount() {
     this.controller = new TestController(this);
     savedControllerInstance = this.controller;
@@ -54,11 +54,9 @@ class TestNotObserved extends React.Component {
   render() {
     return <div data-hook="name">{this.controller.getName()}</div>;
   }
-}
-const Test = observer(TestNotObserved);
+});
 
-
-class TestWithParentNotObserved extends React.Component {
+const TestWithParent = observer(class extends React.Component {
   componentWillMount() {
     this.controller = new TestController(this);
     this.parentController = this.controller.getParentController(FakeParent.name);
@@ -67,8 +65,7 @@ class TestWithParentNotObserved extends React.Component {
   render() {
     return <div data-hook="fakeProp">{this.parentController.getFakeProp()}</div>;
   }
-}
-const TestWithParent = observer(TestWithParentNotObserved);
+});
 
 describe('TestUtils', () => {
   beforeEach(() => {
@@ -100,7 +97,7 @@ describe('TestUtils', () => {
     TestUtils.init();
     const component = mount(<Test />);
     const controller = TestUtils.getControllerOf(component.instance());
-    TestUtils.mockStateOf(controller,{ name: 'mockedName' });
+    TestUtils.mockStateOf(controller, { name: 'mockedName' });
     expect(component.find('[data-hook="name"]').text()).toEqual('mockedName');
   });
 
@@ -112,21 +109,21 @@ describe('TestUtils', () => {
   it('should allow mocking parent before controller created', () => {
     TestUtils.init();
     TestUtils.mockParentOf(TestController.name, FakeParent);
-    const component = mount(<TestWithParent/>);
+    const component = mount(<TestWithParent />);
     expect(component.find('[data-hook="fakeProp"]').text()).toEqual('fakeProp');
   });
 
   it('should allow mocking parent when using super', () => {
     TestUtils.init();
     TestUtils.mockParentOf(TestController.name, FakeParent);
-    const controller = new TestController({context: {}});
+    const controller = new TestController({ context: {} });
     expect(controller.getFakeParentControllerProp()).toEqual('fakeProp');
   });
 
   it('should return a real parent if exists', () => {
     TestUtils.init();
     const fakeParentController = new FakeParent(new Test());
-    const component = mount(<ProvideController controller={fakeParentController}><TestWithParent/></ProvideController>);
+    const component = mount(<ProvideController controller={fakeParentController}><TestWithParent /></ProvideController>);
     expect(component.find('[data-hook="fakeProp"]').text()).toEqual('fakeProp');
   });
 
@@ -137,7 +134,7 @@ describe('TestUtils', () => {
     TestUtils.init();
     TestUtils.mockParentOf(TestController.name, FakeParent);
     const component = mount(<TestWithParent />);
-    const testController = TestUtils.getControllerOf(component.instance());    
+    const testController = TestUtils.getControllerOf(component.instance());
     const fakeParentController = testController.getParentController(FakeParent.name);
     testController.increasCounterInParent();
     expect(fakeParentController.getCounter()).toEqual(1);
@@ -145,8 +142,8 @@ describe('TestUtils', () => {
 
   it('should allow mocking parent with state', () => {
     TestUtils.init();
-    TestUtils.mockParentOf(TestController.name, FakeParent, {fakeProp: 'changed!'});
-    const component = mount(<TestWithParent/>);
+    TestUtils.mockParentOf(TestController.name, FakeParent, { fakeProp: 'changed!' });
+    const component = mount(<TestWithParent />);
     expect(component.find('[data-hook="fakeProp"]').text()).toEqual('changed!');
   });
 });
