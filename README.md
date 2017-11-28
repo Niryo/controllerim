@@ -59,7 +59,6 @@ export default observer(NotesList);
 * The controller holds a state and methods for manipulating the state. 
 * The controller's lifecycle should be bounded to the component's lifecycle. when a component enters the screen, A new fresh controller will be created, and when the component is destroyed the controller will be destroyed.
 * A component can get and set data from parents' controllers (not necessarily direct parents), but it cannot use data from the controllers of sibling components.
-* Every controller should be explicitly exposed (provided) in order to be used by child components.
 * Any changes to the controller state will be automatically reflected by the view.
 
 ## Why 
