@@ -22,6 +22,10 @@ class B extends Controller {
   getSeed() {
     return this.state.seed;
   }
+
+  changeSeed() {
+    this.state.seed = 'changed!';
+  }
 }
 
 const CompA = observer(class extends React.Component {
@@ -56,6 +60,7 @@ const CompC = observer(class extends React.Component {
       <div data-hook="compC">
         <div data-hook="seedA">{this.controller.getParentController(A.name).getSeed()}</div>
         <div data-hook="seedB">{this.controller.getParentController(B.name).getSeed()}</div>
+        <button data-hook="button" onClick={() => this.controller.getParentController(B.name).changeSeed()}></button>
         <CompD />
       </div>);
   }
@@ -91,5 +96,8 @@ describe('ProviderController', () => {
     expect(firstSeedA).toEqual(secondSeedA);
     expect(firstSeedB).not.toEqual(secondSeedB);
     expect(compDSeedA).toEqual(secondSeedA);
+    first.find('[data-hook="button"]').simulate('click');
+    expect(first.find('[data-hook="seedB"]').text()).not.toEqual(second.find('[data-hook="seedB"]').text());
+    expect(false).toBeTruthy();
   });
 });
