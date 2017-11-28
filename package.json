@@ -1,6 +1,6 @@
 {
   "name": "controllerim",
-  "version": "1.33.0",
+  "version": "1.34.0",
   "description": "A State management library for react, based on Mobx",
   "main": "dist/index.js",
   "scripts": {
