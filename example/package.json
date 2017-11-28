@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "controllerim": "^1.30.0",
+    "controllerim": "^1.33.0",
     "react": "^16.1.1",
     "react-dom": "^16.1.1",
     "react-scripts": "^1.0.17"
