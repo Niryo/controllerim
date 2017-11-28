@@ -34,7 +34,7 @@ import React, { Component } from 'react';
 import { observer } from 'controllerim';
 import { NotesListController } from './NotesListController';
 
-class NotesList extends Component {
+export const NotesList = observer(class extends Component { //Im using this syntax to avoid default exports.
   componentWillMount() {
     this.controller = new NotesListController(this);
   }
@@ -47,9 +47,7 @@ class NotesList extends Component {
       </div>
     );
   }
-}
-
-export default observer(NotesList);
+});
 
 ```
 ## Agenda:
@@ -108,7 +106,6 @@ If for example your code looks like this:
 class SomeParentController extends Controller{}
 ````
 then the name will be 'SomeParentController' (`SomeParentController.name`).
-Make sure that the parent controller is provided using `ProvideController`.
 You cannot get the controller of a sibling component. If you need to use some data from a sibling component, put this data in the first common parent of the two components.
 
 If you need to interact with a parent controller from your React component, you can do something like this:
@@ -193,45 +190,16 @@ class someController extends Controller {
 ```
 #### `observer(ReactComponent)`
 To become reactive, every React component that uses a controller should be wrapped within `observer`. 
+**Importent**: The root component of your app *must* be wrapped within `observer`.
 
 ```javascript
 import {observer} from 'controllerim';
 
-class SomeSmartComponent extends React.Component {
+export const SomeSmartComponent = observer(extends React.Component {
 ...
-}
-
-export default observer(SomeSmartComponent)
-```
-
-
-#### `<ProvideController controller={controllerInstance}/>`:
-If you want your controller instance to be visible to your child components, you must explicitly provide it using ProvideController.
-
-```javascript
-import * as React from 'react';
-import SomeParentComponentController from './SomeParentComponentController';
-import { observer, ProvideController } from 'controllerim';
-
-class SomeParentComponent extends React.Component {
-  componentWillMount() {
-    this.controller = new SomeParentComponentController(this);
-  }
-
-  render() {
-    return (
-        <ProvideController controller={this.controller}>
-           <SomeChild>
-           <AnotherChild>
-        </ProvideController>
-    );
-  }
-}
+})
 
 ```
-
-In the above example, SomeChild and AnotherChild could make use of `SomeParentComponentController` using `getParentController()`.
-
 
 ## Testing Api
 #### `TestUtils.init()`:
