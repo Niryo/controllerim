@@ -1,24 +1,6 @@
 import * as React from 'react';
 import { mount } from 'enzyme';
-import { ProvideController } from './ProvideController';
-import PropTypes from 'prop-types';
 import { Controller, TestUtils, observer } from '../index';
-
-class SomeController extends Controller {
-  constructor(comp) {
-    super(comp);
-  }
-}
-
-class ChildComponent extends React.Component {
-  render() {
-    return <div data-hook="controllerName">{this.context.controllers.SomeController.constructor.name}</div>;
-  }
-}
-
-ChildComponent.contextTypes = {
-  controllers: PropTypes.object
-};
 
 
 class A extends Controller {
@@ -42,26 +24,16 @@ class B extends Controller {
   }
 }
 
-class C extends Controller {
-  constructor(comp) {
-    super(comp);
-    this.state = { seed: Math.random() };
-  }
-  getSeed() {
-    return this.state.seed;
-  }
-}
-
 const CompA = observer(class extends React.Component {
   componentWillMount() {
     this.controller = new A(this);
   }
   render() {
     return (
-      <ProvideController controller={this.controller}>
+      <div controller={this.controller}>
         <CompB />
         <CompB />
-      </ProvideController>);
+      </div>);
   }
 });
 
@@ -77,7 +49,7 @@ const CompB = observer(class extends React.Component {
 
 const CompC = observer(class extends React.Component {
   componentWillMount() {
-    this.controller = new C(this);
+    this.controller = new Controller(this);
   }
   render() {
     return (
@@ -107,15 +79,7 @@ describe('ProviderController', () => {
     TestUtils.clean();
   });
 
-  it('should put the given controller in the context', () => {
-    const component = mount(
-      <ProvideController controller={new SomeController(new ChildComponent())}>
-        <ChildComponent />
-      </ProvideController>);
-    expect(component.find('[data-hook="controllerName"]').text()).toEqual('SomeController');
-  });
-
-  it('should work with nested providers', () => {
+  it('should be able to expose controllers on deep nested childs', () => {
     const component = mount(<CompA />);
     const first = component.find('[data-hook="compC"]').at(0);
     const second = component.find('[data-hook="compC"]').at(1);

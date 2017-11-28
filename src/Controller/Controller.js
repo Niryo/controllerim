@@ -101,9 +101,6 @@ const exposeMockStateOnScope = (publicScope, privateScope) => {
 const exposeGetParentControllerOnScope = (publicScope, privateScope) => {
   publicScope.getParentController = (parentControllerName) => {
     const controllerName = privateScope.controllerName;
-    if (privateScope.component.context === undefined) {
-      throw new Error(`Context is undefined. Make sure that you initialized ${controllerName} in componentWillMount()`);
-    }
     const parentController = privateScope.component.context.controllers && privateScope.component.context.controllers[parentControllerName];
     if (!parentController) {
       if (isTestMod()) {
@@ -135,7 +132,9 @@ const exposeClearStateOnScope = (publicScope, privateScope) => {
 
 const addControllerToContext = (that, privateScope) => {
   const component = privateScope.component;
-  component.context = component.context || {};
+  if (component.context === undefined) {
+    throw new Error(`Context is undefined. Make sure that you initialized ${that.constructor.name} in componentWillMount()`);
+  }
   component.context.controllers = component.context.controllers || {};
   component.context.controllers[that.constructor.name] = that;
 };

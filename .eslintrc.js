@@ -17,6 +17,7 @@ module.exports = {
     "react"
   ],
   "rules": {
+    "no-console": ["error", { allow: ["warn", "error"] }],
     "quotes": [2, "single", {"avoidEscape": true, "allowTemplateLiterals": true}],
     "indent": [
       "error",

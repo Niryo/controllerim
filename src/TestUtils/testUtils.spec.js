@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { Controller, observer, ProvideController } from '../index';
+import { Controller, observer } from '../index';
 import { mount } from 'enzyme';
 import { TestUtils } from '../index';
 
 let savedControllerInstance = undefined;
 
-class FakeParent extends Controller {
+class FakeParentController extends Controller {
   constructor(comp) {
     super(comp);
     this.state = { fakeProp: 'fakeProp', foo: 'bar', counter: 0 };
@@ -37,11 +37,11 @@ class TestController extends Controller {
     return this.state.name;
   }
   getFakeParentControllerProp() {
-    return this.getParentController(FakeParent.name).getFakeProp();
+    return this.getParentController(FakeParentController.name).getFakeProp();
   }
 
   increasCounterInParent() {
-    this.getParentController(FakeParent.name).increasCounter();
+    this.getParentController(FakeParentController.name).increasCounter();
   }
 }
 
@@ -59,7 +59,7 @@ const Test = observer(class extends React.Component {
 const TestWithParent = observer(class extends React.Component {
   componentWillMount() {
     this.controller = new TestController(this);
-    this.parentController = this.controller.getParentController(FakeParent.name);
+    this.parentController = this.controller.getParentController(FakeParentController.name);
   }
 
   render() {
@@ -102,28 +102,35 @@ describe('TestUtils', () => {
   });
 
   it('mockState should throw an error if not in test mode (not calling init)', () => {
-    const controller = new Controller(new Test());
+    const controller = new Controller({ context: {} });
     expect(() => controller.mockState({ name: 'mockedName' })).toThrowError('mockState can be used only in test mode. if you are using it inside your tests, make sure that you are calling TestUtils.init()');
   });
 
   it('should allow mocking parent before controller created', () => {
     TestUtils.init();
-    TestUtils.mockParentOf(TestController.name, FakeParent);
+    TestUtils.mockParentOf(TestController.name, FakeParentController);
     const component = mount(<TestWithParent />);
     expect(component.find('[data-hook="fakeProp"]').text()).toEqual('fakeProp');
   });
 
   it('should allow mocking parent when using super', () => {
     TestUtils.init();
-    TestUtils.mockParentOf(TestController.name, FakeParent);
+    TestUtils.mockParentOf(TestController.name, FakeParentController);
     const controller = new TestController({ context: {} });
     expect(controller.getFakeParentControllerProp()).toEqual('fakeProp');
   });
 
   it('should return a real parent if exists', () => {
     TestUtils.init();
-    const fakeParentController = new FakeParent(new Test());
-    const component = mount(<ProvideController controller={fakeParentController}><TestWithParent /></ProvideController>);
+    const Parent = observer(class extends React.Component {
+      componentWillMount() {
+        this.controller = new FakeParentController(this);
+      }
+      render() {
+        return <TestWithParent />;
+      }
+    });
+    const component = mount(<Parent />);
     expect(component.find('[data-hook="fakeProp"]').text()).toEqual('fakeProp');
   });
 
@@ -132,17 +139,17 @@ describe('TestUtils', () => {
     //caused the component to rerender and try to fetch props in locked state.
     //todo: remove transaction from controller and understand why it happens only in tests.
     TestUtils.init();
-    TestUtils.mockParentOf(TestController.name, FakeParent);
+    TestUtils.mockParentOf(TestController.name, FakeParentController);
     const component = mount(<TestWithParent />);
     const testController = TestUtils.getControllerOf(component.instance());
-    const fakeParentController = testController.getParentController(FakeParent.name);
+    const fakeParentController = testController.getParentController(FakeParentController.name);
     testController.increasCounterInParent();
     expect(fakeParentController.getCounter()).toEqual(1);
   });
 
   it('should allow mocking parent with state', () => {
     TestUtils.init();
-    TestUtils.mockParentOf(TestController.name, FakeParent, { fakeProp: 'changed!' });
+    TestUtils.mockParentOf(TestController.name, FakeParentController, { fakeProp: 'changed!' });
     const component = mount(<TestWithParent />);
     expect(component.find('[data-hook="fakeProp"]').text()).toEqual('changed!');
   });

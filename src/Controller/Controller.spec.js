@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { Controller } from './Controller';
 import { mount } from 'enzyme';
-import { ProvideController } from '../index';
 import { observer } from '../index';
 class SomeComponent extends React.Component {
   render() {
@@ -88,7 +87,7 @@ const Parent = observer(class extends React.Component {
 
   render() {
     parentComponentRenderCount++;
-    return <ProvideController controller={this.controller}>
+    return (
       <div>
         <Child />
         <div data-hook="basicPropPreview">{this.controller.getBasicProp()}</div>
@@ -101,7 +100,7 @@ const Parent = observer(class extends React.Component {
         <button data-hook="applySetterWithArgsButton" onClick={() => this.controller.setBasicProp('value1', 'value2')} />
 
       </div>
-    </ProvideController>;
+    );
   }
 });
 
@@ -158,7 +157,7 @@ describe('Controller', () => {
 
 
   it('should allow setting the state only with object', () => {
-    const controller = new TestStateInitController(Parent);
+    const controller = new TestStateInitController({context: {}});
     controller.setState({ hello: true });
     expect(controller.getState()).toEqual({ hello: true });
     expect(() => controller.setState(true)).toThrowError('State should be initialize only with plain object');
@@ -185,7 +184,7 @@ describe('Controller', () => {
   });
 
   it('should throw an error when trying to set the state from outside of the contoller', () => {
-    const testController = new Controller(new Parent());
+    const testController = new Controller({context: {}});
     testController.state = { FirstChangeAllwaysAllowed: 'change' };
     //after state is set for the first time, no changes outside the controller are allowed:
     expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot set state from outside of a controller');
@@ -207,7 +206,7 @@ describe('Controller', () => {
         this.clearState();
       }
     }
-    const fakeComponent = { forceUpdate: jest.fn() };
+    const fakeComponent = { context: {}, forceUpdate: jest.fn() };
     const testController = new TestController(fakeComponent);
     testController.changeProp();
     expect(testController.getProp()).toEqual('changed');
@@ -252,40 +251,41 @@ describe('Controller', () => {
         expect(component.find('[data-hook="blamos"]').text()).toEqual('blamos');
       });
 
-      it('should allow creating controller inside constructor', () => {
+      it('should throw an error if context is undefined', () => {
         class TestParentController extends Controller {
           constructor(comp) {
             super(comp);
-            this.state = {hello: 'world'};
+            this.state = { hello: 'world' };
           }
           getHello() {
             return this.state.hello;
           }
-        } 
+        }
 
         const TestParent = observer(class extends React.Component {
-          constructor () {
+          constructor() {
             super();
             this.controller = new TestParentController(this);
           }
+
           render() {
-            return <ProvideController controller = {this.controller}><TestComp></TestComp></ProvideController>;
+            return <div><TestComp></TestComp></div>;
           }
         });
-    
-  
+
+
         const TestComp = observer(class extends React.Component {
           constructor() {
             super();
             this.controller = new Controller(this);
           }
+
           render() {
             return <div data-hook="hello">{this.controller.getParentController(TestParentController.name).getHello()}</div>;
           }
         });
-    
-        const component = mount(<TestParent />);
-        expect(component.find('[data-hook="hello"]').text()).toEqual('world');
+
+        expect(() => mount(<TestParent />)).toThrowError('Context is undefined. Make sure that you initialized TestParentController in componentWillMount()');
       });
 
       it('should have an observable state', () => {

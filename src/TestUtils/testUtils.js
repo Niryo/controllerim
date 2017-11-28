@@ -1,15 +1,7 @@
-import * as React from 'react';
 let controllers = {};
 let mockedParentsOfControllers = {};
 let counter = 0;
 let _isTestMod = false;
-
-//Fake class for initializing the mock parent
-class FakeComponent extends React.Component {
-  render() {
-    return null;
-  }
-}
 
 const TEST_ID = '__reactViewControllersIdForTesting';
 export const isTestMod = () => {
@@ -38,8 +30,8 @@ const clean = () => {
   mockedParentsOfControllers = {};
 };
 
-const mockParentOf = (controllerName, ParentClass, state) => {
-  const parent = new ParentClass(FakeComponent);
+const mockParentOf = (controllerName, ParentControllerClass, state) => {
+  const parent = new ParentControllerClass({context: {}});
   mockedParentsOfControllers[controllerName] = parent;
   if (state) {
     parent.mockState(state);
