@@ -2,11 +2,6 @@ import * as React from 'react';
 import { Controller } from './Controller';
 import { mount } from 'enzyme';
 import { observer } from '../index';
-class SomeComponent extends React.Component {
-  render() {
-    return <div>someComponent</div>;
-  }
-}
 
 class TestStateInitController extends Controller {
   constructor(comp) {
@@ -129,28 +124,20 @@ describe('Controller', () => {
 
 
   it('should allow to get parent controller', () => {
-    const someComponent = new SomeComponent();
-    someComponent.context = { controllers: { someParent: 'mocekdParentController' } };
-    const testController = new Controller(someComponent);
+    const testController = new Controller({ context: { controllers: [{ name: 'someParent', instance: 'mocekdParentController' }] } });
     expect(testController.getParentController('someParent')).toEqual('mocekdParentController');
   });
 
   it('should allow to get parent controller using super', () => {
-    const someComponent = new SomeComponent();
-    someComponent.context = { controllers: { fakeParent: 'mocekdParentController' } };
-    const testController = new ParentController(someComponent);
+    const testController = new ParentController({ context: { controllers: [{ name: 'fakeParent', instance: 'mocekdParentController' }] } });
     expect(testController.testCallingGetParrentFromInsideController()).toEqual('mocekdParentController');
   });
 
   it('should throw an error if parent controller does not exist', () => {
-    const someComponent = new SomeComponent();
-    someComponent.context = { controllers: {} };
-    let testController = new Controller(someComponent);
+    let testController = new Controller({ context: { controllers: [] } });
     expect(() => testController.getParentController('someParent'))
       .toThrowError('Parent controller does not exist. make sure that someParent is parent of Controller and that you provided it using ProvideController');
-
-    someComponent.context = {};
-    testController = new Controller(someComponent);
+    testController = new Controller({ context: {} });
     expect(() => testController.getParentController('someParent'))
       .toThrowError('Parent controller does not exist. make sure that someParent is parent of Controller and that you provided it using ProvideController');
   });
@@ -356,7 +343,7 @@ describe('Controller', () => {
           }
         });
 
-        expect(() =>  mount(<A/>)).toThrowError(/Parent controller does not exist/);
+        expect(() => mount(<A />)).toThrowError(/Parent controller does not exist/);
       });
     }
   });

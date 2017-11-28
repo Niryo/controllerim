@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { mount } from 'enzyme';
-import { Controller, TestUtils, observer } from '../index';
+import { Controller, observer, TestUtils } from '../index';
 
 
 class A extends Controller {
@@ -77,13 +77,9 @@ const CompD = observer(class extends React.Component {
 });
 
 describe('ProviderController', () => {
-  beforeEach(() => {
-    TestUtils.init();
-  });
   afterEach(() => {
     TestUtils.clean();
   });
-
   it('should be able to expose controllers on deep nested childs', () => {
     const component = mount(<CompA />);
     const first = component.find('[data-hook="compC"]').at(0);

@@ -100,9 +100,9 @@ const exposeMockStateOnScope = (publicScope, privateScope) => {
 
 const exposeGetParentControllerOnScope = (publicScope, privateScope) => {
   publicScope.getParentController = (parentControllerName) => {
-    const controllerName = privateScope.controllerName;
-    const parentController = privateScope.component.context.controllers && privateScope.component.context.controllers[parentControllerName];
+    const parentController = privateScope.component.context.controllers && getControllerFromContext(privateScope.component.context, parentControllerName);
     if (!parentController) {
+      const controllerName = privateScope.controllerName;      
       if (isTestMod()) {
         return getMockedParent(controllerName);
       } else {
@@ -135,7 +135,16 @@ const addControllerToContext = (that, privateScope) => {
   if (component.context === undefined) {
     throw new Error(`Context is undefined. Make sure that you initialized ${that.constructor.name} in componentWillMount()`);
   }
-  component.context.controllers = component.context.controllers || {};
+  component.context.controllers = component.context.controllers || [];
   component.context.controllers = cloneDeep(component.context.controllers);
-  component.context.controllers[that.constructor.name] = that;
+  if(!getControllerFromContext(component.context, that.constructor.name)){
+    component.context.controllers.push({name: that.constructor.name, instance: that});
+  }
+};
+
+const getControllerFromContext = (context, name) => {
+  const foundObj = context.controllers.find(obj => obj.name === name);
+  if(foundObj){
+    return foundObj.instance;
+  }
 };
