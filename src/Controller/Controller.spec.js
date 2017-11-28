@@ -105,7 +105,7 @@ const Parent = observer(class extends React.Component {
   }
 });
 
-const Child = observer( class extends React.Component {
+const Child = observer(class extends React.Component {
   componentWillMount() {
     this.parentController = new Controller(this).getParentController(ParentController.name);
   }
@@ -156,13 +156,6 @@ describe('Controller', () => {
       .toThrowError('Parent controller does not exist. make sure that someParent is parent of Controller and that you provided it using ProvideController');
   });
 
-  it('should throw an error if context is undefined', () => {
-    const someComponent = new SomeComponent();
-    someComponent.context = undefined;
-    const testController = new Controller(someComponent);
-    expect(() => testController.getParentController('someParent'))
-      .toThrowError('Context is undefined. Make sure that you initialized Controller in componentWillMount()');
-  });
 
   it('should allow setting the state only with object', () => {
     const controller = new TestStateInitController(Parent);
@@ -214,13 +207,13 @@ describe('Controller', () => {
         this.clearState();
       }
     }
-    const fakeComponent = {forceUpdate: jest.fn()};
+    const fakeComponent = { forceUpdate: jest.fn() };
     const testController = new TestController(fakeComponent);
     testController.changeProp();
     expect(testController.getProp()).toEqual('changed');
     testController.testClearState();
-    expect(testController.getProp()).toEqual('hello world'); 
-    expect(fakeComponent.forceUpdate.mock.calls.length).toEqual(1);   
+    expect(testController.getProp()).toEqual('hello world');
+    expect(fakeComponent.forceUpdate.mock.calls.length).toEqual(1);
   });
 
   // it('should memoize values', () => {
@@ -257,6 +250,42 @@ describe('Controller', () => {
       it('sanity check', () => {
         const component = mount(<Parent />);
         expect(component.find('[data-hook="blamos"]').text()).toEqual('blamos');
+      });
+
+      it('should allow creating controller inside constructor', () => {
+        class TestParentController extends Controller {
+          constructor(comp) {
+            super(comp);
+            this.state = {hello: 'world'};
+          }
+          getHello() {
+            return this.state.hello;
+          }
+        } 
+
+        const TestParent = observer(class extends React.Component {
+          constructor () {
+            super();
+            this.controller = new TestParentController(this);
+          }
+          render() {
+            return <ProvideController controller = {this.controller}><TestComp></TestComp></ProvideController>;
+          }
+        });
+    
+  
+        const TestComp = observer(class extends React.Component {
+          constructor() {
+            super();
+            this.controller = new Controller(this);
+          }
+          render() {
+            return <div data-hook="hello">{this.controller.getParentController(TestParentController.name).getHello()}</div>;
+          }
+        });
+    
+        const component = mount(<TestParent />);
+        expect(component.find('[data-hook="hello"]').text()).toEqual('world');
       });
 
       it('should have an observable state', () => {

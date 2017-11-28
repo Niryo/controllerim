@@ -2,7 +2,7 @@ import * as React from 'react';
 import { mount } from 'enzyme';
 import { ProvideController } from './ProvideController';
 import PropTypes from 'prop-types';
-import { Controller, TestUtils ,observer} from '../index';
+import { Controller, TestUtils, observer } from '../index';
 
 class SomeController extends Controller {
   constructor(comp) {
@@ -52,7 +52,7 @@ class C extends Controller {
   }
 }
 
-const  CompA = observer(class extends React.Component {
+const CompA = observer(class extends React.Component {
   componentWillMount() {
     this.controller = new A(this);
   }
@@ -71,9 +71,7 @@ const CompB = observer(class extends React.Component {
   }
   render() {
     return (
-      <ProvideController controller={this.controller}>
-        <CompC />
-      </ProvideController>);
+      <div><CompC /></div>);
   }
 });
 
@@ -86,7 +84,7 @@ const CompC = observer(class extends React.Component {
       <div data-hook="compC">
         <div data-hook="seedA">{this.controller.getParentController(A.name).getSeed()}</div>
         <div data-hook="seedB">{this.controller.getParentController(B.name).getSeed()}</div>
-        <CompD/>
+        <CompD />
       </div>);
   }
 });

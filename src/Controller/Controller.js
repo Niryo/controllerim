@@ -12,11 +12,14 @@ export class Controller {
     if (isTestMod()) {
       registerControllerForTest(this, componentInstance);
     }
+
     const privateScope = {
       controllerName: this.constructor.name,
       internalState: { value: {}, isStateLocked: true, initialState: undefined },
       component: componentInstance
     };
+
+    addControllerToContext(this, privateScope);
     exposeStateOnScope(this, privateScope);
     exposeGetParentControllerOnScope(this, privateScope);
     exposeMockStateOnScope(this, privateScope);
@@ -24,6 +27,7 @@ export class Controller {
     swizzleOwnMethods(this, privateScope);
   }
 }
+
 const stateGuard = (internalState) => {
   if (internalState.isStateLocked && internalState.initialState !== undefined) {
     throw new Error('Cannot set state from outside of a controller');
@@ -96,8 +100,6 @@ const exposeMockStateOnScope = (publicScope, privateScope) => {
 
 const exposeGetParentControllerOnScope = (publicScope, privateScope) => {
   publicScope.getParentController = (parentControllerName) => {
-    console.log(parentControllerName)
-    console.log(privateScope.component.context)
     const controllerName = privateScope.controllerName;
     if (privateScope.component.context === undefined) {
       throw new Error(`Context is undefined. Make sure that you initialized ${controllerName} in componentWillMount()`);
@@ -129,4 +131,11 @@ const exposeClearStateOnScope = (publicScope, privateScope) => {
     privateScope.internalState.value = privateScope.internalState.initialState;
     privateScope.component.forceUpdate();
   };
+};
+
+const addControllerToContext = (that, privateScope) => {
+  const component = privateScope.component;
+  component.context = component.context || {};
+  component.context.controllers = component.context.controllers || {};
+  component.context.controllers[that.constructor.name] = that;
 };
