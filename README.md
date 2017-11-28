@@ -34,7 +34,7 @@ import React, { Component } from 'react';
 import { observer } from 'controllerim';
 import { NotesListController } from './NotesListController';
 
-export const NotesList = observer(class extends Component { //Im using this syntax to avoid default exports.
+class NotesList extends Component { 
   componentWillMount() {
     this.controller = new NotesListController(this);
   }
@@ -48,6 +48,16 @@ export const NotesList = observer(class extends Component { //Im using this synt
     );
   }
 });
+
+export default ovserver(NotesList);
+/** 
+note: If you don't want to use default export, you could export the class directly:
+export const NotesList = observer( class extends Component {
+  ...
+  }
+);
+
+*/
 
 ```
 ## Agenda:
