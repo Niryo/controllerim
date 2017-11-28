@@ -157,7 +157,7 @@ describe('Controller', () => {
 
 
   it('should allow setting the state only with object', () => {
-    const controller = new TestStateInitController({context: {}});
+    const controller = new TestStateInitController({ context: {} });
     controller.setState({ hello: true });
     expect(controller.getState()).toEqual({ hello: true });
     expect(() => controller.setState(true)).toThrowError('State should be initialize only with plain object');
@@ -184,7 +184,7 @@ describe('Controller', () => {
   });
 
   it('should throw an error when trying to set the state from outside of the contoller', () => {
-    const testController = new Controller({context: {}});
+    const testController = new Controller({ context: {} });
     testController.state = { FirstChangeAllwaysAllowed: 'change' };
     //after state is set for the first time, no changes outside the controller are allowed:
     expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot set state from outside of a controller');
@@ -320,6 +320,43 @@ describe('Controller', () => {
         global.Proxy = backupProxy;
         component.find('[data-hook="applySetterWithArgsButton"]').simulate('click');
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('value1value2');
+      });
+
+      it('should not allow getting sibling controller', () => {
+        class Acon extends Controller { constructor(comp) { super(comp); } }
+        const A = observer(class extends React.Component {
+          componentWillMount() {
+            this.controller = new Acon(this);
+          }
+          render() {
+            return (<div>
+              <B />
+              <C />
+            </div>);
+          }
+        });
+
+        class Bcon extends Controller { constructor(comp) { super(comp); } }
+        const B = observer(class extends React.Component {
+          componentWillMount() {
+            this.controller = new Bcon(this);
+          }
+          render() {
+            return (<div></div>);
+          }
+        });
+
+        class Ccon extends Controller { constructor(comp) { super(comp); } }
+        const C = observer(class extends React.Component {
+          componentWillMount() {
+            this.controller = new Ccon(this);
+          }
+          render() {
+            return (<div>{this.controller.getParentController(Bcon.name)} </div>);
+          }
+        });
+
+        expect(() =>  mount(<A/>)).toThrowError(/Parent controller does not exist/);
       });
     }
   });

@@ -136,5 +136,6 @@ const addControllerToContext = (that, privateScope) => {
     throw new Error(`Context is undefined. Make sure that you initialized ${that.constructor.name} in componentWillMount()`);
   }
   component.context.controllers = component.context.controllers || {};
+  component.context.controllers = cloneDeep(component.context.controllers);
   component.context.controllers[that.constructor.name] = that;
 };

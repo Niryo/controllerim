@@ -98,6 +98,5 @@ describe('ProviderController', () => {
     expect(compDSeedA).toEqual(secondSeedA);
     first.find('[data-hook="button"]').simulate('click');
     expect(first.find('[data-hook="seedB"]').text()).not.toEqual(second.find('[data-hook="seedB"]').text());
-    expect(false).toBeTruthy();
   });
 });
