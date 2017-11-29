@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Controller } from './Controller';
 import { mount } from 'enzyme';
 import { observer } from '../index';
+import { TestUtils } from '../TestUtils/testUtils';
 
 class TestStateInitController extends Controller {
   constructor(comp) {
@@ -110,8 +111,12 @@ const Child = observer(class extends React.Component {
 
 describe('Controller', () => {
   beforeEach(() => {
+    TestUtils.init();
     parentComponentRenderCount = 0;
+  });
 
+  afterEach(() => {
+    TestUtils.clean();
   });
 
   it('should throw error if componentInstance was not pass to the controller constructor', () => {
@@ -124,12 +129,12 @@ describe('Controller', () => {
 
 
   it('should allow to get parent controller', () => {
-    const testController = new Controller({ context: { controllers: [{ name: 'someParent', instance: 'mocekdParentController' }] } });
+    const testController = new Controller({ context: { controllers: [{ name: 'someParent', instance: 'mocekdParentController', children: [] }] } });
     expect(testController.getParentController('someParent')).toEqual('mocekdParentController');
   });
 
   it('should allow to get parent controller using super', () => {
-    const testController = new ParentController({ context: { controllers: [{ name: 'fakeParent', instance: 'mocekdParentController' }] } });
+    const testController = new ParentController({ context: { controllers: [{ name: 'fakeParent', instance: 'mocekdParentController', children: [] }] } });
     expect(testController.testCallingGetParrentFromInsideController()).toEqual('mocekdParentController');
   });
 
@@ -175,6 +180,7 @@ describe('Controller', () => {
     testController.state = { FirstChangeAllwaysAllowed: 'change' };
     //after state is set for the first time, no changes outside the controller are allowed:
     expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot set state from outside of a controller');
+    expect(() => testController.state.bla = 'bla').toThrowError('Cannot set state from outside of a controller');
   });
 
   it('should expose a clearState method', () => {
@@ -214,11 +220,13 @@ describe('Controller', () => {
 
     describe('without Proxy', () => {
       beforeEach(() => {
+        TestUtils.init();
         global.Proxy = undefined;
         parentComponentRenderCount = 0;
       });
 
       afterEach(() => {
+        TestUtils.clean();
         global.Proxy = backupProxy;
       });
 
@@ -227,9 +235,25 @@ describe('Controller', () => {
     });
     describe('with Proxy', () => {
       beforeEach(() => {
+        TestUtils.init();
         parentComponentRenderCount = 0;
       });
+      afterEach(() => {
+        TestUtils.clean();
+        global.Proxy = backupProxy;
+      });
+
       runTests();
+    });
+
+    it('should not allow chaning state using stateTree while not in test mode', () => {
+      //this test is only for proxy, because in the unproxy version we simply cannot have this 
+      //functionality. this is why we need to inforce it. If someone will chagne the state from outside
+      //of a controller in browsers without proxy support, he will loose observability. 
+      const component = mount(<Parent />);
+      const controller = TestUtils.getControllerOf(component.instance());
+      const stateTree = controller.getStateTree();
+      expect(() => stateTree['ParentController'].state.basicProp = 'changed').toThrowError('Cannot set state from outside of a controller');
     });
 
     function runTests() {
@@ -310,40 +334,43 @@ describe('Controller', () => {
       });
 
       it('should not allow getting sibling controller', () => {
+        TestUtils.clean(); //todo: why do i need this? if removed, test becomes flaky
         class Acon extends Controller { constructor(comp) { super(comp); } }
-        const A = observer(class extends React.Component {
-          componentWillMount() {
-            this.controller = new Acon(this);
-          }
-          render() {
-            return (<div>
-              <B />
-              <C />
-            </div>);
-          }
-        });
-
         class Bcon extends Controller { constructor(comp) { super(comp); } }
-        const B = observer(class extends React.Component {
-          componentWillMount() {
-            this.controller = new Bcon(this);
-          }
-          render() {
-            return (<div></div>);
-          }
-        });
-
         class Ccon extends Controller { constructor(comp) { super(comp); } }
-        const C = observer(class extends React.Component {
-          componentWillMount() {
-            this.controller = new Ccon(this);
-          }
-          render() {
-            return (<div>{this.controller.getParentController(Bcon.name)} </div>);
-          }
-        });
-
+        const A = observer(class extends React.Component { componentWillMount() { this.controller = new Acon(this); } render() { return (<div><B /> <C /> </div>); } });
+        const B = observer(class extends React.Component { componentWillMount() { this.controller = new Bcon(this); } render() { return (<div></div>); } });
+        const C = observer(class extends React.Component { componentWillMount() { this.controller = new Ccon(this); } render() { return (<div>{this.controller.getParentController(Bcon.name)} </div>); } });
         expect(() => mount(<A />)).toThrowError(/Parent controller does not exist/);
+      });
+
+      it('should expose stateTree on a component', () => {
+        class Acon extends Controller { constructor(comp) { super(comp); this.state = { a: 'a' }; } }
+        class Bcon extends Controller { constructor(comp) { super(comp); this.state = { b: 'b' }; } }
+        class Ccon extends Controller { constructor(comp) { super(comp); this.state = { c: 'c' }; } }
+        const A = observer(class extends React.Component { componentWillMount() { this.controller = new Acon(this); } render() { return (<div><B /><C /></div>); } });
+        const B = observer(class extends React.Component { componentWillMount() { this.controller = new Bcon(this); } render() { return (<div><C /></div>); } });
+        const C = observer(class extends React.Component { componentWillMount() { this.controller = new Ccon(this); } render() { return (<div></div>); } });
+        const expectedValue = {
+          Acon: {
+            state: { a: 'a' },
+            children: [{
+              Bcon: {
+                state: { b: 'b' },
+                children: [{
+                  Ccon: {
+                    state: { c: 'c' }
+                  }
+                }]
+              }
+            },
+            { Ccon: { state: { c: 'c' } } }
+            ]
+          }
+        };
+        const component = mount(<A />);
+        const controller = TestUtils.getControllerOf(component.instance());
+        expect(JSON.stringify(controller.getStateTree())).toEqual(JSON.stringify(expectedValue));
       });
     }
   });

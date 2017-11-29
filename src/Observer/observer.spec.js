@@ -77,11 +77,16 @@ const CompD = observer(class extends React.Component {
 });
 
 describe('ProviderController', () => {
+  beforeEach(() => {
+    TestUtils.init();
+  });
   afterEach(() => {
     TestUtils.clean();
   });
   it('should be able to expose controllers on deep nested childs', () => {
     const component = mount(<CompA />);
+    // const controller = TestUtils.getControllerOf(component.instance());
+    // expect(false).toEqual(true);
     const first = component.find('[data-hook="compC"]').at(0);
     const second = component.find('[data-hook="compC"]').at(1);
     const firstSeedA = first.find('[data-hook="seedA"]').text();

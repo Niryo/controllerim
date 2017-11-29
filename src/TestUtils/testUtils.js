@@ -24,10 +24,10 @@ const init = () => _isTestMod = true;
 
 
 const clean = () => {
-  _isTestMod = false;
   controllers = {};
-  counter = 0;
   mockedParentsOfControllers = {};
+  counter = 0;
+  _isTestMod = false;
 };
 
 const mockParentOf = (controllerName, ParentControllerClass, state) => {

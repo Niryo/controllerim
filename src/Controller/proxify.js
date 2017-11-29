@@ -12,8 +12,8 @@ const isAlreadyProxified = (obj) => {
   return alreadyProxiedObjects.has(obj);
 };
 
-export const proxify = (obj) => {
-  const tracker = createObservableMap(obj);
+export const proxify = (obj,privateScope) => {
+  const tracker = createObservableMap(obj,privateScope);
   const handler = {
     ownKeys: (target) => {
       tracker.keys();
@@ -28,11 +28,12 @@ export const proxify = (obj) => {
     },
     set: (target, prop, value) => {
       let newValue = value;
+      stateGuard(privateScope.internalState);
       if (isObjectLike(value)) {
         if(isAlreadyProxified(value)) {
           throw new Error(`Cannot set state with other controller's state.`);
         }
-        newValue = proxify(value);
+        newValue = proxify(value,privateScope);
       }
       target[prop] = newValue;
       tracker.set(prop, newValue);
@@ -44,13 +45,19 @@ export const proxify = (obj) => {
   return proxifiedObject;
 };
 
-const createObservableMap = (obj) => {
+const createObservableMap = (obj,privateScope) => {
   const tracker = observable.shallowMap();
   keys(obj).forEach((key) => {
     if (isObjectLike(obj[key])) {
-      obj[key] = proxify(obj[key]);
+      obj[key] = proxify(obj[key],privateScope);
     }
     tracker.set(key, obj[key]);
   });
   return tracker;
+};
+
+const stateGuard = (internalState) => {
+  if (internalState.isStateLocked && internalState.initialState !== undefined) {
+    throw new Error('Cannot set state from outside of a controller');
+  }
 };

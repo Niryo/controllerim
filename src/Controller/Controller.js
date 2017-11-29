@@ -15,15 +15,16 @@ export class Controller {
 
     const privateScope = {
       controllerName: this.constructor.name,
+      stateTree: undefined,
       internalState: { value: {}, isStateLocked: true, initialState: undefined },
       component: componentInstance
     };
-
     addControllerToContext(this, privateScope);
     exposeStateOnScope(this, privateScope);
     exposeGetParentControllerOnScope(this, privateScope);
     exposeMockStateOnScope(this, privateScope);
     exposeClearStateOnScope(this, privateScope);
+    exposeGetStateTreeOnScope(this, privateScope);
     swizzleOwnMethods(this, privateScope);
   }
 }
@@ -45,7 +46,7 @@ const exposeStateOnScope = (publicScope, privateScope) => {
       if (internalState.initialState === undefined) {
         internalState.initialState = cloneDeep(value);
       }
-      internalState.value = global.Proxy ? proxify(value) : value;
+      internalState.value = global.Proxy ? proxify(value, privateScope) : value;
     },
     get: function () {
       return internalState.value;
@@ -92,7 +93,9 @@ const exposeMockStateOnScope = (publicScope, privateScope) => {
         if (!isTestMod()) {
           throw new Error('mockState can be used only in test mode. if you are using it inside your tests, make sure that you are calling TestUtils.init()');
         }
+        internalState.isStateLocked = false;
         Object.assign(internalState.value, state);
+        internalState.isStateLocked = true;
       };
     }
   });
@@ -100,14 +103,12 @@ const exposeMockStateOnScope = (publicScope, privateScope) => {
 
 const exposeGetParentControllerOnScope = (publicScope, privateScope) => {
   publicScope.getParentController = (parentControllerName) => {
-    const parentController = privateScope.component.context.controllers && getControllerFromContext(privateScope.component.context, parentControllerName);
+    let parentController = privateScope.component.context.controllers && getControllerFromContext(privateScope.component.context, parentControllerName);
+    if (!parentController && isTestMod()) {
+      parentController = getMockedParent(privateScope.controllerName);
+    }
     if (!parentController) {
-      const controllerName = privateScope.controllerName;      
-      if (isTestMod()) {
-        return getMockedParent(controllerName);
-      } else {
-        throw new Error(`Parent controller does not exist. make sure that ${parentControllerName} is parent of ${controllerName} and that you provided it using ProvideController`);
-      }
+      throw new Error(`Parent controller does not exist. make sure that ${parentControllerName} is parent of ${privateScope.controllerName} and that you provided it using ProvideController`);
     }
     return parentController;
   };
@@ -130,21 +131,48 @@ const exposeClearStateOnScope = (publicScope, privateScope) => {
   };
 };
 
+const exposeGetStateTreeOnScope = (publicScope, privateScope) => {
+  const transformRoot = (node) => {
+    const result = {};
+    result[node.name] = {
+      state: node.instance.state,
+      children: node.children.map(child => transformRoot(child))
+    };
+    if (result[node.name].children.length === 0) {
+      delete result[node.name].children;
+    }
+    return result;
+  };
+  publicScope.getStateTree = () => {
+    return transformRoot(privateScope.stateTree);
+  };
+};
+
+
+
 const addControllerToContext = (that, privateScope) => {
   const component = privateScope.component;
   if (component.context === undefined) {
-    throw new Error(`Context is undefined. Make sure that you initialized ${that.constructor.name} in componentWillMount()`);
+    throw new Error(`Context is undefined. Make sure that you initialized ${privateScope.controllerName} in componentWillMount()`);
   }
   component.context.controllers = component.context.controllers || [];
-  component.context.controllers = cloneDeep(component.context.controllers);
-  if(!getControllerFromContext(component.context, that.constructor.name)){
-    component.context.controllers.push({name: that.constructor.name, instance: that});
+  component.context.controllers = [...component.context.controllers];
+  const newNode = {
+    name: privateScope.controllerName,
+    instance: that,
+    children: []
+  };
+  const parentNode = component.context.controllers[component.context.controllers.length - 1];
+  if (parentNode) {
+    parentNode.children.push(newNode);
   }
+  component.context.controllers.push(newNode);
+  privateScope.stateTree = newNode;
 };
 
 const getControllerFromContext = (context, name) => {
   const foundObj = context.controllers.find(obj => obj.name === name);
-  if(foundObj){
+  if (foundObj) {
     return foundObj.instance;
   }
 };
