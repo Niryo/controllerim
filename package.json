@@ -10,6 +10,10 @@
     "build": "npm run lint && jest && npm run babel",
     "minorUpdate": "npm run build && npm version minor && npm publish"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Niryo/controllerim.git"
+  },
   "author": "niryosef89@gmail.com",
   "license": "MIT",
   "peerDependencies": {
@@ -48,5 +52,22 @@
   "dependencies": {
     "lodash": "^4.17.4",
     "mobx": "^3.3.1"
-  }
+  },
+  "keywords": [
+    "controllerim",
+    "controller",
+    "react-view-controller",
+    "react-controllers",
+    "observable",
+    "observer",
+    "react-component",
+    "react",
+    "reactjs",
+    "reactive",
+    "mvc",
+    "state management",
+    "data flow",
+    "mobx",
+    "redux"
+  ]
 }
