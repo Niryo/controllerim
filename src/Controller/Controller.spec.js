@@ -102,7 +102,7 @@ const Parent = observer(class extends React.Component {
 
 const Child = observer(class extends React.Component {
   componentWillMount() {
-    this.parentController = new Controller(this).getParentController(ParentController.name);
+    this.parentController = new Controller.getParentController(this, ParentController.name);
   }
   render() {
     return <div data-hook="blamos">{this.parentController.getBasicProp()}</div>;
@@ -123,12 +123,11 @@ describe('Controller', () => {
     expect(() => { new Controller(); }).toThrowError('Component instance is undefined. Make sure that you call \'new Controller(this)\' inside componentWillMount and that you are calling \'super(componentInstance)\' inside your controller constructor');
   });
 
-  it.skip('should throw error if componentInstance is not a react class', () => {
-    expect(() => { new Controller({ someObj: 'bla' }); }).toThrowError('bla');
+  it('should give anonymous controllers a name according to their component', () => {
+
   });
 
-
-  it('should allow to get parent controller', () => {
+  it('should allow getting parent controller', () => {
     const testController = new Controller({ context: { controllers: [{ name: 'someParent', instance: 'mocekdParentController', children: [] }] } });
     expect(testController.getParentController('someParent')).toEqual('mocekdParentController');
   });
@@ -139,14 +138,13 @@ describe('Controller', () => {
   });
 
   it('should throw an error if parent controller does not exist', () => {
-    let testController = new Controller({ context: { controllers: [] } });
+    let testController = new Controller({ context: { controllers: [] }, constructor: { name: 'SomeFakeComponent' } });
     expect(() => testController.getParentController('someParent'))
-      .toThrowError('Parent controller does not exist. make sure that someParent is parent of Controller and that you provided it using ProvideController');
-    testController = new Controller({ context: {} });
+      .toThrowError('Parent controller does not exist. make sure that someParent is parent of AnonymousControllerForSomeFakeComponent and that you wraped it with observer');
+    testController = new Controller({ context: {}, constructor: { name: 'SomeFakeComponent' } });
     expect(() => testController.getParentController('someParent'))
-      .toThrowError('Parent controller does not exist. make sure that someParent is parent of Controller and that you provided it using ProvideController');
+      .toThrowError('Parent controller does not exist. make sure that someParent is parent of AnonymousControllerForSomeFakeComponent and that you wraped it with observer');
   });
-
 
   it('should allow setting the state only with object', () => {
     const controller = new TestStateInitController({ context: {} });
@@ -179,9 +177,9 @@ describe('Controller', () => {
     const TestController = class extends Controller {
       constructor(comp) {
         super(comp);
-        this.state = {someObj: {bla: true}, someOtherObj: {hello: 'world'}};
+        this.state = { someObj: { bla: true }, someOtherObj: { hello: 'world' } };
       }
-      changeObj(){
+      changeObj() {
         this.state.someObj = this.state.someOtherObj;
       }
     };
@@ -358,6 +356,11 @@ describe('Controller', () => {
         const B = observer(class extends React.Component { componentWillMount() { this.controller = new Bcon(this); } render() { return (<div></div>); } });
         const C = observer(class extends React.Component { componentWillMount() { this.controller = new Ccon(this); } render() { return (<div>{this.controller.getParentController(Bcon.name)} </div>); } });
         expect(() => mount(<A />)).toThrowError(/Parent controller does not exist/);
+      });
+
+      it('should allow getting parent controller usign static getParentController', () => {
+        const component = mount(<Parent><Child /></Parent>);
+        expect(component.find('[data-hook="blamos"]').text()).toEqual('blamos');
       });
 
       it('should expose stateTree on a component', () => {

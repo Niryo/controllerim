@@ -1,10 +1,15 @@
 
 import { proxify } from './proxify';
-import { isPlainObject, cloneDeep, uniqueId} from 'lodash';
+import { isPlainObject, cloneDeep, uniqueId } from 'lodash';
 import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
 import { transaction } from 'mobx';
 
 export class Controller {
+  static getParentController(componentInstance, parentControllerName) {
+    const controllerName = getAnonymousControllerName(componentInstance);
+    return staticGetParentController(controllerName,componentInstance, parentControllerName);
+  }
+
   constructor(componentInstance) {
     if (!componentInstance) {
       throw new Error(`Component instance is undefined. Make sure that you call 'new Controller(this)' inside componentWillMount and that you are calling 'super(componentInstance)' inside your controller constructor`);
@@ -15,7 +20,7 @@ export class Controller {
 
     const privateScope = {
       controllerId: uniqueId(),
-      controllerName: this.constructor.name,
+      controllerName: this.constructor.name === 'Controller'? getAnonymousControllerName(componentInstance) : this.constructor.name,
       stateTree: undefined,
       internalState: { value: {}, isStateLocked: true, initialState: undefined },
       component: componentInstance
@@ -104,15 +109,19 @@ const exposeMockStateOnScope = (publicScope, privateScope) => {
 
 const exposeGetParentControllerOnScope = (publicScope, privateScope) => {
   publicScope.getParentController = (parentControllerName) => {
-    let parentController = privateScope.component.context.controllers && getControllerFromContext(privateScope.component.context, parentControllerName);
-    if (!parentController && isTestMod()) {
-      parentController = getMockedParent(privateScope.controllerName);
-    }
-    if (!parentController) {
-      throw new Error(`Parent controller does not exist. make sure that ${parentControllerName} is parent of ${privateScope.controllerName} and that you provided it using ProvideController`);
-    }
-    return parentController;
+    return staticGetParentController(privateScope.controllerName, privateScope.component, parentControllerName);
   };
+};
+
+const staticGetParentController = (currentControllerName, component, parentControllerName) => {
+  let parentController = component.context.controllers && getControllerFromContext(component.context, parentControllerName);
+  if (!parentController && isTestMod()) {
+    parentController = getMockedParent(currentControllerName);
+  }
+  if (!parentController) {
+    throw new Error(`Parent controller does not exist. make sure that ${parentControllerName} is parent of ${currentControllerName} and that you wraped it with observer`);
+  }
+  return parentController;
 };
 
 const getInjectedFunctionForNonProxyMode = (privateScope) => {
@@ -176,4 +185,8 @@ const getControllerFromContext = (context, name) => {
   if (foundObj) {
     return foundObj.instance;
   }
+};
+
+const getAnonymousControllerName = (componentInstance) => {
+  return 'AnonymousControllerFor'+componentInstance.constructor.name;
 };
