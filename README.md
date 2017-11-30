@@ -125,10 +125,10 @@ If you need to interact with a parent controller from your React component, you 
     this.parentController = this.controller.getParentController(SomeParentController.name);
   }
 ```
-Or directly:
+Or anonymously with the the static method of Controller:
 ```javascript
  componentWillMount() {
-    this.parentController = new Controller(this).getParentController(SomeParentController.name);
+    this.parentController =  Controller.getParentController(this, SomeParentController.name);
   }
 ```
 Or within your controller:
