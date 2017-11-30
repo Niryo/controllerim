@@ -159,7 +159,7 @@ describe('Controller', () => {
     expect(() => controller.setState(['1', '2'])).toThrowError('State should be initialize only with plain object');
   });
 
-  it.skip(`should throw an error if trying to save into state other controller's state`, () => {
+  it(`should throw an error if trying to save into state other controller's state`, () => {
     const TestController = class extends Controller {
       constructor(comp) {
         super(comp);
@@ -173,6 +173,22 @@ describe('Controller', () => {
     const testController = new TestController({ context: {} });
     const otherController = new ParentController({ context: {} });
     expect(() => testController.setOtherState(otherController.getState())).toThrowError(`Cannot set state with other controller's state.`);
+  });
+
+  it(`should allow savint into state own proxified object`, () => {
+    const TestController = class extends Controller {
+      constructor(comp) {
+        super(comp);
+        this.state = {someObj: {bla: true}, someOtherObj: {hello: 'world'}};
+      }
+      changeObj(){
+        this.state.someObj = this.state.someOtherObj;
+      }
+    };
+
+    const testController = new TestController({ context: {} });
+    testController.changeObj();
+    expect(testController.state.someObj).toEqual(testController.state.someOtherObj);
   });
 
   it('should throw an error when trying to set the state from outside of the contoller', () => {

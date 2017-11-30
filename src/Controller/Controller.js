@@ -1,6 +1,6 @@
 
 import { proxify } from './proxify';
-import { isPlainObject, cloneDeep } from 'lodash';
+import { isPlainObject, cloneDeep, uniqueId} from 'lodash';
 import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
 import { transaction } from 'mobx';
 
@@ -14,6 +14,7 @@ export class Controller {
     }
 
     const privateScope = {
+      controllerId: uniqueId(),
       controllerName: this.constructor.name,
       stateTree: undefined,
       internalState: { value: {}, isStateLocked: true, initialState: undefined },

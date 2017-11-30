@@ -4,13 +4,13 @@ import { keys, isObjectLike, isString } from 'lodash';
 
 const alreadyProxiedObjects = new WeakMap();
 
-const markAsProxified = (obj) => {
-  alreadyProxiedObjects.set(obj, true);
+const markAsProxified = (obj, id) => {
+  alreadyProxiedObjects.set(obj, id);
 };
 
-// const isAlreadyProxified = (obj) => {
-//   return alreadyProxiedObjects.has(obj);
-// };
+const isAlreadyProxifiedByOhterController = (obj,controllerId) => {
+  return alreadyProxiedObjects.has(obj) && alreadyProxiedObjects.get(obj) !== controllerId;
+};
 
 export const proxify = (obj,privateScope) => {
   const tracker = createObservableMap(obj,privateScope);
@@ -30,9 +30,9 @@ export const proxify = (obj,privateScope) => {
       let newValue = value;
       stateGuard(privateScope.internalState);
       if (isObjectLike(value)) {
-        // if(isAlreadyProxified(value)) {
-        //   throw new Error(`Cannot set state with other controller's state.`);
-        // }
+        if(isAlreadyProxifiedByOhterController(value, privateScope.controllerId)) {
+          throw new Error(`Cannot set state with other controller's state.`);
+        }
         newValue = proxify(value,privateScope);
       }
       target[prop] = newValue;
@@ -41,7 +41,7 @@ export const proxify = (obj,privateScope) => {
     }
   };
   const proxifiedObject = new Proxy(obj, handler);
-  markAsProxified(proxifiedObject);
+  markAsProxified(proxifiedObject, privateScope.controllerId);
   return proxifiedObject;
 };
 
