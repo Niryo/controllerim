@@ -8,9 +8,9 @@ const markAsProxified = (obj) => {
   alreadyProxiedObjects.set(obj, true);
 };
 
-const isAlreadyProxified = (obj) => {
-  return alreadyProxiedObjects.has(obj);
-};
+// const isAlreadyProxified = (obj) => {
+//   return alreadyProxiedObjects.has(obj);
+// };
 
 export const proxify = (obj,privateScope) => {
   const tracker = createObservableMap(obj,privateScope);
