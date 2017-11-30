@@ -30,9 +30,9 @@ export const proxify = (obj,privateScope) => {
       let newValue = value;
       stateGuard(privateScope.internalState);
       if (isObjectLike(value)) {
-        if(isAlreadyProxified(value)) {
-          throw new Error(`Cannot set state with other controller's state.`);
-        }
+        // if(isAlreadyProxified(value)) {
+        //   throw new Error(`Cannot set state with other controller's state.`);
+        // }
         newValue = proxify(value,privateScope);
       }
       target[prop] = newValue;
