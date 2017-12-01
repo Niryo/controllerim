@@ -29,9 +29,9 @@ class ParentController extends Controller {
       objectProp: { name: 'alice' },
       dynamicObject: {}
     };
-  } 
+  }
 
-  getBasicPropWithArg(arg){
+  getBasicPropWithArg(arg) {
     return this.state.basicProp + arg;
   }
 
@@ -90,6 +90,11 @@ class ParentController extends Controller {
 
   getState() {
     return this.state;
+  }
+
+  async testAsyncFunc() {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    this.state.basicProp = 'changeAsync!';
   }
 }
 
@@ -159,9 +164,9 @@ describe('Controller', () => {
     const controllers = [{ name: 'someParent', instance: 'mocekdParentController', children: [] }];
     const testController = new Controller({ context: { controllers } });
     expect(testController.getParentController('someParent')).toEqual('mocekdParentController');
-    controllers[0].instance = 'changedMocked'; 
+    controllers[0].instance = 'changedMocked';
     //change will not take effect because of memoization:
-    expect(testController.getParentController('someParent')).toEqual('mocekdParentController');    
+    expect(testController.getParentController('someParent')).toEqual('mocekdParentController');
   });
 
   it('should allow to get parent controller using super', () => {
@@ -228,6 +233,12 @@ describe('Controller', () => {
   //   expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot set state from outside of a controller');
   //   expect(() => testController.state.bla = 'bla').toThrowError('Cannot set state from outside of a controller');
   // });
+
+  it('should allow setting state from async func', async () => {
+    const controller = new ParentController({ context: {} });
+    await controller.testAsyncFunc();
+    expect(controller.getBasicProp()).toEqual('changeAsync!');
+  });
 
   it('should expose a clearState method', () => {
     class TestController extends Controller {
@@ -334,10 +345,10 @@ describe('Controller', () => {
       it('should allow getter with args', () => {
         const component = mount(<Parent />);
         component.find('[data-hook="basicPropWithArgPreview"]').text();
-        expect(component.find('[data-hook="basicPropWithArgPreview"]').text()).toEqual('blamossomeArg'); 
-        global.Proxy = backupProxy;        
+        expect(component.find('[data-hook="basicPropWithArgPreview"]').text()).toEqual('blamossomeArg');
+        global.Proxy = backupProxy;
         component.find('[data-hook="changeBasicPropButton"]').simulate('click');
-        expect(component.find('[data-hook="basicPropWithArgPreview"]').text()).toEqual('changed!someArg');          
+        expect(component.find('[data-hook="basicPropWithArgPreview"]').text()).toEqual('changed!someArg');
       });
 
       it('should throw an error if context is undefined', () => {

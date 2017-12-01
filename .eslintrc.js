@@ -7,6 +7,7 @@ module.exports = {
   },
   "extends": "eslint:recommended",
   "parserOptions": {
+    "ecmaVersion": 2017,
     "ecmaFeatures": {
       "experimentalObjectRestSpread": true,
       "jsx": true
@@ -18,7 +19,7 @@ module.exports = {
   ],
   "rules": {
     "no-console": ["error", { allow: ["warn", "error"] }],
-    "quotes": [2, "single", {"avoidEscape": true, "allowTemplateLiterals": true}],
+    "quotes": [2, "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
     "indent": [
       "error",
       4
