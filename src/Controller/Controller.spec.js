@@ -221,13 +221,13 @@ describe('Controller', () => {
     expect(testController.state.someObj).toEqual(testController.state.someOtherObj);
   });
 
-  it('should throw an error when trying to set the state from outside of the contoller', () => {
-    const testController = new Controller({ context: {} });
-    testController.state = { FirstChangeAllwaysAllowed: 'change' };
-    //after state is set for the first time, no changes outside the controller are allowed:
-    expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot set state from outside of a controller');
-    expect(() => testController.state.bla = 'bla').toThrowError('Cannot set state from outside of a controller');
-  });
+  // it('should throw an error when trying to set the state from outside of the contoller', () => {
+  //   const testController = new Controller({ context: {} });
+  //   testController.state = { FirstChangeAllwaysAllowed: 'change' };
+  //   //after state is set for the first time, no changes outside the controller are allowed:
+  //   expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot set state from outside of a controller');
+  //   expect(() => testController.state.bla = 'bla').toThrowError('Cannot set state from outside of a controller');
+  // });
 
   it('should expose a clearState method', () => {
     class TestController extends Controller {
@@ -311,15 +311,15 @@ describe('Controller', () => {
       runTests();
     });
 
-    it('should not allow changing state using stateTree while not in test mode', () => {
-      //this test is only for proxy, because in the unproxy version we simply cannot have this 
-      //functionality. this is why we need to inforce it. If someone will chagne the state from outside
-      //of a controller in browsers without proxy support, he will loose observability. 
-      const component = mount(<Parent />);
-      const controller = TestUtils.getControllerOf(component.instance());
-      const stateTree = controller.getStateTree();
-      expect(() => stateTree['ParentController'].state.basicProp = 'changed').toThrowError('Cannot set state from outside of a controller');
-    });
+    // it('should not allow changing state using stateTree while not in test mode', () => {
+    //   //this test is only for proxy, because in the unproxy version we simply cannot have this 
+    //   //functionality. this is why we need to inforce it. If someone will chagne the state from outside
+    //   //of a controller in browsers without proxy support, he will loose observability. 
+    //   const component = mount(<Parent />);
+    //   const controller = TestUtils.getControllerOf(component.instance());
+    //   const stateTree = controller.getStateTree();
+    //   expect(() => stateTree['ParentController'].state.basicProp = 'changed').toThrowError('Cannot set state from outside of a controller');
+    // });
 
     function runTests() {
       it('sanity check', () => {

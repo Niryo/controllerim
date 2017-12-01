@@ -40,11 +40,11 @@ export class Controller {
   }
 }
 
-const stateGuard = (internalState) => {
-  if (isStateLocked(internalState) && internalState.initialState !== undefined) {
-    throw new Error('Cannot set state from outside of a controller');
-  }
-};
+// const stateGuard = (internalState) => {
+//   if (isStateLocked(internalState) && internalState.initialState !== undefined) {
+//     throw new Error('Cannot set state from outside of a controller');
+//   }
+// };
 
 const exposeStateOnScope = (publicScope, privateScope) => {
   const internalState = privateScope.internalState;
@@ -53,7 +53,7 @@ const exposeStateOnScope = (publicScope, privateScope) => {
       if (!isPlainObject(value)) {
         throw new Error('State should be initialize only with plain object');
       }
-      stateGuard(internalState);
+      // stateGuard(internalState);
       if (internalState.initialState === undefined) {
         internalState.initialState = cloneDeep(value);
       }

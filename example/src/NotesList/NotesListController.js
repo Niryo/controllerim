@@ -1,11 +1,13 @@
 import { Controller } from 'controllerim';
-import {AppController} from '../App/AppController';
+import { AppController } from '../App/AppController';
+import { fetchRandomJoke } from '../chuckNorisService';
+
 export class NotesListController extends Controller {
   constructor(compInstance) {
     super(compInstance);
     this.state = {
-      listItems: [{ title: 'firstItem', text: 'this is your first todo!', id: 0}],
-      selectedItem: {title:'',text:''},
+      listItems: [{ title: 'firstItem', text: 'this is your first todo!', id: 0 }],
+      selectedItem: { title: '', text: '' },
       inputValue: ''
     };
   }
@@ -27,12 +29,17 @@ export class NotesListController extends Controller {
   }
 
   addNote() {
-    this.state.listItems.push({ title: this.state.inputValue, text: '' ,id: this.state.listItems.length});
+    this.state.listItems.push({ title: this.state.inputValue, text: '', id: this.state.listItems.length });
     this.state.inputValue = '';
     this.getParentController(AppController.name).increaseCounter();
   }
 
   editSelectedNote(value) {
     this.state.selectedItem.text = value;
+  }
+
+  async addRandomJoke() {
+    const joke = await fetchRandomJoke()
+    this.state.selectedItem.text = joke;
   }
 }

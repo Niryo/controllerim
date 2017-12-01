@@ -25,6 +25,7 @@
   background-color: #B6DCFE;
   border-color: transparent;    
   resize: none;  
+  display: block;
 }
 
 .theme1 input {
