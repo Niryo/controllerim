@@ -108,6 +108,12 @@ changeName(){
 }
 ```
 
+*Importent:* Every interaction with the state should be done through getters and setters. Do not ever interact with the state directly like this:
+```javascript
+<button onClick={() => this.controller.state.name = 'bob' }>Change name</button> //WRONG USAGE OF STATE
+```
+Controllerim makes some assertions based on the fact that every interaction with the state is done through getters and setters on the controller, and interacting with the state directly can lead to unexpected behavior.
+
 * #### `getParentController(controllerName: string)`:
 Use this Controller method when you need to fetch data from a parent controller (not necessarily a direct parent).
 The name of the parent controller is the name of the class, as returned from Class.name.
