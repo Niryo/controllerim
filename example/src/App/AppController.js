@@ -10,7 +10,6 @@ export class AppController extends Controller {
   }
 
   getTotalNotesCount() {
-    console.log(this.getStateTree());
     return this.state.totalNotesCount;
   }
 

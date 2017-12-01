@@ -76,7 +76,7 @@ const CompD = observer(class extends React.Component {
   }
 });
 
-describe('ProviderController', () => {
+describe('Observer', () => {
   beforeEach(() => {
     TestUtils.init();
   });

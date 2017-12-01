@@ -2,12 +2,16 @@
 import { proxify } from './proxify';
 import { isPlainObject, cloneDeep, uniqueId } from 'lodash';
 import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
-import { transaction } from 'mobx';
+import { transaction, computed } from 'mobx';
 
+const MethodType = Object.freeze({
+  GETTER: 'GETTER',
+  SETTER: 'SETTER'
+});
 export class Controller {
   static getParentController(componentInstance, parentControllerName) {
     const controllerName = getAnonymousControllerName(componentInstance);
-    return staticGetParentController(controllerName,componentInstance, parentControllerName);
+    return staticGetParentController(controllerName, componentInstance, parentControllerName);
   }
 
   constructor(componentInstance) {
@@ -19,10 +23,11 @@ export class Controller {
     }
 
     const privateScope = {
+      gettersAndSetters: {},
       controllerId: uniqueId(),
-      controllerName: this.constructor.name === 'Controller'? getAnonymousControllerName(componentInstance) : this.constructor.name,
+      controllerName: this.constructor.name === 'Controller' ? getAnonymousControllerName(componentInstance) : this.constructor.name,
       stateTree: undefined,
-      internalState: { value: {}, isStateLocked: true, initialState: undefined },
+      internalState: { value: {}, methodUsingState: undefined, initialState: undefined },
       component: componentInstance
     };
     addControllerToContext(this, privateScope);
@@ -36,7 +41,7 @@ export class Controller {
 }
 
 const stateGuard = (internalState) => {
-  if (internalState.isStateLocked && internalState.initialState !== undefined) {
+  if (isStateLocked(internalState) && internalState.initialState !== undefined) {
     throw new Error('Cannot set state from outside of a controller');
   }
 };
@@ -61,24 +66,49 @@ const exposeStateOnScope = (publicScope, privateScope) => {
 };
 
 const swizzleOwnMethods = (publicScope, privateScope) => {
-  const internalState = privateScope.internalState;
   const ownMethodNames = getOwnMethodNames(publicScope);
-
   ownMethodNames.forEach((name) => publicScope[name] = publicScope[name].bind(publicScope));
 
-  const injectedFunction = !global.Proxy ? getInjectedFunctionForNonProxyMode(privateScope) : undefined;
+  const injectedFunction = global.Proxy ? undefined : getInjectedFunctionForNonProxyMode(privateScope);
   ownMethodNames.forEach((name) => {
-    const bindedMethod = publicScope[name];
+    const regularBindedMethod = publicScope[name];
+    let computedBindedMethod = computed(publicScope[name]);
+    let siwzzledMethod;
+    
+    const computedIfPossible = (...args) => {
+      if(args.length > 0) {
+        //todo: derivation is not memoize, we still need to find a way to memoize it.
+        return computedBindedMethod.derivation(...args);
+      }else {
+        return computedBindedMethod.get();
+      }
+    };
+
+    const probMethodForGetterOrSetter = (...args) => {
+      const result = regularBindedMethod(...args);
+      if (result !== undefined) {
+        markGetterOnPrivateScope(privateScope);
+      }
+      const methodType = privateScope.gettersAndSetters[name];
+      if (methodType === MethodType.GETTER) {
+        siwzzledMethod = computedIfPossible;
+      } else if (methodType === MethodType.SETTER) {
+        siwzzledMethod = regularBindedMethod;
+      }
+      return result;
+    };
+
+    siwzzledMethod = global.Proxy? probMethodForGetterOrSetter : regularBindedMethod;
     publicScope[name] = (...args) => {
-      internalState.isStateLocked = false;
+      unlockState(privateScope, name);
       let returnValue;
       transaction(() => {
-        returnValue = bindedMethod(...args);
+        returnValue = siwzzledMethod(...args);
       });
-      internalState.isStateLocked = true;
       if (injectedFunction) {
         injectedFunction();
       }
+      lockState(privateScope);
       return returnValue;
     };
   });
@@ -99,9 +129,9 @@ const exposeMockStateOnScope = (publicScope, privateScope) => {
         if (!isTestMod()) {
           throw new Error('mockState can be used only in test mode. if you are using it inside your tests, make sure that you are calling TestUtils.init()');
         }
-        internalState.isStateLocked = false;
+        unlockState(privateScope, 'mockState');
         Object.assign(internalState.value, state);
-        internalState.isStateLocked = true;
+        lockState(privateScope);
       };
     }
   });
@@ -128,8 +158,9 @@ const getInjectedFunctionForNonProxyMode = (privateScope) => {
   let previewsState = JSON.stringify(privateScope.internalState.value);
   return () => {
     if (JSON.stringify(privateScope.internalState.value) !== previewsState) {
-      privateScope.component.forceUpdate();
+      markSetterOnPrivateScope(privateScope);
       previewsState = JSON.stringify(privateScope.internalState.value);
+      privateScope.component.forceUpdate();
     }
   };
 };
@@ -188,5 +219,24 @@ const getControllerFromContext = (context, name) => {
 };
 
 const getAnonymousControllerName = (componentInstance) => {
-  return 'AnonymousControllerFor'+componentInstance.constructor.name;
+  return 'AnonymousControllerFor' + componentInstance.constructor.name;
+};
+
+const unlockState = (privateScope, methodName) => {
+  privateScope.internalState.methodUsingState = methodName;
+};
+
+const lockState = (privateScope) => {
+  privateScope.internalState.methodUsingState = undefined;
+};
+export const isStateLocked = (internalState) => {
+  return internalState.methodUsingState === undefined;
+};
+
+export const markSetterOnPrivateScope = (privateScope) => {
+  privateScope.gettersAndSetters[privateScope.internalState.methodUsingState] = MethodType.SETTER;
+};
+
+const markGetterOnPrivateScope = (privateScope) => {
+  privateScope.gettersAndSetters[privateScope.internalState.methodUsingState] = MethodType.GETTER;
 };

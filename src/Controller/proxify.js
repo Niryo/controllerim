@@ -1,7 +1,7 @@
 
 import { observable } from 'mobx';
 import { keys, isObjectLike, isString } from 'lodash';
-
+import {isStateLocked, markSetterOnPrivateScope} from './Controller';
 const alreadyProxiedObjects = new WeakMap();
 
 const markAsProxified = (obj, id) => {
@@ -35,6 +35,7 @@ export const proxify = (obj,privateScope) => {
         }
         newValue = proxify(value,privateScope);
       }
+      markSetterOnPrivateScope(privateScope);
       target[prop] = newValue;
       tracker.set(prop, newValue);
       return true;
@@ -57,7 +58,7 @@ const createObservableMap = (obj,privateScope) => {
 };
 
 const stateGuard = (internalState) => {
-  if (internalState.isStateLocked && internalState.initialState !== undefined) {
+  if (isStateLocked(internalState) && internalState.initialState !== undefined) {
     throw new Error('Cannot set state from outside of a controller');
   }
 };

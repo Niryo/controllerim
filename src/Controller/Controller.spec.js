@@ -23,23 +23,40 @@ class ParentController extends Controller {
   constructor(componentInstance) {
     super(componentInstance);
     this.state = {
+      counter: 0,
+      unRelatedProp: 'bla',
       basicProp: 'blamos',
       objectProp: { name: 'alice' },
       dynamicObject: {}
     };
+  } 
+
+  getBasicPropWithArg(arg){
+    return this.state.basicProp + arg;
   }
 
   getBasicProp() {
     return this.state.basicProp;
   }
+  getCounter() {
+    return this.state.counter;
+  }
+  increaseCounter() {
+    this.state.counter++;
+  }
 
   testMemoizeByReturningRandom() {
-    const basicProp = this.state.basicProp;
-    return basicProp + Math.random();
+    return this.state.basicProp + Math.random();
   }
 
   changeBasicProp() {
     this.state.basicProp = 'changed!';
+  }
+  changeUnrelatedProp() {
+    this.state.unRelatedProp = Math.random();
+  }
+  getUnrelatedProp() {
+    return this.state.unRelatedProp;
   }
 
   getObjectProp() {
@@ -87,13 +104,19 @@ const Parent = observer(class extends React.Component {
       <div>
         <Child />
         <div data-hook="basicPropPreview">{this.controller.getBasicProp()}</div>
+        <div data-hook="basicPropWithArgPreview">{this.controller.getBasicPropWithArg('someArg')}</div>
+        <div data-hook="unRelatedPropPreview">{this.controller.getUnrelatedProp()}</div>
+        <div data-hook="testMemoize">{this.controller.testMemoizeByReturningRandom()}</div>
         <button data-hook="changeBasicPropButton" onClick={() => this.controller.changeBasicProp()} />
+        <button data-hook="changeUnrealatedPropButton" onClick={() => this.controller.changeUnrelatedProp()} />
         <div data-hook="objectPropPreviw">{JSON.stringify(this.controller.getObjectProp())}</div>
         <div data-hook="dynamicObjectPreviw">{JSON.stringify(this.controller.getDynamicObject())}</div>
         <button data-hook="addArrayToDynamicObjectButton" onClick={() => this.controller.addArrayToDynamicObject()} />
         <button data-hook="addNameToDynamicObjectArrayButton" onClick={() => this.controller.addNameToDynamicObjectArray()} />
         <button data-hook="changeMultiPropsButton" onClick={() => this.controller.changeMultiPropsButton()} />
         <button data-hook="applySetterWithArgsButton" onClick={() => this.controller.setBasicProp('value1', 'value2')} />
+        <div data-hook="counterPreview">{this.controller.getCounter()}</div>
+        <button data-hook="increaseCounter" onClick={() => this.controller.increaseCounter()} />
 
       </div>
     );
@@ -173,7 +196,7 @@ describe('Controller', () => {
     expect(() => testController.setOtherState(otherController.getState())).toThrowError(`Cannot set state with other controller's state.`);
   });
 
-  it(`should allow savint into state own proxified object`, () => {
+  it(`should allow saving into state own proxified object`, () => {
     const TestController = class extends Controller {
       constructor(comp) {
         super(comp);
@@ -222,11 +245,12 @@ describe('Controller', () => {
     expect(fakeComponent.forceUpdate.mock.calls.length).toEqual(1);
   });
 
-  // it('should memoize values', () => {
-  //   const parentController = new ParentController(new Parent());
-  //   const value1 = parentController.testMemoizeByReturningRandom();
-  //   const value2 = parentController.testMemoizeByReturningRandom();
-  //   expect(value1).toEqual(value2);
+  // it('teest', () => {
+  //   const controller = new TestControllerMethodClassificationController({context: {}});
+  //   controller.getProp();
+  //   controller.setProp('bla');
+  //   controller.changeProp();
+  //   expect(false).toEqual(true);
   // });
 
   describe('Tests with mounting component', () => {
@@ -257,10 +281,28 @@ describe('Controller', () => {
         global.Proxy = backupProxy;
       });
 
+      it('should memoize getters without args', () => {
+        const component = mount(<Parent />);
+        const value1 = component.find('[data-hook="testMemoize"]').text();
+        const unRelatedPropValue1 = component.find('[data-hook="unRelatedPropPreview"]').text();
+        component.find('[data-hook="changeUnrealatedPropButton"]').simulate('click');
+        const unRelatedPropValue2 = component.find('[data-hook="unRelatedPropPreview"]').text();
+        expect(unRelatedPropValue1).not.toEqual(unRelatedPropValue2);//check that unrelated prop really changed;
+        const value2 = component.find('[data-hook="testMemoize"]').text();
+        expect(value1).not.toEqual(value2); //first time we still don't have memoize because we prob the function
+        component.find('[data-hook="changeUnrealatedPropButton"]').simulate('click');
+        expect(component.find('[data-hook="unRelatedPropPreview"]').text()).not.toEqual(unRelatedPropValue2);
+        const value3 = component.find('[data-hook="testMemoize"]').text();
+        expect(value2).toEqual(value3); //second time we already know the func is a getter and we memoize it.
+        component.find('[data-hook="changeBasicPropButton"]').simulate('click');
+        const value4 = component.find('[data-hook="testMemoize"]').text();
+        expect(value3).not.toEqual(value4); //third time we are changing a related prop, so we expect to recalculate.
+      });
+
       runTests();
     });
 
-    it('should not allow chaning state using stateTree while not in test mode', () => {
+    it('should not allow changing state using stateTree while not in test mode', () => {
       //this test is only for proxy, because in the unproxy version we simply cannot have this 
       //functionality. this is why we need to inforce it. If someone will chagne the state from outside
       //of a controller in browsers without proxy support, he will loose observability. 
@@ -274,14 +316,24 @@ describe('Controller', () => {
       it('sanity check', () => {
         const component = mount(<Parent />);
         expect(component.find('[data-hook="blamos"]').text()).toEqual('blamos');
+        expect(component.find('[data-hook="counterPreview"]').text()).toEqual('0');
+        global.Proxy = backupProxy;
+        component.find('[data-hook="increaseCounter"]').simulate('click');
+        expect(component.find('[data-hook="counterPreview"]').text()).toEqual('1');
+      });
+
+      it('should allow getter with args', () => {
+        const component = mount(<Parent />);
+        component.find('[data-hook="basicPropWithArgPreview"]').text();
+        expect(component.find('[data-hook="basicPropWithArgPreview"]').text()).toEqual('blamossomeArg'); 
+        global.Proxy = backupProxy;        
+        component.find('[data-hook="changeBasicPropButton"]').simulate('click');
+        expect(component.find('[data-hook="basicPropWithArgPreview"]').text()).toEqual('changed!someArg');          
       });
 
       it('should throw an error if context is undefined', () => {
         class TestParentController extends Controller {
-          constructor(comp) {
-            super(comp);
-            this.state = { hello: 'world' };
-          }
+          constructor(comp) { super(comp); this.state = { hello: 'world' }; }
           getHello() {
             return this.state.hello;
           }
@@ -292,19 +344,16 @@ describe('Controller', () => {
             super();
             this.controller = new TestParentController(this);
           }
-
           render() {
             return <div><TestComp></TestComp></div>;
           }
         });
-
 
         const TestComp = observer(class extends React.Component {
           constructor() {
             super();
             this.controller = new Controller(this);
           }
-
           render() {
             return <div data-hook="hello">{this.controller.getParentController(TestParentController.name).getHello()}</div>;
           }
