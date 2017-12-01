@@ -155,6 +155,15 @@ describe('Controller', () => {
     expect(testController.getParentController('someParent')).toEqual('mocekdParentController');
   });
 
+  it('should memoize getting parent controller', () => {
+    const controllers = [{ name: 'someParent', instance: 'mocekdParentController', children: [] }];
+    const testController = new Controller({ context: { controllers } });
+    expect(testController.getParentController('someParent')).toEqual('mocekdParentController');
+    controllers[0].instance = 'changedMocked'; 
+    //change will not take effect because of memoization:
+    expect(testController.getParentController('someParent')).toEqual('mocekdParentController');    
+  });
+
   it('should allow to get parent controller using super', () => {
     const testController = new ParentController({ context: { controllers: [{ name: 'fakeParent', instance: 'mocekdParentController', children: [] }] } });
     expect(testController.testCallingGetParrentFromInsideController()).toEqual('mocekdParentController');

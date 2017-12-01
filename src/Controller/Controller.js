@@ -138,8 +138,15 @@ const exposeMockStateOnScope = (publicScope, privateScope) => {
 };
 
 const exposeGetParentControllerOnScope = (publicScope, privateScope) => {
+  const memoizedParentControllers = {};
   publicScope.getParentController = (parentControllerName) => {
-    return staticGetParentController(privateScope.controllerName, privateScope.component, parentControllerName);
+    if(memoizedParentControllers[parentControllerName]) {
+      return memoizedParentControllers[parentControllerName];
+    } else {
+      const parentController =  staticGetParentController(privateScope.controllerName, privateScope.component, parentControllerName);
+      memoizedParentControllers[parentControllerName] = parentController;
+      return parentController;
+    }
   };
 };
 
