@@ -212,7 +212,7 @@ To become reactive, every React component that uses a controller should be wrapp
 ```javascript
 import {observer} from 'controllerim';
 
-export const SomeSmartComponent = observer(extends React.Component {
+export const SomeSmartComponent = observer(class extends React.Component {
 ...
 })
 
