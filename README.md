@@ -1,5 +1,5 @@
 # Controllerim
-A state management library for react, based on Mobx
+A simple, clean and well structured state management library for react
 
 [![npm version](https://img.shields.io/npm/v/controllerim.svg)](https://www.npmjs.com/package/controllerim)
 ## Installation
