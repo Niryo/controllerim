@@ -4,6 +4,11 @@ import { mount } from 'enzyme';
 import { observer } from '../index';
 import { TestUtils } from '../TestUtils/testUtils';
 
+const getFakeComponentInstacne = (controllers) => {
+  controllers = controllers || [];
+  return { context: { controllers } };
+};
+
 class TestStateInitController extends Controller {
   constructor(comp) {
     super(comp);
@@ -156,13 +161,14 @@ describe('Controller', () => {
   });
 
   it('should allow getting parent controller', () => {
-    const testController = new Controller({ context: { controllers: [{ name: 'someParent', instance: 'mocekdParentController', children: [] }] } });
+    const fakeComponent = getFakeComponentInstacne([{ name: 'someParent', instance: 'mocekdParentController', children: [] }]);
+    const testController = new Controller(fakeComponent);
     expect(testController.getParentController('someParent')).toEqual('mocekdParentController');
   });
 
   it('should memoize getting parent controller', () => {
     const controllers = [{ name: 'someParent', instance: 'mocekdParentController', children: [] }];
-    const testController = new Controller({ context: { controllers } });
+    const testController = new Controller(getFakeComponentInstacne(controllers));
     expect(testController.getParentController('someParent')).toEqual('mocekdParentController');
     controllers[0].instance = 'changedMocked';
     //change will not take effect because of memoization:
@@ -170,21 +176,24 @@ describe('Controller', () => {
   });
 
   it('should allow to get parent controller using super', () => {
-    const testController = new ParentController({ context: { controllers: [{ name: 'fakeParent', instance: 'mocekdParentController', children: [] }] } });
+    const controllers = [{ name: 'fakeParent', instance: 'mocekdParentController', children: [] }];
+    const testController = new ParentController(getFakeComponentInstacne(controllers));
     expect(testController.testCallingGetParrentFromInsideController()).toEqual('mocekdParentController');
   });
 
   it('should throw an error if parent controller does not exist', () => {
-    let testController = new Controller({ context: { controllers: [] }, constructor: { name: 'SomeFakeComponent' } });
+    const fakeComponent = getFakeComponentInstacne();
+    fakeComponent.constructor ={ name: 'SomeFakeComponent' };
+    let testController = new Controller(fakeComponent);
     expect(() => testController.getParentController('someParent'))
       .toThrowError('Parent controller does not exist. make sure that someParent is parent of AnonymousControllerForSomeFakeComponent and that you wraped it with observer');
-    testController = new Controller({ context: {}, constructor: { name: 'SomeFakeComponent' } });
+    testController = new Controller(fakeComponent);
     expect(() => testController.getParentController('someParent'))
       .toThrowError('Parent controller does not exist. make sure that someParent is parent of AnonymousControllerForSomeFakeComponent and that you wraped it with observer');
   });
 
   it('should allow setting the state only with object', () => {
-    const controller = new TestStateInitController({ context: {} });
+    const controller = new TestStateInitController(getFakeComponentInstacne());
     controller.setState({ hello: true });
     expect(controller.getState()).toEqual({ hello: true });
     expect(() => controller.setState(true)).toThrowError('State should be initialize only with plain object');
@@ -205,8 +214,8 @@ describe('Controller', () => {
       }
     };
 
-    const testController = new TestController({ context: {} });
-    const otherController = new ParentController({ context: {} });
+    const testController = new TestController(getFakeComponentInstacne());
+    const otherController = new ParentController(getFakeComponentInstacne());
     expect(() => testController.setOtherState(otherController.getState())).toThrowError(`Cannot set state with other controller's state.`);
   });
 
@@ -221,13 +230,13 @@ describe('Controller', () => {
       }
     };
 
-    const testController = new TestController({ context: {} });
+    const testController = new TestController(getFakeComponentInstacne());
     testController.changeObj();
     expect(testController.state.someObj).toEqual(testController.state.someOtherObj);
   });
 
   // it('should throw an error when trying to set the state from outside of the contoller', () => {
-  //   const testController = new Controller({ context: {} });
+  //   const testController = new Controller(getFakeComponentInstacne());
   //   testController.state = { FirstChangeAllwaysAllowed: 'change' };
   //   //after state is set for the first time, no changes outside the controller are allowed:
   //   expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot set state from outside of a controller');
@@ -235,7 +244,7 @@ describe('Controller', () => {
   // });
 
   it('should allow setting state from async func', async () => {
-    const controller = new ParentController({ context: {} });
+    const controller = new ParentController(getFakeComponentInstacne());
     await controller.testAsyncFunc();
     expect(controller.getBasicProp()).toEqual('changeAsync!');
   });
@@ -256,7 +265,8 @@ describe('Controller', () => {
         this.clearState();
       }
     }
-    const fakeComponent = { context: {}, forceUpdate: jest.fn() };
+    const fakeComponent = getFakeComponentInstacne();
+    fakeComponent.forceUpdate = jest.fn();
     const testController = new TestController(fakeComponent);
     testController.changeProp();
     expect(testController.getProp()).toEqual('changed');
@@ -266,7 +276,7 @@ describe('Controller', () => {
   });
 
   // it('teest', () => {
-  //   const controller = new TestControllerMethodClassificationController({context: {}});
+  //   const controller = new TestControllerMethodClassificationController(getFakeComponentInstacne());
   //   controller.getProp();
   //   controller.setProp('bla');
   //   controller.changeProp();
@@ -379,7 +389,7 @@ describe('Controller', () => {
           }
         });
 
-        expect(() => mount(<TestParent />)).toThrowError('Context is undefined. Make sure that you initialized TestParentController in componentWillMount()');
+        expect(() => mount(<TestParent />)).toThrowError('Context is empty. Make sure that you initialized TestParentController in componentWillMount() and that you wrapped your component within observer.');
       });
 
       it('should have an observable state', () => {
@@ -459,6 +469,18 @@ describe('Controller', () => {
         const component = mount(<A />);
         const controller = TestUtils.getControllerOf(component.instance());
         expect(JSON.stringify(controller.getStateTree())).toEqual(JSON.stringify(expectedValue));
+      });
+
+      it('should work with higher order components', () => {
+        class Acon extends Controller { constructor(comp) { super(comp); } }
+        class Bcon extends Controller { constructor(comp) { super(comp); } getValue() { return 'value!'; } }
+        class Ccon extends Controller { constructor(comp) { super(comp); } testCallParent() { return this.getParentController(Bcon.name).getValue(); } }
+        const A = observer(class extends React.Component { componentWillMount() { this.controller = new Acon(this); } render() { return (<div><div>{JSON.stringify(this.controller.getStateTree())}</div>{this.props.children}</div>); } });
+        const B = observer(class extends React.Component { componentWillMount() { this.controller = new Bcon(this); } render() { return (<div><C /></div>); } });
+        const C = observer(class extends React.Component { componentWillMount() { this.controller = new Ccon(this); } render() { return (<div data-hook="value">{this.controller.testCallParent()}</div>); } });
+
+        const component = mount(<A><B /></A>);
+        expect(component.find('[data-hook="value"]').text()).toEqual('value!');
       });
     }
   });

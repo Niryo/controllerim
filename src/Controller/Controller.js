@@ -1,6 +1,6 @@
 
 import { proxify } from './proxify';
-import { isPlainObject, cloneDeep, uniqueId } from 'lodash';
+import { isPlainObject, cloneDeep, uniqueId, isEmpty } from 'lodash';
 import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
 import { transaction, computed } from 'mobx';
 
@@ -8,6 +8,7 @@ const MethodType = Object.freeze({
   GETTER: 'GETTER',
   SETTER: 'SETTER'
 });
+
 export class Controller {
   static getParentController(componentInstance, parentControllerName) {
     const controllerName = getAnonymousControllerName(componentInstance);
@@ -18,6 +19,7 @@ export class Controller {
     if (!componentInstance) {
       throw new Error(`Component instance is undefined. Make sure that you call 'new Controller(this)' inside componentWillMount and that you are calling 'super(componentInstance)' inside your controller constructor`);
     }
+    componentInstance.__blamosvil = uniqueId(); //todo: remove
     if (isTestMod()) {
       registerControllerForTest(this, componentInstance);
     }
@@ -74,12 +76,12 @@ const swizzleOwnMethods = (publicScope, privateScope) => {
     const regularBindedMethod = publicScope[name];
     let computedBindedMethod = computed(publicScope[name]);
     let siwzzledMethod;
-    
+
     const computedIfPossible = (...args) => {
-      if(args.length > 0) {
+      if (args.length > 0) {
         //todo: derivation is not memoize, we still need to find a way to memoize it.
         return computedBindedMethod.derivation(...args);
-      }else {
+      } else {
         return computedBindedMethod.get();
       }
     };
@@ -98,7 +100,7 @@ const swizzleOwnMethods = (publicScope, privateScope) => {
       return result;
     };
 
-    siwzzledMethod = global.Proxy? probMethodForGetterOrSetter : regularBindedMethod;
+    siwzzledMethod = global.Proxy ? probMethodForGetterOrSetter : regularBindedMethod;
     publicScope[name] = (...args) => {
       unlockState(privateScope, name);
       let returnValue;
@@ -140,10 +142,10 @@ const exposeMockStateOnScope = (publicScope, privateScope) => {
 const exposeGetParentControllerOnScope = (publicScope, privateScope) => {
   const memoizedParentControllers = {};
   publicScope.getParentController = (parentControllerName) => {
-    if(memoizedParentControllers[parentControllerName]) {
+    if (memoizedParentControllers[parentControllerName]) {
       return memoizedParentControllers[parentControllerName];
     } else {
-      const parentController =  staticGetParentController(privateScope.controllerName, privateScope.component, parentControllerName);
+      const parentController = staticGetParentController(privateScope.controllerName, privateScope.component, parentControllerName);
       memoizedParentControllers[parentControllerName] = parentController;
       return parentController;
     }
@@ -200,21 +202,22 @@ const exposeGetStateTreeOnScope = (publicScope, privateScope) => {
 
 const addControllerToContext = (that, privateScope) => {
   const component = privateScope.component;
-  if (component.context === undefined) {
-    throw new Error(`Context is undefined. Make sure that you initialized ${privateScope.controllerName} in componentWillMount()`);
+  if (component.context === undefined || isEmpty(component.context)) {
+    throw new Error(`Context is empty. Make sure that you initialized ${privateScope.controllerName} in componentWillMount() and that you wrapped your component within observer.`);
   }
   component.context.controllers = component.context.controllers || [];
   component.context.controllers = [...component.context.controllers];
-  const newNode = {
+  let newNode = {
     name: privateScope.controllerName,
     instance: that,
     children: []
   };
   const parentNode = component.context.controllers[component.context.controllers.length - 1];
+
+  component.context.controllers.push(newNode);
   if (parentNode) {
     parentNode.children.push(newNode);
   }
-  component.context.controllers.push(newNode);
   privateScope.stateTree = newNode;
 };
 

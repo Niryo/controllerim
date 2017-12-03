@@ -31,7 +31,7 @@ const clean = () => {
 };
 
 const mockParentOf = (controllerName, ParentControllerClass, state) => {
-  const parent = new ParentControllerClass({context: {}});
+  const parent = new ParentControllerClass({ context: { controllers: [] } });
   mockedParentsOfControllers[controllerName] = parent;
   if (state) {
     parent.mockState(state);

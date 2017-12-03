@@ -5,6 +5,11 @@ import { TestUtils } from '../index';
 
 let savedControllerInstance = undefined;
 
+const getFakeComponentInstacne = (controllers) => {
+  controllers = controllers || [];
+  return { context: { controllers } };
+};
+
 class FakeParentController extends Controller {
   constructor(comp) {
     super(comp);
@@ -102,7 +107,7 @@ describe('TestUtils', () => {
   });
 
   it('mockState should throw an error if not in test mode (not calling init)', () => {
-    const controller = new Controller({ context: {} });
+    const controller = new Controller(getFakeComponentInstacne());
     expect(() => controller.mockState({ name: 'mockedName' })).toThrowError('mockState can be used only in test mode. if you are using it inside your tests, make sure that you are calling TestUtils.init()');
   });
 
@@ -116,7 +121,7 @@ describe('TestUtils', () => {
   it('should allow mocking parent when using super', () => {
     TestUtils.init();
     TestUtils.mockParentOf(TestController.name, FakeParentController);
-    const controller = new TestController({ context: {} });
+    const controller = new TestController(getFakeComponentInstacne());
     expect(controller.getFakeParentControllerProp()).toEqual('fakeProp');
   });
 
