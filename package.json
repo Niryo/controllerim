@@ -1,7 +1,7 @@
 {
   "name": "controllerim",
   "version": "1.44.0",
-  "description": "A simple, clean and well structure state management library for react",
+  "description": "A simple, clean and well structured state management library for react",
   "main": "dist/index.js",
   "scripts": {
     "test": "npm run babel && jest",
