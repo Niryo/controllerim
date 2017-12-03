@@ -65,7 +65,7 @@ export const NotesList = observer( class extends Component {
 * Every 'smart component' should have a controller.
 * A controller is a plain Javascript class and is not tightly coupled to any view.
 * The controller holds a state and methods for manipulating the state. 
-* The controller's lifecycle should be bounded to the component's lifecycle. when a component enters the screen, A new fresh controller will be created, and when the component is destroyed the controller will be destroyed.
+* The controller's lifecycle should be bound to the component's lifecycle. when a component enters the screen, A new fresh controller will be created, and when the component is destroyed the controller will be destroyed.
 * A component can get and set data from parents' controllers (not necessarily direct parents), but it cannot use data from the controllers of sibling components.
 * Any changes to the controller state will be automatically reflected by the view.
 
