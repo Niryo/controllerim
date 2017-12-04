@@ -5,10 +5,10 @@ A simple, clean and well structured state management library for react
 ## Installation
 `npm install controllerim --save`
 
-## Getting started:
+## Getting started
 [a Step by step tutorial](https://medium.com/@niryo/getting-started-with-controllerim-9d9b29923713)
 
-## Basic usage example:
+## Basic usage example
 Inside `NotesListController.js`: 
 ```javascript
 import { Controller } from 'controllerim';
@@ -62,7 +62,7 @@ export const NotesList = observer( class extends Component {
 */
 
 ```
-## Agenda:
+## Agenda
 * Data flow is unidirectional- from parent down to the children. A parent cannot fetch data from child controllers.
 * Every 'smart component' should have a controller.
 * A controller is a plain Javascript class and is not tightly coupled to any view.
@@ -98,7 +98,7 @@ npm start
 ```
 
 ## Api
-#### `Controller(componentInstance)`
+### `Controller(componentInstance)`
 Every view should have a controller that extends `Controller`. A controller is a plain javascript class that holds an observable state. a controller should contain only a **state** and methods that manipulate the state.
 Make sure to call `super(componentInstance)` from your controller constructor.
 Every controller exposes `getParentController()` (See bellow for more details).
@@ -207,7 +207,7 @@ class someController extends Controller {
 }
 
 ```
-#### `observer(ReactComponent)`
+### `observer(ReactComponent)`
 To become reactive, every React component that uses a controller should be wrapped within `observer`. 
 **Importent**: The root component of your app *must* be wrapped within `observer`.
 
