@@ -6,7 +6,7 @@ A simple, clean and well structured state management library for react
 `npm install controllerim --save`
 
 ## Getting started
-[a Step by step tutorial](https://medium.com/@niryo/getting-started-with-controllerim-9d9b29923713)
+[A step by step tutorial](https://medium.com/@niryo/getting-started-with-controllerim-9d9b29923713)
 
 ## Basic usage example
 Inside `NotesListController.js`: 
