@@ -39,7 +39,7 @@ export class NotesListController extends Controller {
   }
 
   async addRandomJoke() {
-    const joke = await fetchRandomJoke()
+    const joke = await fetchRandomJoke();
     this.state.selectedItem.text = joke;
   }
 }
