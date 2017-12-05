@@ -1,6 +1,6 @@
 import { Controller } from 'controllerim';
 import { AppController } from '../App/AppController';
-import { fetchRandomJoke } from '../chuckNorisService';
+import { fetchRandomJoke } from '../chuckNorrisService';
 
 export class NotesListController extends Controller {
   constructor(compInstance) {
