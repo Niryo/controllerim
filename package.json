@@ -17,8 +17,11 @@
   "author": "niryosef89@gmail.com",
   "license": "MIT",
   "peerDependencies": {
-    "react": "^16.1.1",
-    "react-dom": "^16.1.1"
+    "react": "^16.1.1"
+  },
+  "dependencies": {
+    "lodash": "^4.17.4",
+    "mobx": "^3.3.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -48,10 +51,6 @@
     "plugins": [
       "transform-react-jsx"
     ]
-  },
-  "dependencies": {
-    "lodash": "^4.17.4",
-    "mobx": "^3.3.1"
   },
   "keywords": [
     "controllerim",
