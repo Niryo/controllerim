@@ -51,7 +51,7 @@ class NotesList extends Component {
   }
 });
 
-export default ovserver(NotesList);
+export default obvserver(NotesList);
 /** 
 note: If you don't want to use default export, you could export the class directly:
 export const NotesList = observer( class extends Component {
