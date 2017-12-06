@@ -9,6 +9,8 @@ A simple, clean and well structured state management library for react
 [A step by step tutorial](https://medium.com/@niryo/getting-started-with-controllerim-9d9b29923713)
 
 ## Basic usage example
+*Note: This is a usage example of sharing data between parent and a direct child, but keep in mind that the child could have been a nested child and everything would have stayed the same*.
+
 Inside Parent.jsx
 
 ```javascript
