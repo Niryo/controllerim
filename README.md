@@ -9,11 +9,46 @@ A simple, clean and well structured state management library for react
 [A step by step tutorial](https://medium.com/@niryo/getting-started-with-controllerim-9d9b29923713)
 
 ## Basic usage example
-Inside `NotesListController.js`: 
+Inside Parent.jsx
+
+```javascript
+import React, { Component } from 'react';
+import { observer } from 'controllerim';
+import { ParentController } from './ParentController';
+
+class Parent extends Component { 
+  componentWillMount() {
+    this.controller = new ParentController(this);
+  }
+
+  render() {
+    return (
+    <div>
+      <h1>{this.controller.getMessage()}</h1>
+      <Child/>
+      <button onClick={() => this.controller.setMessage('hello world!')}>Click me to change message</button>
+    </div>
+    );
+  }
+});
+
+export default obvserver(Parent);
+/** 
+note: If you don't want to use default export, you could export the class directly:
+export const Parent = observer( class extends Component {
+  ...
+  }
+);
+
+*/
+
+```
+
+Inside `ParentController.js`: 
 ```javascript
 import { Controller } from 'controllerim';
 
-export class NotesListController extends Controller {
+export class ParentController extends Controller {
   constructor(compInstance) {
     super(compInstance);
     this.state = {
@@ -30,38 +65,31 @@ export class NotesListController extends Controller {
 
 ```
 
-Inside `NotesList.jsx`:
+Inside Child.jsx:
 ```javascript
 import React, { Component } from 'react';
-import { observer } from 'controllerim';
-import { NotesListController } from './NotesListController';
+import { observer} from 'controllerim';
+import { ChildController } from './ChildController';
 
-class NotesList extends Component { 
+class Child extends Component { 
   componentWillMount() {
-    this.controller = new NotesListController(this);
+    this.controller = new ChildController(this); 
+    this.parentController = this.controller.getParentController('ParentController');
   }
 
   render() {
     return (
-      <div>
-        <div>{this.controller.getMessage()}</div>
-        <button onClick={() => this.controller.setMessage('hello world!')}>Click me to change message</button>
-      </div>
+    <div>
+      <span>This is a message from parent: {this.parentController.getMessage()}</span>
+    </div>
     );
   }
 });
 
-export default obvserver(NotesList);
-/** 
-note: If you don't want to use default export, you could export the class directly:
-export const NotesList = observer( class extends Component {
-  ...
-  }
-);
-
-*/
-
+export default obvserver(Child);
 ```
+
+
 ## Agenda
 * Data flow is unidirectional- from parent down to the children. A parent cannot fetch data from child controllers.
 * Every 'smart component' should have a controller.
