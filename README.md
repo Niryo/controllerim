@@ -6,7 +6,7 @@ A simple, clean and well structured state management library for react
 `npm install controllerim --save`
 
 ## Why is Controllerim a better approach than Redux
-[blog post](https://medium.com/@niryo/the-ugly-side-of-redux-6591fde68200)
+[the ugly side of Redux (blog post)](https://medium.com/@niryo/the-ugly-side-of-redux-6591fde68200)
 
 ## Getting started
 [A step by step tutorial](https://medium.com/@niryo/getting-started-with-controllerim-9d9b29923713)
