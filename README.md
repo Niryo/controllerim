@@ -37,7 +37,7 @@ class Parent extends Component {
   }
 });
 
-export default obvserver(Parent);
+export default observer(Parent);
 /** 
 note: If you don't want to use default export, you could export the class directly:
 export const Parent = observer( class extends Component {
@@ -91,7 +91,7 @@ class Child extends Component {
   }
 });
 
-export default obvserver(Child);
+export default observer(Child);
 ```
 
 
