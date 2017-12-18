@@ -91,7 +91,7 @@ class Child extends Component {
   }
 });
 
-export default obvserver(Child);
+export default observer(Child);
 ```
 
 
