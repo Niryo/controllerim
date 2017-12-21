@@ -110,15 +110,15 @@ export default observer(Child);
 * **No need for singleton stores:** If you ever used Redux, you probably knows what happens when you forget to clean your stores when a component leave the screen- the next time it enters the screen, it fetches some old state-related data from the store and bad things happens. You may say that stores should not contain state related data, but sometimes you just need to share state across multiple components, for example, `currentSelectedItem`, `isCartFull`, `canMoveToNextStep` etc. 
 `Controllers` lifecycle is bound to the component lifecycle, so you get a fresh controller out of the box whenever a component enters the screen.
 
-* **Reusability:** Each component holds an *instance* of it's Controller (again, no singletons!), so you can create **multiple  instances of a component** (see example project). When you have a singleton store its much more cumbersome to support multiple instance of a component. 
+* **Reusability:** Each component holds an *instance* of its Controller (again, no singletons!), so you can create **multiple  instances of a component** (see example project). When you have a singleton store it's much more cumbersome to support multiple instance of a component. 
 
-* **Better encapsulation**: A component can fetch data only from it's direct controller and it's parents controllers. You cannot feth data from sibling component's Controllers. If you need some piece of data to be visible for two sibling components, it means that this data should sit within their first common parent. If you need a piece of data to be visible to all other component, put it in your AppController.
+* **Better encapsulation**: A component can fetch data only from its direct controller and its parents controllers. You cannot feth data from sibling component's Controllers. If you need some piece of data to be visible for two sibling components, it means that this data should sit within their first common parent. If you need a piece of data to be visible to all other component, put it in your AppController.
 
-* **Mimics React's local component's state :** React state is really good for dumb components, but its not so good for smart components. It cannot be esaly shared to deep nested children, it prevents separation of logic and view to different files, and it is not easly testable. controllerim tackles exactly those points.
+* **Mimics React's local component's state :** React state is really good for dumb components, but it's not so good for smart components. It cannot be esaly shared to deep nested children, it prevents separation of logic and view to different files, and it is not easly testable. controllerim tackles exactly those points.
 
 ## How
 The basic (and naive) idea works very similar to React's local components' state, by forcing the component to update on every call to a setter function on the controller. But this is expensive, because we want to render things only if they are trully effected by the change. So Controllerim utilizes [Mobx](https://github.com/mobxjs/mobx) behind the scenes for all the performance boosts (Memoizes values, calculates dependencies and renders only when trully needed).
-Controllerim uses es6 Proxies to proxy Mobx out of the way and keep the state nice and clean, so its not tightly coupled to Mobx. If you are using an old browser that doesn't support Proxies, Controllerim will fallback to the naive solution, but don't worry - es6 Proxy support is very wide, and for most of the web apps the naive solution works fast enough.
+Controllerim uses es6 Proxies to proxy Mobx out of the way and keep the state nice and clean, so it's not tightly coupled to Mobx. If you are using an old browser that doesn't support Proxies, Controllerim will fallback to the naive solution, but don't worry - es6 Proxy support is very wide, and for most of the web apps the naive solution works fast enough.
 
 ### Example project
 Here is a [Simple example project](https://niryo.github.io/controllerim/)
@@ -223,7 +223,7 @@ class App extends React.Component {
 }
 ```
 * #### `clearState()`:
-Clears the state back to it's initial value.
+Clears the state back to its initial value.
 
 ```javascript
 class someController extends Controller {
