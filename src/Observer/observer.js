@@ -3,16 +3,16 @@ import PropTypes from 'prop-types';
 
 export const observer = (ReactComponent) => {
   ReactComponent.contextTypes = {
-    controllers: PropTypes.array
+    controllers: PropTypes.array,
+    stateTree: PropTypes.array,
+    childCount: PropTypes.object
   };
 
   ReactComponent.childContextTypes = {
-    controllers: PropTypes.array
+    controllers: PropTypes.array,
+    stateTree: PropTypes.array,
+    childCount: PropTypes.object
   };
   
-  ReactComponent.prototype.getChildContext = function () {
-    const controllers = this.context.controllers || [];
-    return {controllers};
-  };
   return MobxReact.observer(ReactComponent);
 };

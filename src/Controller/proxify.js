@@ -36,8 +36,9 @@ export const proxify = (obj,privateScope) => {
         }
         newValue = proxify(value,privateScope);
       }
-      markSetterOnPrivateScope(privateScope);
+      markSetterOnPrivateScope(privateScope,privateScope.internalState.methodUsingState);
       target[prop] = newValue;
+      privateScope.stateTreeListeners.listeners.forEach(listener => listener(privateScope.stateTree));
       tracker.set(prop, newValue);
       return true;
     }

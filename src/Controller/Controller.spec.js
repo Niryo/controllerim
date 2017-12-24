@@ -3,9 +3,21 @@ import { Controller } from './Controller';
 import { mount } from 'enzyme';
 import { observer } from '../index';
 import { TestUtils } from '../TestUtils/testUtils';
-
+import { cloneDeep } from 'lodash';
 const getFakeComponentInstacne = (controllers) => {
   controllers = controllers || [];
+  controllers.forEach(controller => controller.stateTree = {
+    listenersLinkedList: {
+      selfListeners: [],
+      children: []
+    },
+    root: {
+      [controller.name]: {
+        state: {},
+        children: []
+      }
+    }
+  }, );
   return { context: { controllers } };
 };
 
@@ -29,6 +41,7 @@ class ParentController extends Controller {
     super(componentInstance);
     this.state = {
       counter: 0,
+      showDog: false,
       unRelatedProp: 'bla',
       basicProp: 'blamos',
       objectProp: { name: 'alice' },
@@ -72,6 +85,10 @@ class ParentController extends Controller {
     return this.state.dynamicObject;
   }
 
+  addNonExistProp() {
+    this.state.nowExist = 'yey!';
+  }
+
   addArrayToDynamicObject() {
     this.state.dynamicObject.array = [];
   }
@@ -96,6 +113,12 @@ class ParentController extends Controller {
   getState() {
     return this.state;
   }
+  isShowDog() {
+    return this.state.showDog;
+  }
+  setShowDog() {
+    this.state.showDog = true;
+  }
 
   async testAsyncFunc() {
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -106,6 +129,14 @@ class ParentController extends Controller {
 const Parent = observer(class extends React.Component {
   componentWillMount() {
     this.controller = new ParentController(this);
+    this.props.willMountCallback && this.props.willMountCallback();
+  }
+  componentDidMount() {
+    this.props.didMountCallback && this.props.didMountCallback();
+  }
+
+  componentDidUpdate(){
+    this.props.didUpdateCallback && this.props.didUpdateCallback();
   }
 
   render() {
@@ -113,6 +144,7 @@ const Parent = observer(class extends React.Component {
     return (
       <div>
         <Child />
+        {this.controller.isShowDog() ? <Dog /> : null}
         <div data-hook="basicPropPreview">{this.controller.getBasicProp()}</div>
         <div data-hook="basicPropWithArgPreview">{this.controller.getBasicPropWithArg('someArg')}</div>
         <div data-hook="unRelatedPropPreview">{this.controller.getUnrelatedProp()}</div>
@@ -127,9 +159,20 @@ const Parent = observer(class extends React.Component {
         <button data-hook="applySetterWithArgsButton" onClick={() => this.controller.setBasicProp('value1', 'value2')} />
         <div data-hook="counterPreview">{this.controller.getCounter()}</div>
         <button data-hook="increaseCounter" onClick={() => this.controller.increaseCounter()} />
-
+        <button data-hook="clearState" onClick={() => this.controller.clearState()} />
+        <button data-hook="addNonExistProp" onClick={() => this.controller.addNonExistProp()} />
+        <button data-hook="showDog" onClick={() => this.controller.setShowDog()} />
       </div>
     );
+  }
+});
+
+const Dog = observer(class extends React.Component {
+  componentWillMount() {
+    this.parentController = new Controller.getParentController(this, ParentController.name);
+  }
+  render() {
+    return <div data-hook="dogBlamos">{this.parentController.getBasicProp()}</div>;
   }
 });
 
@@ -156,9 +199,9 @@ describe('Controller', () => {
     expect(() => { new Controller(); }).toThrowError('Component instance is undefined. Make sure that you call \'new Controller(this)\' inside componentWillMount and that you are calling \'super(componentInstance)\' inside your controller constructor');
   });
 
-  it('should give anonymous controllers a name according to their component', () => {
+  // it('should give anonymous controllers a name according to their component', () => {
 
-  });
+  // });
 
   it('should allow getting parent controller', () => {
     const fakeComponent = getFakeComponentInstacne([{ name: 'someParent', instance: 'mocekdParentController', children: [] }]);
@@ -167,7 +210,7 @@ describe('Controller', () => {
   });
 
   it('should memoize getting parent controller', () => {
-    const controllers = [{ name: 'someParent', instance: 'mocekdParentController', children: [] }];
+    const controllers = [{ name: 'someParent', instance: 'mocekdParentController' }];
     const testController = new Controller(getFakeComponentInstacne(controllers));
     expect(testController.getParentController('someParent')).toEqual('mocekdParentController');
     controllers[0].instance = 'changedMocked';
@@ -183,7 +226,7 @@ describe('Controller', () => {
 
   it('should throw an error if parent controller does not exist', () => {
     const fakeComponent = getFakeComponentInstacne();
-    fakeComponent.constructor ={ name: 'SomeFakeComponent' };
+    fakeComponent.constructor = { name: 'SomeFakeComponent' };
     let testController = new Controller(fakeComponent);
     expect(() => testController.getParentController('someParent'))
       .toThrowError('Parent controller does not exist. make sure that someParent is parent of AnonymousControllerForSomeFakeComponent and that you wraped it with observer');
@@ -249,40 +292,6 @@ describe('Controller', () => {
     expect(controller.getBasicProp()).toEqual('changeAsync!');
   });
 
-  it('should expose a clearState method', () => {
-    class TestController extends Controller {
-      constructor(comp) {
-        super(comp);
-        this.state = { someProp: 'hello world' };
-      }
-      getProp() {
-        return this.state.someProp;
-      }
-      changeProp() {
-        this.state.someProp = 'changed';
-      }
-      testClearState() {
-        this.clearState();
-      }
-    }
-    const fakeComponent = getFakeComponentInstacne();
-    fakeComponent.forceUpdate = jest.fn();
-    const testController = new TestController(fakeComponent);
-    testController.changeProp();
-    expect(testController.getProp()).toEqual('changed');
-    testController.testClearState();
-    expect(testController.getProp()).toEqual('hello world');
-    expect(fakeComponent.forceUpdate.mock.calls.length).toEqual(1);
-  });
-
-  // it('teest', () => {
-  //   const controller = new TestControllerMethodClassificationController(getFakeComponentInstacne());
-  //   controller.getProp();
-  //   controller.setProp('bla');
-  //   controller.changeProp();
-  //   expect(false).toEqual(true);
-  // });
-
   describe('Tests with mounting component', () => {
     const backupProxy = global.Proxy;
 
@@ -297,7 +306,6 @@ describe('Controller', () => {
         TestUtils.clean();
         global.Proxy = backupProxy;
       });
-
       runTests();
 
     });
@@ -332,6 +340,7 @@ describe('Controller', () => {
       runTests();
     });
 
+
     // it('should not allow changing state using stateTree while not in test mode', () => {
     //   //this test is only for proxy, because in the unproxy version we simply cannot have this 
     //   //functionality. this is why we need to inforce it. If someone will chagne the state from outside
@@ -359,37 +368,6 @@ describe('Controller', () => {
         global.Proxy = backupProxy;
         component.find('[data-hook="changeBasicPropButton"]').simulate('click');
         expect(component.find('[data-hook="basicPropWithArgPreview"]').text()).toEqual('changed!someArg');
-      });
-
-      it('should throw an error if context is undefined', () => {
-        class TestParentController extends Controller {
-          constructor(comp) { super(comp); this.state = { hello: 'world' }; }
-          getHello() {
-            return this.state.hello;
-          }
-        }
-
-        const TestParent = observer(class extends React.Component {
-          constructor() {
-            super();
-            this.controller = new TestParentController(this);
-          }
-          render() {
-            return <div><TestComp></TestComp></div>;
-          }
-        });
-
-        const TestComp = observer(class extends React.Component {
-          constructor() {
-            super();
-            this.controller = new Controller(this);
-          }
-          render() {
-            return <div data-hook="hello">{this.controller.getParentController(TestParentController.name).getHello()}</div>;
-          }
-        });
-
-        expect(() => mount(<TestParent />)).toThrowError('Context is empty. Make sure that you initialized TestParentController in componentWillMount() and that you wrapped your component within observer.');
       });
 
       it('should have an observable state', () => {
@@ -441,6 +419,84 @@ describe('Controller', () => {
         const component = mount(<Parent><Child /></Parent>);
         expect(component.find('[data-hook="blamos"]').text()).toEqual('blamos');
       });
+      describe('componentWillUnmount', () => {
+        class ChildCotroller extends Controller {
+          constructor(comp) {
+            super(comp);
+            this.state = { child: 'i am alive!' };
+          }
+        }
+        const Child = observer(class extends React.Component {
+          componentWillMount() {
+            this.controller = new ChildCotroller(this);
+          }
+
+          componentWillUnmount() {
+            if (this.props.callback) {
+              this.props.callback();
+            }
+          }
+
+          render() {
+            return <div></div>;
+          }
+        });
+        class HostParentController extends Controller {
+          constructor(comp) {
+            super(comp);
+            this.state = { isChildShown: true };
+          }
+          isChildShown() {
+            return this.state.isChildShown;
+          }
+          hideChild() {
+            this.state.isChildShown = false;
+          }
+        }
+        const HostParent = observer(class extends React.Component {
+          componentWillMount() {
+            this.controller = new HostParentController(this);
+          }
+          render() {
+            return (
+              <div>
+                {this.controller.isChildShown() ? <Child {...this.props} /> : null}
+                <button data-hook="hide" onClick={() => this.controller.hideChild()}></button>
+              </div>);
+          }
+        });
+
+        it('should clean the stateTree when component unmount', () => {
+          const component = mount(<HostParent />);
+          const controller = TestUtils.getControllerOf(component.instance());
+          const expectedStateTree = {
+            index: undefined,
+            name: 'HostParentController',
+            state: { isChildShown: true },
+            children:
+              [{
+                index: 0,
+                name: 'ChildCotroller',
+                state: { child: 'i am alive!' },
+                children: []
+              }]
+          };
+          expect(controller.getStateTree()).toEqual(expectedStateTree);
+          global.Proxy = backupProxy;
+          component.find('[data-hook="hide"]').simulate('click');
+          expectedStateTree.children[0] = {};
+          expectedStateTree.state.isChildShown = false;
+          expect(controller.getStateTree()).toEqual(expectedStateTree);
+        });
+
+        it('compponentWillUnmount should work', () => {
+          const callback = jest.fn();
+          const component = mount(<HostParent callback={callback} />);
+          global.Proxy = backupProxy;
+          component.find('[data-hook="hide"]').simulate('click');
+          expect(callback.mock.calls.length).toEqual(1);
+        });
+      });
 
       it('should expose stateTree on a component', () => {
         class Acon extends Controller { constructor(comp) { super(comp); this.state = { a: 'a' }; } }
@@ -450,22 +506,43 @@ describe('Controller', () => {
         const B = observer(class extends React.Component { componentWillMount() { this.controller = new Bcon(this); } render() { return (<div><C /></div>); } });
         const C = observer(class extends React.Component { componentWillMount() { this.controller = new Ccon(this); } render() { return (<div></div>); } });
         const expectedValue = {
-          Acon: {
-            state: { a: 'a' },
-            children: [{
-              Bcon: {
-                state: { b: 'b' },
-                children: [{
-                  Ccon: {
-                    state: { c: 'c' }
-                  }
-                }]
-              }
+          'name': 'Acon',
+          'state': {
+            'a': 'a'
+          },
+          'children': [
+            {
+              'index': 0,
+              'name': 'Bcon',
+              'state': {
+                'b': 'b'
+              },
+              'children': [
+                {
+                  'index': 0,
+                  'name': 'Ccon',
+                  'state': {
+                    'c': 'c'
+                  },
+                  'children': [
+
+                  ]
+                }
+              ]
             },
-            { Ccon: { state: { c: 'c' } } }
-            ]
-          }
+            {
+              'index': 1,
+              'name': 'Ccon',
+              'state': {
+                'c': 'c'
+              },
+              'children': [
+
+              ]
+            }
+          ]
         };
+
         const component = mount(<A />);
         const controller = TestUtils.getControllerOf(component.instance());
         expect(JSON.stringify(controller.getStateTree())).toEqual(JSON.stringify(expectedValue));
@@ -481,6 +558,153 @@ describe('Controller', () => {
 
         const component = mount(<A><B /></A>);
         expect(component.find('[data-hook="value"]').text()).toEqual('value!');
+      });
+
+      it('should expose a clearState method', () => {
+        const component = mount(<Parent />);
+        const controller = TestUtils.getControllerOf(component.instance());
+        global.Proxy = backupProxy;
+        component.find('[data-hook="changeBasicPropButton"]').simulate('click');
+        component.find('[data-hook="addArrayToDynamicObjectButton"]').simulate('click');
+        component.find('[data-hook="addNameToDynamicObjectArrayButton"]').simulate('click');
+        component.find('[data-hook="addNonExistProp"]').simulate('click');
+        expect(controller.state.nowExist).toEqual('yey!');
+        expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('changed!');
+        expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: ['alice'] }));
+        component.find('[data-hook="clearState"]').simulate('click');
+        expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('blamos');
+        expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({}));
+        expect(controller.state.nowExist).toEqual(undefined);
+      });
+
+      it('should work with dinamically added smart component', () => {
+        const component = mount(<Parent />);
+        global.Proxy = backupProxy;
+        component.find('[data-hook="showDog"]').simulate('click');
+        expect(component.find('[data-hook="dogBlamos"]').text()).toEqual('blamos');
+      });
+
+      describe('State tree', () => {
+        let controllerAInstance;
+        let controllerBInstance;
+        afterEach(() => {
+          controllerAInstance = null;
+          controllerBInstance = null;
+        });
+        class ControllerA extends Controller {
+          constructor(comp) {
+            super(comp);
+            this.state = { a: 'a' };
+          }
+
+          setA() {
+            this.state.a = 'changed A' + Math.random();
+          }
+        }
+
+        class ControllerB extends Controller {
+          constructor(comp) {
+            super(comp);
+            this.state = { b: 'b' };
+          }
+          getB() {
+            return this.state.b;
+          }
+          setB() {
+            this.state.b = 'changed B' + Math.random();
+          }
+        }
+
+        const A = observer(class extends React.Component {
+          componentWillMount() {
+            this.controller = new ControllerA(this);
+            controllerAInstance = this.controller;
+          }
+          render() {
+            return (
+              <div>
+                <button data-hook="setA" onClick={() => this.controller.setA()} />
+                <B /></div>);
+          }
+        });
+
+        const B = observer(class extends React.Component {
+          componentWillMount() {
+            this.controller = new ControllerB(this);
+            controllerBInstance = this.controller;
+          }
+          render() {
+            return (<div>
+              <div data-hook="b">{this.controller.getB()}</div>
+              <button data-hook="setB" onClick={() => this.controller.setB()} />
+            </div>);
+          }
+        });
+
+        it('should allow adding listener to changes in the stateTree', () => {
+          const component = mount(<A />);
+          const listenerA = jest.fn();
+          const listenerB = jest.fn();
+          controllerAInstance.addOnStateTreeChangeListener(listenerA);
+          const stateTreeA = controllerAInstance.getStateTree();
+          const stateTreeB = controllerBInstance.getStateTree();
+          global.Proxy = backupProxy;
+          component.find('[data-hook="setA"]').simulate('click');
+          expect(listenerA.mock.calls.length).toEqual(1);
+          expect(listenerA.mock.calls[0][0]).toEqual(stateTreeA);
+          component.find('[data-hook="setB"]').simulate('click');
+          expect(listenerA.mock.calls.length).toEqual(2);
+          expect(listenerA.mock.calls[1][0]).toEqual(stateTreeA);
+          controllerBInstance.addOnStateTreeChangeListener(listenerB);
+          component.find('[data-hook="setB"]').simulate('click');
+          expect(listenerA.mock.calls[2][0]).toEqual(stateTreeA);
+          expect(listenerA.mock.calls.length).toEqual(3);
+          expect(listenerB.mock.calls.length).toEqual(1);
+          expect(listenerB.mock.calls[0][0]).toEqual(stateTreeB);
+        });
+
+        it('should allow to remove listeners', () => {
+          const component = mount(<A />);
+          const listenerA = jest.fn();
+          const listenerToDelete = jest.fn();
+          controllerAInstance.addOnStateTreeChangeListener(listenerA);
+          const remove = controllerAInstance.addOnStateTreeChangeListener(listenerToDelete);
+          global.Proxy = backupProxy;
+          component.find('[data-hook="setA"]').simulate('click');
+          expect(listenerA.mock.calls.length).toEqual(1);
+          expect(listenerToDelete.mock.calls.length).toEqual(1);
+          remove();
+          component.find('[data-hook="setA"]').simulate('click');
+          component.find('[data-hook="setB"]').simulate('click');
+          expect(listenerA.mock.calls.length).toEqual(3);
+          expect(listenerToDelete.mock.calls.length).toEqual(1);
+        });
+
+        it.skip('should allow setting stateTree', () => {
+          const component = mount(<A />);
+          global.Proxy = backupProxy;
+          component.find('[data-hook="setA"]').simulate('click');
+          component.find('[data-hook="setB"]').simulate('click');
+          const bText = component.find('[data-hook="b"]').text();
+          const snapshot = cloneDeep(controllerAInstance.getStateTree());
+          component.find('[data-hook="setA"]').simulate('click');
+          component.find('[data-hook="setB"]').simulate('click');
+          controllerAInstance.setStateTree(snapshot);
+          expect(controllerAInstance.getStateTree()).toEqual(snapshot);
+          expect(component.find('[data-hook="b"]').text()).toEqual(bText);
+        });
+
+        it('componentDidMount and componentWillMount, and componentWillUpdate should work', () => {
+          const didMount = jest.fn();
+          const willMount = jest.fn();
+          const didUpdate = jest.fn();
+          const component = mount(<Parent willMountCallback={willMount} didMountCallback={didMount} didUpdateCallback={didUpdate}/>);
+          expect(willMount.mock.calls.length).toEqual(1);
+          expect(didMount.mock.calls.length).toEqual(1);
+          global.Proxy = backupProxy;
+          component.find('[data-hook="increaseCounter"]').simulate('click');
+          expect(didUpdate.mock.calls.length).toEqual(1);
+        });
       });
     }
   });

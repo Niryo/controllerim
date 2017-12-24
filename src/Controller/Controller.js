@@ -1,16 +1,21 @@
 
 import { proxify } from './proxify';
-import { isPlainObject, cloneDeep, uniqueId, isEmpty } from 'lodash';
+import { isPlainObject, cloneDeep, uniqueId, merge } from 'lodash';
 import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
 import { transaction, computed } from 'mobx';
-
 const MethodType = Object.freeze({
   GETTER: 'GETTER',
   SETTER: 'SETTER'
 });
 
+const CONTROLLER_NODE_PROP = '_controllerNode';
+
 export class Controller {
   static getParentController(componentInstance, parentControllerName) {
+    //workaround to silent react getChildContext not defined warning:
+    if(!componentInstance.getChildContext){
+      componentInstance.getChildContext = () => {return { controllers: [], stateTree: [], childCount: {} };};
+    }
     const controllerName = getAnonymousControllerName(componentInstance);
     return staticGetParentController(controllerName, componentInstance, parentControllerName);
   }
@@ -19,34 +24,87 @@ export class Controller {
     if (!componentInstance) {
       throw new Error(`Component instance is undefined. Make sure that you call 'new Controller(this)' inside componentWillMount and that you are calling 'super(componentInstance)' inside your controller constructor`);
     }
-    componentInstance.__blamosvil = uniqueId(); //todo: remove
     if (isTestMod()) {
       registerControllerForTest(this, componentInstance);
     }
 
     const privateScope = {
       gettersAndSetters: {},
+      isIndexingChildren: false,
       controllerId: uniqueId(),
       controllerName: this.constructor.name === 'Controller' ? getAnonymousControllerName(componentInstance) : this.constructor.name,
+      stateTreeListeners: undefined,
       stateTree: undefined,
-      internalState: { value: {}, methodUsingState: undefined, initialState: undefined },
+      internalState: { methodUsingState: undefined, previousState: undefined, initialState: undefined },
       component: componentInstance
     };
-    addControllerToContext(this, privateScope);
+
+    initStateTree(this, privateScope);
+    exposeControllerNodeOnComponent(this, privateScope);
+    addGetChildContext(privateScope);
     exposeStateOnScope(this, privateScope);
     exposeGetParentControllerOnScope(this, privateScope);
     exposeMockStateOnScope(this, privateScope);
     exposeClearStateOnScope(this, privateScope);
     exposeGetStateTreeOnScope(this, privateScope);
+    exposeSetStateTreeOnScope(this, privateScope);
+    exposeAddStateTreeListener(this, privateScope);
     swizzleOwnMethods(this, privateScope);
+    swizzleComponentWillUnmount(this, privateScope);
+    swizzleComponentDidMount(this, privateScope);
+    swizzleComponentDidUpdate(this, privateScope);
   }
 }
-
+const addGetChildContext = (privateScope) => {
+  const componentInstance = privateScope.component;
+  componentInstance.getChildContext = function () {
+    let controllers = [];
+    if (componentInstance.context.controllers) {//todo: remove after all the test will use mount
+      controllers = [...this.context.controllers];
+    }
+    const controllerNode = componentInstance[CONTROLLER_NODE_PROP];
+    const parentControllerNode = controllers[controllers.length - 1];
+    if (parentControllerNode) {
+      parentControllerNode.listenersLinkedList.children.push(controllerNode.listenersLinkedList);
+    }
+    controllers.push(controllerNode);
+    privateScope.isIndexingChildren = true; //when react is calling getChildContext, we know we can start indexing the children
+    return { controllers, stateTree: privateScope.stateTree.children, childCount: { value: 0, isIndexingChildren: privateScope.isIndexingChildren } };
+  };
+};
 // const stateGuard = (internalState) => {
 //   if (isStateLocked(internalState) && internalState.initialState !== undefined) {
 //     throw new Error('Cannot set state from outside of a controller');
 //   }
 // };
+
+const initStateTree = (publicScope, privateScope) => {
+  const newstateTreeNode = {
+    index: undefined,
+    name: privateScope.controllerName,
+    state: {},
+    children: []
+  };
+  privateScope.stateTree = newstateTreeNode;
+  if (privateScope.component.context.stateTree) {
+    privateScope.component.context.stateTree.push(newstateTreeNode);
+  }
+
+};
+
+const exposeControllerNodeOnComponent = (publicScope, privateScope) => {
+  const controllerNode = {
+    listenersLinkedList: {
+      listeners: [],
+      children: []
+    },
+    instance: publicScope,
+    name: privateScope.controllerName,
+  };
+
+  privateScope.stateTreeListeners = controllerNode.listenersLinkedList;
+  privateScope.component[CONTROLLER_NODE_PROP] = controllerNode;
+};
 
 const exposeStateOnScope = (publicScope, privateScope) => {
   const internalState = privateScope.internalState;
@@ -56,13 +114,14 @@ const exposeStateOnScope = (publicScope, privateScope) => {
         throw new Error('State should be initialize only with plain object');
       }
       // stateGuard(internalState);
+      privateScope.stateTree.state = global.Proxy ? proxify(value, privateScope) : value;
       if (internalState.initialState === undefined) {
         internalState.initialState = cloneDeep(value);
+        internalState.previousState = JSON.stringify(internalState.initialState);
       }
-      internalState.value = global.Proxy ? proxify(value, privateScope) : value;
     },
     get: function () {
-      return internalState.value;
+      return privateScope.stateTree.state;
     }
   });
 };
@@ -73,21 +132,21 @@ const swizzleOwnMethods = (publicScope, privateScope) => {
 
   const injectedFunction = global.Proxy ? undefined : getInjectedFunctionForNonProxyMode(privateScope);
   ownMethodNames.forEach((name) => {
-    const regularBindedMethod = publicScope[name];
-    let computedBindedMethod = computed(publicScope[name]);
+    const regularBoundMethod = publicScope[name];
+    let computedBoundMethod = computed(publicScope[name]);
     let siwzzledMethod;
 
     const computedIfPossible = (...args) => {
       if (args.length > 0) {
         //todo: derivation is not memoize, we still need to find a way to memoize it.
-        return computedBindedMethod.derivation(...args);
+        return computedBoundMethod.derivation(...args);
       } else {
-        return computedBindedMethod.get();
+        return computedBoundMethod.get();
       }
     };
 
     const probMethodForGetterOrSetter = (...args) => {
-      const result = regularBindedMethod(...args);
+      const result = regularBoundMethod(...args);
       if (result !== undefined) {
         markGetterOnPrivateScope(privateScope);
       }
@@ -95,12 +154,12 @@ const swizzleOwnMethods = (publicScope, privateScope) => {
       if (methodType === MethodType.GETTER) {
         siwzzledMethod = computedIfPossible;
       } else if (methodType === MethodType.SETTER) {
-        siwzzledMethod = regularBindedMethod;
+        siwzzledMethod = regularBoundMethod;
       }
       return result;
     };
 
-    siwzzledMethod = global.Proxy ? probMethodForGetterOrSetter : regularBindedMethod;
+    siwzzledMethod = global.Proxy ? probMethodForGetterOrSetter : regularBoundMethod;
     publicScope[name] = (...args) => {
       unlockState(privateScope, name);
       let returnValue;
@@ -108,7 +167,7 @@ const swizzleOwnMethods = (publicScope, privateScope) => {
         returnValue = siwzzledMethod(...args);
       });
       if (injectedFunction) {
-        injectedFunction();
+        injectedFunction(name);
       }
       lockState(privateScope);
       return returnValue;
@@ -123,7 +182,6 @@ const getOwnMethodNames = (that) => {
 };
 
 const exposeMockStateOnScope = (publicScope, privateScope) => {
-  const internalState = privateScope.internalState;
   Object.defineProperty(publicScope, 'mockState', {
     enumerable: false,
     get: () => {
@@ -132,7 +190,7 @@ const exposeMockStateOnScope = (publicScope, privateScope) => {
           throw new Error('mockState can be used only in test mode. if you are using it inside your tests, make sure that you are calling TestUtils.init()');
         }
         unlockState(privateScope, 'mockState');
-        Object.assign(internalState.value, state);
+        Object.assign(privateScope.stateTree.state, state);
         lockState(privateScope);
       };
     }
@@ -164,62 +222,79 @@ const staticGetParentController = (currentControllerName, component, parentContr
 };
 
 const getInjectedFunctionForNonProxyMode = (privateScope) => {
-  let previewsState = JSON.stringify(privateScope.internalState.value);
-  return () => {
-    if (JSON.stringify(privateScope.internalState.value) !== previewsState) {
-      markSetterOnPrivateScope(privateScope);
-      previewsState = JSON.stringify(privateScope.internalState.value);
+  return (methodName) => {
+    if (privateScope.gettersAndSetters[methodName] === MethodType.GETTER) {
+      return;
+    } else if (privateScope.gettersAndSetters[methodName] === MethodType.SETTER) {
+      privateScope.stateTreeListeners.listeners.forEach(listener => listener(privateScope.stateTree));
       privateScope.component.forceUpdate();
+    } else if (JSON.stringify(privateScope.stateTree.state) !== privateScope.internalState.previousState) {
+      privateScope.stateTreeListeners.listeners.forEach(listener => listener(privateScope.stateTree));
+      privateScope.internalState.previousState = JSON.stringify(privateScope.stateTree.state);
+      privateScope.component.forceUpdate();
+      // markSetterOnPrivateScope(privateScope,methodName); todo: fix marking of getter functions without state, can test with "should work with higher order components"
     }
   };
 };
 
 const exposeClearStateOnScope = (publicScope, privateScope) => {
   publicScope.clearState = () => {
-    privateScope.internalState.value = privateScope.internalState.initialState;
+    const value = cloneDeep(privateScope.internalState.initialState);
+    transaction(() => {
+      Object.keys(publicScope.state).forEach(key => {
+        delete publicScope.state[key];
+      });
+      Object.assign(publicScope.state, value);
+    });
     privateScope.component.forceUpdate();
   };
 };
 
 const exposeGetStateTreeOnScope = (publicScope, privateScope) => {
-  const transformRoot = (node) => {
-    const result = {};
-    result[node.name] = {
-      state: node.instance.state,
-      children: node.children.map(child => transformRoot(child))
-    };
-    if (result[node.name].children.length === 0) {
-      delete result[node.name].children;
-    }
-    return result;
-  };
   publicScope.getStateTree = () => {
-    return transformRoot(privateScope.stateTree);
+    return privateScope.stateTree;
   };
 };
 
-
-
-const addControllerToContext = (that, privateScope) => {
-  const component = privateScope.component;
-  if (component.context === undefined || isEmpty(component.context)) {
-    throw new Error(`Context is empty. Make sure that you initialized ${privateScope.controllerName} in componentWillMount() and that you wrapped your component within observer.`);
-  }
-  component.context.controllers = component.context.controllers || [];
-  component.context.controllers = [...component.context.controllers];
-  let newNode = {
-    name: privateScope.controllerName,
-    instance: that,
-    children: []
+const exposeSetStateTreeOnScope = (publicScope, privateScope) => {
+  publicScope.setStateTree = (stateTree) => {
+    transaction(() => {
+      merge(privateScope.stateTree, stateTree);
+    });
+    privateScope.component.forceUpdate();
   };
-  const parentNode = component.context.controllers[component.context.controllers.length - 1];
-
-  component.context.controllers.push(newNode);
-  if (parentNode) {
-    parentNode.children.push(newNode);
-  }
-  privateScope.stateTree = newNode;
 };
+
+const exposeAddStateTreeListener = (publicScope, privateScope) => {
+  const recursivePushListenersToChildren = (node, listener) => {
+    node.listeners.push(listener);
+    node.children.forEach(childNode => {
+      recursivePushListenersToChildren(childNode, listener);
+    });
+  };
+
+  const recursiveRemoveListenersFromChildren = (node, listener) => {
+    node.listeners.splice(node.listeners.indexOf(listener), 1);
+    node.children.forEach(childNode => {
+      recursiveRemoveListenersFromChildren(childNode, listener);
+    });
+  };
+
+  publicScope.addOnStateTreeChangeListener = (listener) => {
+    const triggerListenerFunction = () => listener(privateScope.stateTree);
+    privateScope.stateTreeListeners.listeners.push(listener);
+    privateScope.stateTreeListeners.children.forEach(child => {
+      recursivePushListenersToChildren(child, triggerListenerFunction);
+    });
+    return () => {
+      privateScope.stateTreeListeners.listeners.splice(privateScope.stateTreeListeners.listeners.indexOf(listener), 1);
+      privateScope.stateTreeListeners.children.forEach(child => {
+        recursiveRemoveListenersFromChildren(child, triggerListenerFunction);
+      });
+    };
+  };
+};
+
 
 const getControllerFromContext = (context, name) => {
   const foundObj = context.controllers.find(obj => obj.name === name);
@@ -243,10 +318,58 @@ export const isStateLocked = (internalState) => {
   return internalState.methodUsingState === undefined;
 };
 
-export const markSetterOnPrivateScope = (privateScope) => {
-  privateScope.gettersAndSetters[privateScope.internalState.methodUsingState] = MethodType.SETTER;
+export const markSetterOnPrivateScope = (privateScope, methodName) => {
+  privateScope.gettersAndSetters[methodName] = MethodType.SETTER;
 };
 
 const markGetterOnPrivateScope = (privateScope) => {
   privateScope.gettersAndSetters[privateScope.internalState.methodUsingState] = MethodType.GETTER;
 };
+
+const swizzleComponentWillUnmount = (publicScope, privateScope) => {
+  let originalMethod = getBoundLifeCycleMethod(privateScope.component, 'componentWillUnmount');
+  privateScope.component.componentWillUnmount = () => {
+    //todo: consider completely removing the child from parent
+    Object.keys(privateScope.stateTree).forEach(key => {
+      delete privateScope.stateTree[key];
+    });
+    originalMethod();
+  };
+};
+
+const swizzleComponentDidMount = (publicScope, privateScope) => {
+  let originalMethod = getBoundLifeCycleMethod(privateScope.component, 'componentDidMount');
+  privateScope.component.componentDidMount = () => {
+    updateIndex(publicScope, privateScope);
+    originalMethod();
+  };
+};
+
+const swizzleComponentDidUpdate = (publicScope, privateScope) => {
+  let originalMethod = getBoundLifeCycleMethod(privateScope.component, 'componentDidUpdate');
+  privateScope.component.componentDidUpdate = () => {
+    if (privateScope.component.context.childCount) {
+      privateScope.component.context.childCount.isIndexingChildren = false;
+    }
+    updateIndex(publicScope, privateScope);
+    originalMethod();
+  };
+};
+
+const updateIndex = (publicScope, privateScope) => {
+  if (privateScope.component.context.childCount) { //todo: remove after all test will use mount
+    if (privateScope.component.context.childCount.isIndexingChildren) {
+      const index = privateScope.component.context.childCount.value++;
+      privateScope.stateTree.index = index;
+    }
+  }
+};
+
+const getBoundLifeCycleMethod = (component, methodName) => {
+  if (component[methodName]) {
+    return component[methodName].bind(component);
+  } else {
+    return () => { };
+  }
+};
+
