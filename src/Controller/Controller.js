@@ -3,6 +3,8 @@ import { proxify } from './proxify';
 import { isPlainObject, cloneDeep, uniqueId, merge } from 'lodash';
 import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
 import { transaction, computed } from 'mobx';
+// import { AutoIndexManager } from './../AutoIndexManager/AutoIndexManager';
+
 const MethodType = Object.freeze({
   GETTER: 'GETTER',
   SETTER: 'SETTER'
@@ -13,9 +15,6 @@ const CONTROLLER_NODE_PROP = '_controllerNode';
 export class Controller {
   static getParentController(componentInstance, parentControllerName) {
     //workaround to silent react getChildContext not defined warning:
-    if(!componentInstance.getChildContext){
-      componentInstance.getChildContext = () => {return { controllers: [], stateTree: [], childCount: {} };};
-    }
     const controllerName = getAnonymousControllerName(componentInstance);
     return staticGetParentController(controllerName, componentInstance, parentControllerName);
   }
@@ -30,7 +29,6 @@ export class Controller {
 
     const privateScope = {
       gettersAndSetters: {},
-      isIndexingChildren: false,
       controllerId: uniqueId(),
       controllerName: this.constructor.name === 'Controller' ? getAnonymousControllerName(componentInstance) : this.constructor.name,
       stateTreeListeners: undefined,
@@ -51,8 +49,6 @@ export class Controller {
     exposeAddStateTreeListener(this, privateScope);
     swizzleOwnMethods(this, privateScope);
     swizzleComponentWillUnmount(this, privateScope);
-    swizzleComponentDidMount(this, privateScope);
-    swizzleComponentDidUpdate(this, privateScope);
   }
 }
 const addGetChildContext = (privateScope) => {
@@ -68,8 +64,7 @@ const addGetChildContext = (privateScope) => {
       parentControllerNode.listenersLinkedList.children.push(controllerNode.listenersLinkedList);
     }
     controllers.push(controllerNode);
-    privateScope.isIndexingChildren = true; //when react is calling getChildContext, we know we can start indexing the children
-    return { controllers, stateTree: privateScope.stateTree.children, childCount: { value: 0, isIndexingChildren: privateScope.isIndexingChildren } };
+    return { controllers, stateTree: privateScope.stateTree.children };
   };
 };
 // const stateGuard = (internalState) => {
@@ -259,10 +254,20 @@ const exposeGetStateTreeOnScope = (publicScope, privateScope) => {
 const exposeSetStateTreeOnScope = (publicScope, privateScope) => {
   publicScope.setStateTree = (stateTree) => {
     transaction(() => {
+      clearStateTreeInPlace(privateScope.stateTree);
       merge(privateScope.stateTree, stateTree);
     });
     privateScope.component.forceUpdate();
   };
+};
+
+const clearStateTreeInPlace = (root) => {
+  if (root.state) {//todo: remove this check after changing unMount to remove children completely
+    Object.keys(root.state).forEach(prop => {
+      delete root.state[prop];
+    });
+    root.children.forEach(child => clearStateTreeInPlace(child));
+  }
 };
 
 const exposeAddStateTreeListener = (publicScope, privateScope) => {
@@ -337,39 +342,12 @@ const swizzleComponentWillUnmount = (publicScope, privateScope) => {
   };
 };
 
-const swizzleComponentDidMount = (publicScope, privateScope) => {
-  let originalMethod = getBoundLifeCycleMethod(privateScope.component, 'componentDidMount');
-  privateScope.component.componentDidMount = () => {
-    updateIndex(publicScope, privateScope);
-    originalMethod();
-  };
-};
-
-const swizzleComponentDidUpdate = (publicScope, privateScope) => {
-  let originalMethod = getBoundLifeCycleMethod(privateScope.component, 'componentDidUpdate');
-  privateScope.component.componentDidUpdate = () => {
-    if (privateScope.component.context.childCount) {
-      privateScope.component.context.childCount.isIndexingChildren = false;
-    }
-    updateIndex(publicScope, privateScope);
-    originalMethod();
-  };
-};
-
-const updateIndex = (publicScope, privateScope) => {
-  if (privateScope.component.context.childCount) { //todo: remove after all test will use mount
-    if (privateScope.component.context.childCount.isIndexingChildren) {
-      const index = privateScope.component.context.childCount.value++;
-      privateScope.stateTree.index = index;
-    }
-  }
-};
 
 const getBoundLifeCycleMethod = (component, methodName) => {
   if (component[methodName]) {
     return component[methodName].bind(component);
   } else {
-    return () => { };
+    return () => true;
   }
 };
 
