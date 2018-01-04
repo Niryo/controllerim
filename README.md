@@ -114,7 +114,7 @@ export default observer(Child);
 
 * **Better encapsulation**: A component can fetch data only from its direct controller and its parents controllers. You cannot feth data from sibling component's Controllers. If you need some piece of data to be visible for two sibling components, it means that this data should sit within their first common parent. If you need a piece of data to be visible to all other component, put it in your AppController.
 
-* **Mimics React's local component's state :** React state is really good for dumb components, but it's not so good for smart components. It cannot be esaly shared to deep nested children, it prevents separation of logic and view to different files, and it is not easly testable. controllerim tackles exactly those points.
+* **Mimics React's local component's state :** React state is really good for dumb components, but it's not so good for smart components. It cannot be esaly shared to deep nested children, it prevents separation of logic and view to different files, and it is not easily testable. controllerim tackles exactly those points.
 
 ## How
 The basic (and naive) idea works very similar to React's local components' state, by forcing the component to update on every call to a setter function on the controller. But this is expensive, because we want to render things only if they are trully effected by the change. So Controllerim utilizes [Mobx](https://github.com/mobxjs/mobx) behind the scenes for all the performance boosts (Memoizes values, calculates dependencies and renders only when trully needed).
