@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "controllerim": "^1.48.0",
+    "controllerim": "^1.52.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-scripts": "^1.0.17"
@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "enzyme": "^3.2.0",
-    "enzyme-adapter-react-16": "^1.1.0",
+    "enzyme-adapter-react-16": "^1.1.1",
     "rimraf": "^2.6.2"
   }
 }
