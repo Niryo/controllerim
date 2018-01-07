@@ -60,3 +60,4 @@ typings/
 #custom
 dist/
 .idea/
+.vscode/

@@ -65,7 +65,7 @@ export const A = observer(class extends React.Component {
       <div>
         <div data-hook="a">{this.controller.getA()}</div>
         <button data-hook="setA" onClick={() => this.controller.setA()} />
-        <B setControllerInstanceB={this.props.setControllerInstanceB}/></div>);
+        <B serialID="0" setControllerInstanceB={this.props.setControllerInstanceB}/></div>);
   }
 });
 
@@ -76,10 +76,10 @@ const B = observer(class extends React.Component {
   }
   render() {
     return (<div>
-      <div data-hook="test">{JSON.stringify(this.controller.shouldShowC())}</div>
+      <div data-hook="test">{this.controller.shouldShowC()}</div>
       <div data-hook="b">{this.controller.getB()}</div>
       <div data-hook="state">{JSON.stringify(this.controller.getState())}</div>
-      {this.controller.shouldShowC()? <C /> : null}
+      {this.controller.shouldShowC()? <C serialID="1"/> : null}
       <button data-hook="setB" onClick={() => this.controller.setB()} />
       <button data-hook="setSomeProp" onClick={() => this.controller.setSomeProp()} />
       <button data-hook="hideC" onClick={() => this.controller.hideC()} />

@@ -1,3 +1,6 @@
+export let shouldUseExperimentalAutoIndexing = false;
+export const useExperimentalSerialization = () => shouldUseExperimentalAutoIndexing = true;
+
 export class AutoIndexManager {
   constructor(componentInstance, onIndexChangeCallback) {
     componentInstance.__controllerimIndexChildrenManager = this;

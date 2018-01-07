@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { Controller } from './Controller';
 import { mount } from 'enzyme';
-import { observer } from '../index';
+
+import { observer, useExperimentalSerialization } from '../index';
 import { TestUtils } from '../TestUtils/testUtils';
 import { cloneDeep } from 'lodash';
 import {
@@ -12,7 +13,9 @@ import {
   ComponentThatFetchSiblingController,
   ParentThatCanHideChild,
   BasicStateTree,
-  ComplexStateTree
+  ComplexStateTree,
+  SerializableTree,
+  ComponentWithSeralizableChild
 } from './TestComponents';
 
 const getFakeComponentInstacne = (controllers) => {
@@ -151,11 +154,11 @@ describe('Controller', () => {
       });
 
       it('should throw an error if parent controller does not exist', () => {
-        expect(() => mount(<ComponentThatAskForNonExistentParent/>)).toThrowError('Parent controller does not exist. make sure that nonExistentParent is parent of ParentController and that you wraped it with observer');
+        expect(() => mount(<ComponentThatAskForNonExistentParent />)).toThrowError('Parent controller does not exist. make sure that nonExistentParent is parent of ParentController and that you wraped it with observer');
       });
 
       it('should allow setting state from async func', async () => {
-        const component = mount(<Parent/>) ;
+        const component = mount(<Parent />);
         const controller = TestUtils.getControllerOf(component.instance());
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('blamos');
         await controller.testAsyncFunc();
@@ -163,19 +166,19 @@ describe('Controller', () => {
       });
 
       it(`should throw an error if trying to save into state other controller's state`, () => {
-        const component = mount(<ComponentThatPutOneStateInsideAnother/>);
+        const component = mount(<ComponentThatPutOneStateInsideAnother />);
         global.Proxy = backupProxy;
         expect(() => component.find('[data-hook="mixStates"]').simulate('click')).toThrowError(`Cannot set state with other controller's state.`);
       });
 
       it(`should allow saving into state own proxified object`, () => {
-        const component = mount(<Parent/>);
+        const component = mount(<Parent />);
         component.find('[data-hook="setOwnObject"]').simulate('click');
-        expect(component.find('[data-hook="previewNestedOwnObject"]').text()).toEqual(JSON.stringify({name: 'alice'}));
+        expect(component.find('[data-hook="previewNestedOwnObject"]').text()).toEqual(JSON.stringify({ name: 'alice' }));
       });
 
       it('should allow setting the state only with object', () => {
-        const component = mount(<Parent/>);
+        const component = mount(<Parent />);
         const controller = TestUtils.getControllerOf(component.instance());
         controller.setState({ hello: true });
         expect(controller.getState()).toEqual({ hello: true });
@@ -232,26 +235,23 @@ describe('Controller', () => {
 
       it('should not allow getting sibling controller', () => {
         TestUtils.clean(); //todo: why do i need this? if removed, test becomes flaky
-        expect(() => mount(<ComponentThatFetchSiblingController/>)).toThrowError(/Parent controller does not exist/);
+        expect(() => mount(<ComponentThatFetchSiblingController />)).toThrowError(/Parent controller does not exist/);
       });
 
       it('should allow getting parent controller usign static getParentController', () => {
-        const component = mount(<Parent/>);
+        const component = mount(<Parent />);
         expect(component.find('[data-hook="blamos"]').text()).toEqual('blamos');
       });
       describe('componentWillUnmount', () => {
-       
-
         it('should clean the stateTree when component unmount', () => {
           const component = mount(<ParentThatCanHideChild />);
           const controller = TestUtils.getControllerOf(component.instance());
           const expectedStateTree = {
-            index: undefined,
+            serialID: 'controllerim_root',
             name: 'HostParentController',
             state: { isChildShown: true },
             children:
               [{
-                index: 0,
                 name: 'ChildCotroller',
                 state: { child: 'i am alive!' },
                 children: []
@@ -260,7 +260,7 @@ describe('Controller', () => {
           expect(controller.getStateTree()).toEqual(expectedStateTree);
           global.Proxy = backupProxy;
           component.find('[data-hook="hide"]').simulate('click');
-          expectedStateTree.children[0] = {};
+          expectedStateTree.children = [];
           expectedStateTree.state.isChildShown = false;
           expect(controller.getStateTree()).toEqual(expectedStateTree);
         });
@@ -310,64 +310,51 @@ describe('Controller', () => {
         expect(component.find('[data-hook="dogBlamos"]').text()).toEqual('blamos');
       });
 
-      describe('State tree', () => {
-        let controllerAInstance;
-        let controllerBInstance;
-        afterEach(() => {
-          controllerAInstance = null;
-          controllerBInstance = null;
-        });
-        
 
+
+      describe('State tree', () => {
         it('should expose stateTree on a component', () => {
-    
           const expectedValue = {
+            'serialID': 'controllerim_root',
             'name': 'Acon',
             'state': {
               'a': 'a'
             },
             'children': [
               {
-                'index': 0,
                 'name': 'Bcon',
                 'state': {
                   'b': 'b'
                 },
                 'children': [
                   {
-                    'index': 0,
                     'name': 'Ccon',
                     'state': {
                       'c': 'c'
                     },
-                    'children': [
-  
-                    ]
+                    'children': []
                   }
                 ]
               },
               {
-                'index': 1,
                 'name': 'Ccon',
                 'state': {
                   'c': 'c'
                 },
-                'children': [
-  
-                ]
+                'children': []
               }
             ]
           };
-  
+
           const component = mount(<BasicStateTree />);
           const controller = TestUtils.getControllerOf(component.instance());
-          expect(JSON.stringify(controller.getStateTree())).toEqual(JSON.stringify(expectedValue));
+          expect(controller.getStateTree()).toEqual(expectedValue);
         });
 
         it('should allow adding listener to changes in the stateTree', () => {
           let controllerAInstance;
           let controllerBInstance;
-          const component = mount(<ComplexStateTree setControllerInstanceA={(instance) => controllerAInstance = instance} setControllerInstanceB={(instance) =>  controllerBInstance = instance} />);
+          const component = mount(<ComplexStateTree setControllerInstanceA={(instance) => controllerAInstance = instance} setControllerInstanceB={(instance) => controllerBInstance = instance} />);
           const listenerA = jest.fn();
           const listenerB = jest.fn();
           controllerAInstance.addOnStateTreeChangeListener(listenerA);
@@ -390,7 +377,7 @@ describe('Controller', () => {
 
         it('should allow to remove listeners', () => {
           let controllerAInstance;
-          const component = mount(<ComplexStateTree setControllerInstanceA={(instance) => controllerAInstance = instance} setControllerInstanceB={() => null } />);
+          const component = mount(<ComplexStateTree setControllerInstanceA={(instance) => controllerAInstance = instance} setControllerInstanceB={() => null} />);
           const listenerA = jest.fn();
           const listenerToDelete = jest.fn();
           controllerAInstance.addOnStateTreeChangeListener(listenerA);
@@ -406,24 +393,71 @@ describe('Controller', () => {
           expect(listenerToDelete.mock.calls.length).toEqual(1);
         });
 
-        it('should allow setting stateTree', () => {
+        it('should use the serialID from the props', () => {
+          const component = mount(<ComponentWithSeralizableChild />);
+          const controller = TestUtils.getControllerOf(component.instance());
+          const expectedValue = {
+            serialID: 'controllerim_root',
+            'name': 'ComponentWithSeralizableChildController',
+            'state': {},
+            'children': [
+              {
+                serialID: 'someUniqueId',
+                'name': 'BasicChildController',
+                'state': {},
+                'children': []
+              }
+            ],
+          };
+          expect(controller.getStateTree()).toEqual(expectedValue);
+        });
+
+        it('should allow setting stateTree when all components have serial ID', async () => {
           let controllerAInstance;
-          const component = mount(<ComplexStateTree setControllerInstanceA={(instance) => controllerAInstance = instance} setControllerInstanceB={() => {}} />);          global.Proxy = backupProxy;
+          const component = mount(<SerializableTree setControllerInstanceA={(instance) => controllerAInstance = instance} setControllerInstanceB={() => { }} />); global.Proxy = backupProxy;
           const aText = component.find('[data-hook="a"]').text();
           const bText = component.find('[data-hook="b"]').text();
           component.find('[data-hook="setC"]').simulate('click');
-          expect(component.find('[data-hook="state"]').text()).toEqual(JSON.stringify({ b: 0 }));
+          expect(component.find('[data-hook="state"]').text()).toEqual(JSON.stringify({ b: 0, shouldShowC: true }));
           expect(component.find('[data-hook="c"]').text()).toEqual('1');
           const snapshot = cloneDeep(controllerAInstance.getStateTree());
           component.find('[data-hook="setA"]').simulate('click');
           component.find('[data-hook="setB"]').simulate('click');
           component.find('[data-hook="setSomeProp"]').simulate('click');
-          expect(component.find('[data-hook="state"]').text()).toEqual(JSON.stringify({ b: 1, someProp: true }));
+          expect(component.find('[data-hook="state"]').text()).toEqual(JSON.stringify({ b: 1, shouldShowC: true, someProp: true }));
+          component.find('[data-hook="hideC"]').simulate('click');
+          expect(component.find('[data-hook="c"]').length).toEqual(0);
+          await controllerAInstance.setStateTree(snapshot);
+          expect(controllerAInstance.getStateTree()).toEqual(snapshot);
+          expect(component.find('[data-hook="a"]').text()).toEqual(aText);
+          expect(component.find('[data-hook="b"]').text()).toEqual(bText);
+          component.update(); //TODO: it should work without the need to call update
+          expect(component.find('[data-hook="c"]').length).toEqual(1);
+          expect(component.find('[data-hook="c"]').text()).toEqual('1');
+        });
+
+        xit('should allow setting stateTree when exprimental indexing is on', () => {
+          useExperimentalSerialization();
+          let controllerAInstance;
+          const component = mount(<ComplexStateTree setControllerInstanceA={(instance) => controllerAInstance = instance} setControllerInstanceB={() => { }} />); global.Proxy = backupProxy;
+          const aText = component.find('[data-hook="a"]').text();
+          const bText = component.find('[data-hook="b"]').text();
+          component.find('[data-hook="setC"]').simulate('click');
+          expect(component.find('[data-hook="state"]').text()).toEqual(JSON.stringify({ b: 0, shouldShowC: true }));
+          expect(component.find('[data-hook="c"]').text()).toEqual('1');
+          const snapshot = cloneDeep(controllerAInstance.getStateTree());
+          component.find('[data-hook="setA"]').simulate('click');
+          component.find('[data-hook="setB"]').simulate('click');
+          component.find('[data-hook="setSomeProp"]').simulate('click');
+          expect(component.find('[data-hook="state"]').text()).toEqual(JSON.stringify({ b: 1, shouldShowC: true, someProp: true }));
+          component.find('[data-hook="hideC"]').simulate('click');
           expect(component.find('[data-hook="c"]').length).toEqual(0);
           controllerAInstance.setStateTree(snapshot);
           expect(controllerAInstance.getStateTree()).toEqual(snapshot);
           expect(component.find('[data-hook="a"]').text()).toEqual(aText);
           expect(component.find('[data-hook="b"]').text()).toEqual(bText);
+          expect(component.find('[data-hook="c"]').length).toEqual(1);
+          expect(component.find('[data-hook="c"]').text()).toEqual('1');
         });
 
         it('componentDidMount and componentWillMount, and componentWillUpdate should work', () => {
@@ -436,6 +470,50 @@ describe('Controller', () => {
           global.Proxy = backupProxy;
           component.find('[data-hook="increaseCounter"]').simulate('click');
           expect(didUpdate.mock.calls.length).toEqual(1);
+        });
+
+        xit('should add children indexes when activating useExperimentalIndexing()', () => {
+          useExperimentalSerialization();
+          const component = mount(<BasicStateTree />);
+          const controller = TestUtils.getControllerOf(component.instance());
+          const expectedValue = {
+            'name': 'Acon',
+            'state': {
+              'a': 'a'
+            },
+            'children': [
+              {
+                'index': 0,
+                'name': 'Bcon',
+                'state': {
+                  'b': 'b'
+                },
+                'children': [
+                  {
+                    'index': 0,
+                    'name': 'Ccon',
+                    'state': {
+                      'c': 'c'
+                    },
+                    'children': [
+
+                    ]
+                  }
+                ]
+              },
+              {
+                'index': 1,
+                'name': 'Ccon',
+                'state': {
+                  'c': 'c'
+                },
+                'children': [
+
+                ]
+              }
+            ]
+          };
+          expect(controller.getStateTree()).toEqual(expectedValue);
         });
       });
     }

@@ -3,7 +3,6 @@ import { proxify } from './proxify';
 import { isPlainObject, cloneDeep, uniqueId, merge } from 'lodash';
 import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
 import { transaction, computed } from 'mobx';
-// import { AutoIndexManager } from './../AutoIndexManager/AutoIndexManager';
 
 const MethodType = Object.freeze({
   GETTER: 'GETTER',
@@ -11,7 +10,7 @@ const MethodType = Object.freeze({
 });
 
 const CONTROLLER_NODE_PROP = '_controllerNode';
-
+export const ROOT_CONTROLLER_SERIAL_ID = 'controllerim_root';
 export class Controller {
   static getParentController(componentInstance, parentControllerName) {
     //workaround to silent react getChildContext not defined warning:
@@ -49,6 +48,12 @@ export class Controller {
     exposeAddStateTreeListener(this, privateScope);
     swizzleOwnMethods(this, privateScope);
     swizzleComponentWillUnmount(this, privateScope);
+
+    // if (shouldUseExperimentalAutoIndexing) {
+    //   new AutoIndexManager(componentInstance, (index) => {
+    //     privateScope.stateTree.index = index;
+    //   });
+    // }
   }
 }
 const addGetChildContext = (privateScope) => {
@@ -74,17 +79,21 @@ const addGetChildContext = (privateScope) => {
 // };
 
 const initStateTree = (publicScope, privateScope) => {
+  const serialID = privateScope.component.props && privateScope.component.props.serialID;
   const newstateTreeNode = {
-    index: undefined,
     name: privateScope.controllerName,
     state: {},
     children: []
   };
+  if (serialID !== undefined) {
+    newstateTreeNode.serialID = serialID;
+  }
   privateScope.stateTree = newstateTreeNode;
   if (privateScope.component.context.stateTree) {
     privateScope.component.context.stateTree.push(newstateTreeNode);
+  } else {
+    newstateTreeNode.serialID = ROOT_CONTROLLER_SERIAL_ID;
   }
-
 };
 
 const exposeControllerNodeOnComponent = (publicScope, privateScope) => {
@@ -252,13 +261,27 @@ const exposeGetStateTreeOnScope = (publicScope, privateScope) => {
 };
 
 const exposeSetStateTreeOnScope = (publicScope, privateScope) => {
-  publicScope.setStateTree = (stateTree) => {
-    transaction(() => {
-      clearStateTreeInPlace(privateScope.stateTree);
-      merge(privateScope.stateTree, stateTree);
-    });
-    privateScope.component.forceUpdate();
+  publicScope.setStateTree = async (stateTree) => {
+    await recursiveSetStateTree(privateScope.stateTree, stateTree);
   };
+};
+
+
+const recursiveSetStateTree = async (root, newRoot) => {
+  transaction(() => {
+    Object.keys(root.state).forEach(prop => {
+      delete root.state[prop];
+    });
+    merge(root.state, newRoot.state);
+  });
+
+  await new Promise(r => setTimeout(r, 0)); //we need to wait for the changes to take effect in the UI
+  for(let newRootchild of newRoot.children) {
+    const childWithSameSerialID = root.children.find(child => child.serialID !== undefined && child.serialID === newRootchild.serialID);
+    if (childWithSameSerialID) {
+      await recursiveSetStateTree(childWithSameSerialID, newRootchild);
+    }
+  }
 };
 
 const clearStateTreeInPlace = (root) => {
@@ -334,10 +357,8 @@ const markGetterOnPrivateScope = (privateScope) => {
 const swizzleComponentWillUnmount = (publicScope, privateScope) => {
   let originalMethod = getBoundLifeCycleMethod(privateScope.component, 'componentWillUnmount');
   privateScope.component.componentWillUnmount = () => {
-    //todo: consider completely removing the child from parent
-    Object.keys(privateScope.stateTree).forEach(key => {
-      delete privateScope.stateTree[key];
-    });
+    const indexToRemove = privateScope.component.context.stateTree.findIndex(child => child === privateScope.stateTree);
+    privateScope.component.context.stateTree.splice(indexToRemove, 1);
     originalMethod();
   };
 };

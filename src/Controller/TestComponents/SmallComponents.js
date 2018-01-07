@@ -2,6 +2,7 @@ import * as React from 'react';
 import { observer } from '../../index';
 import { ParentController } from './Parent';
 import { ChildController } from './Child';
+import {Controller} from '../Controller';
 
 export const ComponentThatForgetToPassThis = observer(class extends React.Component {
   componentWillMount() {
@@ -46,3 +47,30 @@ export const ComponentThatPutOneStateInsideAnother = observer(class extends Reac
     </div>;
   }
 });
+
+
+class ComponentWithSeralizableChildController extends Controller { constructor(comp) { super(comp); } }
+class BasicChildController extends Controller { constructor(comp) { super(comp); } }
+
+const BasicChild = observer(class extends React.Component {
+  componentWillMount() {
+    this.controller = new BasicChildController(this);
+  }
+
+  render() {
+    return <div>hi</div>;
+  }
+});
+
+
+export const ComponentWithSeralizableChild = observer(class extends React.Component {
+  componentWillMount() {
+    this.controller = new ComponentWithSeralizableChildController(this);
+  }
+
+  render() {
+    return <BasicChild serialID={'someUniqueId'} />;
+  }
+});
+
+

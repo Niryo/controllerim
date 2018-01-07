@@ -146,4 +146,4 @@ export const Parent = observer(class extends React.Component {
       </div>
     );
   }
-})
+});

@@ -5,10 +5,12 @@ export {
   ComponentThatForgetToPassThis,
   ComponentThatInitControllerInConstructor,
   ComponentThatAskForNonExistentParent,
-  ComponentThatPutOneStateInsideAnother
+  ComponentThatPutOneStateInsideAnother,
+  ComponentWithSeralizableChild
 } from './SmallComponents';
 
 export {ComponentThatFetchSiblingController} from './FetchSiblingControllerTest';
 export {ParentThatCanHideChild} from './UnmountTesting';
 export {BasicStateTree} from './BasicStateTree';
 export {A as ComplexStateTree} from './ComplexStateTree';
+export {A as SerializableTree} from './SerializableTree';
