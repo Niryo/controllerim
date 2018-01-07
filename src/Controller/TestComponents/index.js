@@ -6,7 +6,8 @@ export {
   ComponentThatInitControllerInConstructor,
   ComponentThatAskForNonExistentParent,
   ComponentThatPutOneStateInsideAnother,
-  ComponentWithSeralizableChild
+  ComponentWithSeralizableChild,
+  ComponentWithMissingSerialID
 } from './SmallComponents';
 
 export {ComponentThatFetchSiblingController} from './FetchSiblingControllerTest';

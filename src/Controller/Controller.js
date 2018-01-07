@@ -274,10 +274,18 @@ const recursiveSetStateTree = async (root, newRoot) => {
     });
     merge(root.state, newRoot.state);
   });
-
   await new Promise(r => setTimeout(r, 0)); //we need to wait for the changes to take effect in the UI
+
   for(let newRootchild of newRoot.children) {
-    const childWithSameSerialID = root.children.find(child => child.serialID !== undefined && child.serialID === newRootchild.serialID);
+    if(newRootchild.serialID === undefined) {
+      throw new Error(`Cannot set stateTree: child ${newRootchild.name} in the given snapshot is missing a serialID`);
+    }
+    const childWithSameSerialID = root.children.find(child => {
+      if(child.serialID === undefined ){
+        throw new Error(`Cannot set stateTree: child ${child.name} is missing a serialID`);
+      }
+      return child.serialID === newRootchild.serialID;
+    });
     if (childWithSameSerialID) {
       await recursiveSetStateTree(childWithSameSerialID, newRootchild);
     }

@@ -15,7 +15,8 @@ import {
   BasicStateTree,
   ComplexStateTree,
   SerializableTree,
-  ComponentWithSeralizableChild
+  ComponentWithSeralizableChild,
+  ComponentWithMissingSerialID
 } from './TestComponents';
 
 const getFakeComponentInstacne = (controllers) => {
@@ -434,6 +435,37 @@ describe('Controller', () => {
           component.update(); //TODO: it should work without the need to call update
           expect(component.find('[data-hook="c"]').length).toEqual(1);
           expect(component.find('[data-hook="c"]').text()).toEqual('1');
+        });
+
+        it('should throw error when trying to set when missing serialID', async () => {
+          const component = mount(<ComponentWithMissingSerialID />);
+          const controller = TestUtils.getControllerOf(component.instance());
+          const snapshotWithMissingSerialId = {
+            name: 'ComponentWithSeralizableChildController',
+            state: {},
+            children: [{ name: 'BasicChildController', state: {}, children: [] }],
+            serialID: 'controllerim_root'
+          };
+          const validSnapshot = {
+            name: 'ComponentWithSeralizableChildController',
+            state: {},
+            children: [{ serialID:'someId',name: 'BasicChildController', state: {}, children: [] }],
+            serialID: 'controllerim_root'
+          };
+          let message;
+          try {
+            await controller.setStateTree(snapshotWithMissingSerialId);
+          } catch (e) {
+            message = e.message;
+          }
+          expect(message).toEqual('Cannot set stateTree: child BasicChildController in the given snapshot is missing a serialID');
+          message = '';
+          try {
+            await controller.setStateTree(validSnapshot);
+          } catch (e) {
+            message = e.message;
+          }
+          expect(message).toEqual('Cannot set stateTree: child BasicChildController is missing a serialID');
         });
 
         xit('should allow setting stateTree when exprimental indexing is on', () => {

@@ -73,4 +73,13 @@ export const ComponentWithSeralizableChild = observer(class extends React.Compon
   }
 });
 
+export const ComponentWithMissingSerialID = observer(class extends React.Component {
+  componentWillMount() {
+    this.controller = new ComponentWithSeralizableChildController(this);
+  }
+  render() {
+    return <BasicChild />;
+  }
+});
+
 
