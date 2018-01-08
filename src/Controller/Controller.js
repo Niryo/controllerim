@@ -3,6 +3,7 @@ import { proxify } from './proxify';
 import { isPlainObject, cloneDeep, uniqueId, merge } from 'lodash';
 import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
 import { transaction, computed } from 'mobx';
+import { shouldUseExperimentalAutoIndexing, AutoIndexManager } from '../AutoIndexManager/AutoIndexManager';
 
 const MethodType = Object.freeze({
   GETTER: 'GETTER',
@@ -20,7 +21,10 @@ export class Controller {
 
   constructor(componentInstance) {
     if (!componentInstance) {
-      throw new Error(`Component instance is undefined. Make sure that you call 'new Controller(this)' inside componentWillMount and that you are calling 'super(componentInstance)' inside your controller constructor`);
+      throw new Error(`Component instance is undefined. Make sure that you pass a refernce to the compoenent when you initialize the controller and that you are calling 'super(componentInstance)' inside your controller constructor`);
+    }
+    if(!componentInstance.context) {
+      throw new Error(`Context undefined. Make sure that you are initializing the controller inside componentWillMount`);
     }
     if (isTestMod()) {
       registerControllerForTest(this, componentInstance);
@@ -49,11 +53,11 @@ export class Controller {
     swizzleOwnMethods(this, privateScope);
     swizzleComponentWillUnmount(this, privateScope);
 
-    // if (shouldUseExperimentalAutoIndexing) {
-    //   new AutoIndexManager(componentInstance, (index) => {
-    //     privateScope.stateTree.index = index;
-    //   });
-    // }
+    if (shouldUseExperimentalAutoIndexing) {
+      new AutoIndexManager(componentInstance, (index) => {
+        privateScope.stateTree.serialID = index;
+      });
+    }
   }
 }
 const addGetChildContext = (privateScope) => {
@@ -276,12 +280,12 @@ const recursiveSetStateTree = async (root, newRoot) => {
   });
   await new Promise(r => setTimeout(r, 0)); //we need to wait for the changes to take effect in the UI
 
-  for(let newRootchild of newRoot.children) {
-    if(newRootchild.serialID === undefined) {
+  for (let newRootchild of newRoot.children) {
+    if (newRootchild.serialID === undefined) {
       throw new Error(`Cannot set stateTree: child ${newRootchild.name} in the given snapshot is missing a serialID`);
     }
     const childWithSameSerialID = root.children.find(child => {
-      if(child.serialID === undefined ){
+      if (child.serialID === undefined) {
         throw new Error(`Cannot set stateTree: child ${child.name} is missing a serialID`);
       }
       return child.serialID === newRootchild.serialID;

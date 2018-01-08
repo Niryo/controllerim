@@ -7,10 +7,10 @@ import { TestUtils } from '../TestUtils/testUtils';
 import { cloneDeep } from 'lodash';
 import {
   Parent, ComponentThatForgetToPassThis,
-  // ComponentThatInitControllerInConstructor,
   ComponentThatAskForNonExistentParent,
   ComponentThatPutOneStateInsideAnother,
   ComponentThatFetchSiblingController,
+  ComponentThatInitControllerInConstructor,
   ParentThatCanHideChild,
   BasicStateTree,
   ComplexStateTree,
@@ -62,13 +62,13 @@ describe('Controller', () => {
     expect(testController.getParentController('someParent')).toEqual('mocekdParentController');
   });
 
-  // it('should throw an error when trying to set the state from outside of the contoller', () => {
-  //   const testController = new Controller(getFakeComponentInstacne());
-  //   testController.state = { FirstChangeAllwaysAllowed: 'change' };
-  //   //after state is set for the first time, no changes outside the controller are allowed:
-  //   expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot set state from outside of a controller');
-  //   expect(() => testController.state.bla = 'bla').toThrowError('Cannot set state from outside of a controller');
-  // });
+  xit('should throw an error when trying to set the state from outside of the contoller', () => {
+    const testController = new Controller(getFakeComponentInstacne());
+    testController.state = { FirstChangeAllwaysAllowed: 'change' };
+    //after state is set for the first time, no changes outside the controller are allowed:
+    expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot set state from outside of a controller');
+    expect(() => testController.state.bla = 'bla').toThrowError('Cannot set state from outside of a controller');
+  });
 
 
 
@@ -119,15 +119,15 @@ describe('Controller', () => {
     });
 
 
-    // it('should not allow changing state using stateTree while not in test mode', () => {
-    //   //this test is only for proxy, because in the unproxy version we simply cannot have this 
-    //   //functionality. this is why we need to inforce it. If someone will chagne the state from outside
-    //   //of a controller in browsers without proxy support, he will loose observability. 
-    //   const component = mount(<Parent />);
-    //   const controller = TestUtils.getControllerOf(component.instance());
-    //   const stateTree = controller.getStateTree();
-    //   expect(() => stateTree['ParentController'].state.basicProp = 'changed').toThrowError('Cannot set state from outside of a controller');
-    // });
+    xit('should not allow changing state using stateTree while not in test mode', () => {
+      //this test is only for proxy, because in the unproxy version we simply cannot have this 
+      //functionality. this is why we need to inforce it. If someone will chagne the state from outside
+      //of a controller in browsers without proxy support, he will loose observability. 
+      const component = mount(<Parent />);
+      const controller = TestUtils.getControllerOf(component.instance());
+      const stateTree = controller.getStateTree();
+      expect(() => stateTree['ParentController'].state.basicProp = 'changed').toThrowError('Cannot set state from outside of a controller');
+    });
 
     function runTests() {
       it('sanity check', () => {
@@ -140,8 +140,8 @@ describe('Controller', () => {
       });
 
       it('should throw error if componentInstance was not pass to the controller constructor', () => { //todo: uncomment the second expect
-        expect(() => mount(<ComponentThatForgetToPassThis />)).toThrowError('Component instance is undefined. Make sure that you call \'new Controller(this)\' inside componentWillMount and that you are calling \'super(componentInstance)\' inside your controller constructor');
-        // expect(() => mount(<ComponentThatInitControllerInConstructor />)).toThrowError('Component instance is undefined. Make sure that you call \'new Controller(this)\' inside componentWillMount and that you are calling \'super(componentInstance)\' inside your controller constructor');
+        expect(() => mount(<ComponentThatForgetToPassThis />)).toThrowError(`Component instance is undefined. Make sure that you pass a refernce to the compoenent when you initialize the controller and that you are calling 'super(componentInstance)' inside your controller constructor`);
+        expect(() => mount(<ComponentThatInitControllerInConstructor />)).toThrowError(`Context undefined. Make sure that you are initializing the controller inside componentWillMount`);
       });
 
       it('should allow getting parent controller', () => {
@@ -449,7 +449,7 @@ describe('Controller', () => {
           const validSnapshot = {
             name: 'ComponentWithSeralizableChildController',
             state: {},
-            children: [{ serialID:'someId',name: 'BasicChildController', state: {}, children: [] }],
+            children: [{ serialID: 'someId', name: 'BasicChildController', state: {}, children: [] }],
             serialID: 'controllerim_root'
           };
           let message;
@@ -468,7 +468,7 @@ describe('Controller', () => {
           expect(message).toEqual('Cannot set stateTree: child BasicChildController is missing a serialID');
         });
 
-        xit('should allow setting stateTree when exprimental indexing is on', () => {
+        it('should allow setting stateTree when exprimental indexing is on', async () => {
           useExperimentalSerialization();
           let controllerAInstance;
           const component = mount(<ComplexStateTree setControllerInstanceA={(instance) => controllerAInstance = instance} setControllerInstanceB={() => { }} />); global.Proxy = backupProxy;
@@ -484,10 +484,11 @@ describe('Controller', () => {
           expect(component.find('[data-hook="state"]').text()).toEqual(JSON.stringify({ b: 1, shouldShowC: true, someProp: true }));
           component.find('[data-hook="hideC"]').simulate('click');
           expect(component.find('[data-hook="c"]').length).toEqual(0);
-          controllerAInstance.setStateTree(snapshot);
+          await controllerAInstance.setStateTree(snapshot);
           expect(controllerAInstance.getStateTree()).toEqual(snapshot);
           expect(component.find('[data-hook="a"]').text()).toEqual(aText);
           expect(component.find('[data-hook="b"]').text()).toEqual(bText);
+          component.update(); //TODO: it should work without the need to call update
           expect(component.find('[data-hook="c"]').length).toEqual(1);
           expect(component.find('[data-hook="c"]').text()).toEqual('1');
         });
@@ -504,25 +505,26 @@ describe('Controller', () => {
           expect(didUpdate.mock.calls.length).toEqual(1);
         });
 
-        xit('should add children indexes when activating useExperimentalIndexing()', () => {
+        it('should add children indexes as serialID when activating useExperimentalIndexing()', () => {
           useExperimentalSerialization();
           const component = mount(<BasicStateTree />);
           const controller = TestUtils.getControllerOf(component.instance());
           const expectedValue = {
             'name': 'Acon',
+            'serialID': 'controllerim_root',
             'state': {
               'a': 'a'
             },
             'children': [
               {
-                'index': 0,
+                'serialID': 0,
                 'name': 'Bcon',
                 'state': {
                   'b': 'b'
                 },
                 'children': [
                   {
-                    'index': 0,
+                    'serialID': 0,
                     'name': 'Ccon',
                     'state': {
                       'c': 'c'
@@ -534,7 +536,7 @@ describe('Controller', () => {
                 ]
               },
               {
-                'index': 1,
+                'serialID': 1,
                 'name': 'Ccon',
                 'state': {
                   'c': 'c'
