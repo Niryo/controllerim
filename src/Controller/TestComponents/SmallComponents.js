@@ -44,6 +44,7 @@ export const ComponentThatPutOneStateInsideAnother = observer(class extends Reac
   render() {
     return <div>
       <button data-hook="mixStates" onClick={() => this.parentController.setAnotherState(this.childController.getState())} />
+      <button data-hook="mixPartOfState" onClick={() => this.childController.setPartialState(this.parentController.getObjectProp())} />
     </div>;
   }
 });

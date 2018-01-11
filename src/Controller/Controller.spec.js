@@ -172,10 +172,27 @@ describe('Controller', () => {
         expect(() => component.find('[data-hook="mixStates"]').simulate('click')).toThrowError(`Cannot set state with other controller's state.`);
       });
 
+      it(`should throw an error if trying to save into state other controller's part of state`, () => {
+        const component = mount(<ComponentThatPutOneStateInsideAnother />);
+        global.Proxy = backupProxy;
+        expect(() => component.find('[data-hook="mixPartOfState"]').simulate('click')).toThrowError(`Cannot set state with other controller's state.`);
+      });
+
       it(`should allow saving into state own proxified object`, () => {
         const component = mount(<Parent />);
         component.find('[data-hook="setOwnObject"]').simulate('click');
         expect(component.find('[data-hook="previewNestedOwnObject"]').text()).toEqual(JSON.stringify({ name: 'alice' }));
+      });
+
+      it('should support setting a cyclic object into state', () => {
+        const component = mount(<Parent />);
+        const controller = TestUtils.getControllerOf(component.instance());
+        const a = {value: 'a'};
+        const b = {value: 'b'};
+        b.a = a;
+        a.b=b;
+        controller.setAnotherState(a);
+        expect(controller.getState().saveAnotherState.b.a.value).toEqual('a');
       });
 
       it('should allow setting the state only with object', () => {

@@ -13,6 +13,9 @@ export class ChildController extends Controller {
   getState(){
     return this.state;
   }
+  setPartialState(someObj) {
+    this.state.someObj = someObj;
+  }
 }
 
 export const Child = observer(class extends React.Component {

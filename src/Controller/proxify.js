@@ -2,19 +2,27 @@
 import { observable } from 'mobx';
 import { keys, isObjectLike, isString } from 'lodash';
 // import {isStateLocked, markSetterOnPrivateScope} from './Controller';
-import { markSetterOnPrivateScope} from './Controller';
+import { markSetterOnPrivateScope } from './Controller';
 const alreadyProxiedObjects = new WeakMap();
 
 const markAsProxified = (obj, id) => {
   alreadyProxiedObjects.set(obj, id);
 };
 
-const isAlreadyProxifiedByOhterController = (obj,controllerId) => {
+const isAlreadyProxifiedByOtherController = (obj, controllerId) => {
   return alreadyProxiedObjects.has(obj) && alreadyProxiedObjects.get(obj) !== controllerId;
 };
 
-export const proxify = (obj,privateScope) => {
-  const tracker = createObservableMap(obj,privateScope);
+const isAlreadyProxified = (obj) => {
+  return alreadyProxiedObjects.has(obj);
+};
+
+export const proxify = (obj, privateScope) => {
+  if (isAlreadyProxified(obj)) {
+    return obj;
+  }
+  markAsProxified(obj,privateScope.controllerId);
+  const tracker = createObservableMap(obj, privateScope);
   const handler = {
     ownKeys: (target) => {
       tracker.keys();
@@ -31,12 +39,12 @@ export const proxify = (obj,privateScope) => {
       let newValue = value;
       // stateGuard(privateScope.internalState);
       if (isObjectLike(value)) {
-        if(isAlreadyProxifiedByOhterController(value, privateScope.controllerId)) {
+        if (isAlreadyProxifiedByOtherController(value, privateScope.controllerId)) {
           throw new Error(`Cannot set state with other controller's state.`);
         }
-        newValue = proxify(value,privateScope);
+        newValue = proxify(value, privateScope);
       }
-      markSetterOnPrivateScope(privateScope,privateScope.internalState.methodUsingState);
+      markSetterOnPrivateScope(privateScope, privateScope.internalState.methodUsingState);
       target[prop] = newValue;
       privateScope.stateTreeListeners.listeners.forEach(listener => listener(privateScope.stateTree));
       tracker.set(prop, newValue);
@@ -48,11 +56,11 @@ export const proxify = (obj,privateScope) => {
   return proxifiedObject;
 };
 
-const createObservableMap = (obj,privateScope) => {
+const createObservableMap = (obj, privateScope) => {
   const tracker = observable.shallowMap();
   keys(obj).forEach((key) => {
     if (isObjectLike(obj[key])) {
-      obj[key] = proxify(obj[key],privateScope);
+      obj[key] = proxify(obj[key], privateScope);
     }
     tracker.set(key, obj[key]);
   });
