@@ -7,7 +7,9 @@ export {
   ComponentThatAskForNonExistentParent,
   ComponentThatPutOneStateInsideAnother,
   ComponentWithSeralizableChild,
-  ComponentWithMissingSerialID
+  ComponentWithMissingSerialID,
+  BasicChild,
+  ComponentThatOnlyRenderItsChildren
 } from './SmallComponents';
 
 export {ComponentThatFetchSiblingController} from './FetchSiblingControllerTest';

@@ -53,7 +53,7 @@ export const ComponentThatPutOneStateInsideAnother = observer(class extends Reac
 class ComponentWithSeralizableChildController extends Controller { constructor(comp) { super(comp); } }
 class BasicChildController extends Controller { constructor(comp) { super(comp); } }
 
-const BasicChild = observer(class extends React.Component {
+export const BasicChild = observer(class extends React.Component {
   componentWillMount() {
     this.controller = new BasicChildController(this);
   }
@@ -82,5 +82,16 @@ export const ComponentWithMissingSerialID = observer(class extends React.Compone
     return <BasicChild />;
   }
 });
+
+export const ComponentThatOnlyRenderItsChildren = observer(class extends React.Component {
+  componentWillMount() {
+    this.controller = new ComponentWithSeralizableChildController(this);
+  }
+  render() {
+    return this.props.children;
+  }
+});
+
+
 
 

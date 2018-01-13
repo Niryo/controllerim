@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { mount } from 'enzyme';
 import { AutoIndexManager } from './AutoIndexManager';
+import PropTypes from 'prop-types';
 
 let indexesArray = [];
 let grandChildIndexArray = [];
@@ -23,9 +24,14 @@ class Parent extends React.Component {
   constructor() {
     super();
     this.state = { showChild4: false, showChild7: false, showChild6: false, showChild8: false, };
+    this.autoIndexManager;
+  }
+
+  getChildContext() {
+    return { autoIndexManager: this.autoIndexManager };
   }
   componentWillMount() {
-    new AutoIndexManager(this);
+    this.autoIndexManager = new AutoIndexManager(this);
   }
   render() {
     return (
@@ -49,19 +55,30 @@ class Parent extends React.Component {
   }
 }
 
+Parent.childContextTypes = {
+  autoIndexManager: PropTypes.object
+};
+
+
 
 class Child extends React.Component {
   constructor(props) {
     super(props);
     this.state = { counter: 0 };
+    this.autoIndexManager;
   }
+
+  getChildContext() {
+    return { autoIndexManager: this.autoIndexManager };
+  }
+
   componentWillMount() {
-    new AutoIndexManager(this, callback.bind(null, this.props.childNumber));
+    this.autoIndexManager =  new AutoIndexManager(this, callback.bind(null, this.props.childNumber));
   }
   render() {
     return <div>
       <div data-hook="counter">{this.state.counter}</div>
-      <button data-hook="updateChildCounter" onClick={() => this.setState({ counter: this.state.counter +1 })}></button>
+      <button data-hook="updateChildCounter" onClick={() => this.setState({ counter: this.state.counter + 1 })}></button>
       {this.props.withGrandChild ? <div><GrandChild childNumber={7} /><GrandChild childNumber={8} /></div> : null}
     </div>;
   }
@@ -85,6 +102,23 @@ class GrandChild extends React.Component {
     return <div>I am child number {this.props.childNumber}</div>;
   }
 }
+
+Child.childContextTypes = {
+  autoIndexManager: PropTypes.object
+};
+
+
+Child.contextTypes = {
+  autoIndexManager: PropTypes.object
+};
+AnotherChild.contextTypes = {
+  autoIndexManager: PropTypes.object
+};
+
+GrandChild.contextTypes = {
+  autoIndexManager: PropTypes.object
+};
+
 
 describe('IndexChildrenManager', () => {
   beforeEach(() => {

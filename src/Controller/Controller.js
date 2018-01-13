@@ -1,8 +1,8 @@
 
-import { proxify } from './proxify';
+import { proxify,shallowProxify } from './proxify';
 import { isPlainObject, cloneDeep, uniqueId, merge } from 'lodash';
 import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
-import { transaction, computed } from 'mobx';
+import { transaction, computed, reaction } from 'mobx';
 import { shouldUseExperimentalAutoIndexing, AutoIndexManager } from '../AutoIndexManager/AutoIndexManager';
 
 const MethodType = Object.freeze({
@@ -14,7 +14,6 @@ const CONTROLLER_NODE_PROP = '_controllerNode';
 export const ROOT_CONTROLLER_SERIAL_ID = 'controllerim_root';
 export class Controller {
   static getParentController(componentInstance, parentControllerName) {
-    //workaround to silent react getChildContext not defined warning:
     const controllerName = getAnonymousControllerName(componentInstance);
     return staticGetParentController(controllerName, componentInstance, parentControllerName);
   }
@@ -23,7 +22,7 @@ export class Controller {
     if (!componentInstance) {
       throw new Error(`Component instance is undefined. Make sure that you pass a refernce to the compoenent when you initialize the controller and that you are calling 'super(componentInstance)' inside your controller constructor`);
     }
-    if(!componentInstance.context) {
+    if (!componentInstance.context) {
       throw new Error(`Context undefined. Make sure that you are initializing the controller inside componentWillMount`);
     }
     if (isTestMod()) {
@@ -34,7 +33,6 @@ export class Controller {
       gettersAndSetters: {},
       controllerId: uniqueId(),
       controllerName: this.constructor.name === 'Controller' ? getAnonymousControllerName(componentInstance) : this.constructor.name,
-      stateTreeListeners: undefined,
       stateTree: undefined,
       internalState: { methodUsingState: undefined, previousState: undefined, initialState: undefined },
       component: componentInstance
@@ -52,28 +50,18 @@ export class Controller {
     exposeAddStateTreeListener(this, privateScope);
     swizzleOwnMethods(this, privateScope);
     swizzleComponentWillUnmount(this, privateScope);
-
-    if (shouldUseExperimentalAutoIndexing) {
-      new AutoIndexManager(componentInstance, (index) => {
-        privateScope.stateTree.serialID = index;
-      });
-    }
   }
 }
 const addGetChildContext = (privateScope) => {
   const componentInstance = privateScope.component;
   componentInstance.getChildContext = function () {
     let controllers = [];
-    if (componentInstance.context.controllers) {//todo: remove after all the test will use mount
+    if (componentInstance.context.controllers) {
       controllers = [...this.context.controllers];
     }
     const controllerNode = componentInstance[CONTROLLER_NODE_PROP];
-    const parentControllerNode = controllers[controllers.length - 1];
-    if (parentControllerNode) {
-      parentControllerNode.listenersLinkedList.children.push(controllerNode.listenersLinkedList);
-    }
     controllers.push(controllerNode);
-    return { controllers, stateTree: privateScope.stateTree.children };
+    return { controllers, stateTree: privateScope.stateTree.children, autoIndexManager: privateScope.autoIndexManager};
   };
 };
 // const stateGuard = (internalState) => {
@@ -84,11 +72,13 @@ const addGetChildContext = (privateScope) => {
 
 const initStateTree = (publicScope, privateScope) => {
   const serialID = privateScope.component.props && privateScope.component.props.serialID;
-  const newstateTreeNode = {
+  let newstateTreeNode = {
     name: privateScope.controllerName,
     state: {},
     children: []
   };
+
+  newstateTreeNode = shallowProxify(newstateTreeNode);
   if (serialID !== undefined) {
     newstateTreeNode.serialID = serialID;
   }
@@ -98,19 +88,20 @@ const initStateTree = (publicScope, privateScope) => {
   } else {
     newstateTreeNode.serialID = ROOT_CONTROLLER_SERIAL_ID;
   }
+
+  if (shouldUseExperimentalAutoIndexing) {
+    privateScope.autoIndexManager = new AutoIndexManager(privateScope.component, (index) => {
+      privateScope.stateTree.serialID = index;
+    });
+  }
 };
 
 const exposeControllerNodeOnComponent = (publicScope, privateScope) => {
   const controllerNode = {
-    listenersLinkedList: {
-      listeners: [],
-      children: []
-    },
     instance: publicScope,
     name: privateScope.controllerName,
   };
 
-  privateScope.stateTreeListeners = controllerNode.listenersLinkedList;
   privateScope.component[CONTROLLER_NODE_PROP] = controllerNode;
 };
 
@@ -296,42 +287,11 @@ const recursiveSetStateTree = async (root, newRoot) => {
   }
 };
 
-const clearStateTreeInPlace = (root) => {
-  if (root.state) {//todo: remove this check after changing unMount to remove children completely
-    Object.keys(root.state).forEach(prop => {
-      delete root.state[prop];
-    });
-    root.children.forEach(child => clearStateTreeInPlace(child));
-  }
-};
-
 const exposeAddStateTreeListener = (publicScope, privateScope) => {
-  const recursivePushListenersToChildren = (node, listener) => {
-    node.listeners.push(listener);
-    node.children.forEach(childNode => {
-      recursivePushListenersToChildren(childNode, listener);
-    });
-  };
-
-  const recursiveRemoveListenersFromChildren = (node, listener) => {
-    node.listeners.splice(node.listeners.indexOf(listener), 1);
-    node.children.forEach(childNode => {
-      recursiveRemoveListenersFromChildren(childNode, listener);
-    });
-  };
-
   publicScope.addOnStateTreeChangeListener = (listener) => {
-    const triggerListenerFunction = () => listener(privateScope.stateTree);
-    privateScope.stateTreeListeners.listeners.push(listener);
-    privateScope.stateTreeListeners.children.forEach(child => {
-      recursivePushListenersToChildren(child, triggerListenerFunction);
-    });
-    return () => {
-      privateScope.stateTreeListeners.listeners.splice(privateScope.stateTreeListeners.listeners.indexOf(listener), 1);
-      privateScope.stateTreeListeners.children.forEach(child => {
-        recursiveRemoveListenersFromChildren(child, triggerListenerFunction);
-      });
-    };
+    return reaction(() => {
+      return JSON.stringify(privateScope.stateTree);
+    }, (data) => listener(data));
   };
 };
 

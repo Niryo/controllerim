@@ -16,7 +16,9 @@ import {
   ComplexStateTree,
   SerializableTree,
   ComponentWithSeralizableChild,
-  ComponentWithMissingSerialID
+  ComponentWithMissingSerialID,
+  BasicChild,
+  ComponentThatOnlyRenderItsChildren
 } from './TestComponents';
 
 const getFakeComponentInstacne = (controllers) => {
@@ -187,10 +189,10 @@ describe('Controller', () => {
       it('should support setting a cyclic object into state', () => {
         const component = mount(<Parent />);
         const controller = TestUtils.getControllerOf(component.instance());
-        const a = {value: 'a'};
-        const b = {value: 'b'};
+        const a = { value: 'a' };
+        const b = { value: 'b' };
         b.a = a;
-        a.b=b;
+        a.b = b;
         controller.setAnotherState(a);
         expect(controller.getState().saveAnotherState.b.a.value).toEqual('a');
       });
@@ -376,21 +378,44 @@ describe('Controller', () => {
           const listenerA = jest.fn();
           const listenerB = jest.fn();
           controllerAInstance.addOnStateTreeChangeListener(listenerA);
-          const stateTreeA = controllerAInstance.getStateTree();
-          const stateTreeB = controllerBInstance.getStateTree();
           global.Proxy = backupProxy;
           component.find('[data-hook="setA"]').simulate('click');
           expect(listenerA.mock.calls.length).toEqual(1);
-          expect(listenerA.mock.calls[0][0]).toEqual(stateTreeA);
+          expect(listenerA.mock.calls[0][0]).toEqual(JSON.stringify(controllerAInstance.getStateTree()));
           component.find('[data-hook="setB"]').simulate('click');
           expect(listenerA.mock.calls.length).toEqual(2);
-          expect(listenerA.mock.calls[1][0]).toEqual(stateTreeA);
           controllerBInstance.addOnStateTreeChangeListener(listenerB);
           component.find('[data-hook="setB"]').simulate('click');
-          expect(listenerA.mock.calls[2][0]).toEqual(stateTreeA);
           expect(listenerA.mock.calls.length).toEqual(3);
+          expect(listenerA.mock.calls[2][0]).toEqual(JSON.stringify(controllerAInstance.getStateTree()));
           expect(listenerB.mock.calls.length).toEqual(1);
-          expect(listenerB.mock.calls[0][0]).toEqual(stateTreeB);
+          expect(listenerB.mock.calls[0][0]).toEqual(JSON.stringify(controllerBInstance.getStateTree()));
+        });
+        it('listenres should not triger sibling listeners', () => {
+          let controllerAInstance;
+          const component = mount(<ComplexStateTree setControllerInstanceA={(instance) => controllerAInstance = instance} setControllerInstanceB={() => { }} />);
+          const listenerA = jest.fn();
+          const listenerB = jest.fn();
+          controllerAInstance.addOnStateTreeChangeListener(listenerA);
+          global.Proxy = backupProxy;
+          expect(listenerA.mock.calls.length).toEqual(0);
+          component.find('[data-hook="setD"]').simulate('click');
+          expect(listenerB.mock.calls.length).toEqual(0);
+          expect(listenerA.mock.calls.length).toEqual(1);
+        });
+
+        it('state tree listener should work with dynamically added child', () => {
+          let controllerAInstance;
+          const component = mount(<ComplexStateTree setControllerInstanceA={(instance) => controllerAInstance = instance} setControllerInstanceB={() => { }} />);
+          component.find('[data-hook="hideC"]').simulate('click');
+          const listenerA = jest.fn();
+          controllerAInstance.addOnStateTreeChangeListener(listenerA);
+          expect(listenerA.mock.calls.length).toEqual(0);
+          global.Proxy = backupProxy;
+          component.find('[data-hook="showC"]').simulate('click');
+          expect(listenerA.mock.calls.length).toEqual(3); //when c shows it triggers 3 state changes. 
+          component.find('[data-hook="setC"]').simulate('click');
+          expect(listenerA.mock.calls.length).toEqual(4);
         });
 
         it('should allow to remove listeners', () => {
@@ -564,6 +589,24 @@ describe('Controller', () => {
               }
             ]
           };
+          expect(controller.getStateTree()).toEqual(expectedValue);
+        });
+
+        it('should handle ownerless children correctly when auto indexing', () => {
+          useExperimentalSerialization();
+          const expectedValue = {
+            'name': 'ComponentWithSeralizableChildController',
+            'serialID': 'controllerim_root',
+            'state': {},
+            'children': [{
+              'name': 'BasicChildController',
+              'serialID': 0,
+              'state': {},
+              'children': []
+            }]
+          };
+          const component = mount(<ComponentThatOnlyRenderItsChildren><BasicChild /></ComponentThatOnlyRenderItsChildren>);
+          const controller = TestUtils.getControllerOf(component.instance());
           expect(controller.getStateTree()).toEqual(expectedValue);
         });
       });

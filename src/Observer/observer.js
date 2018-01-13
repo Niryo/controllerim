@@ -5,13 +5,13 @@ export const observer = (ReactComponent) => {
   ReactComponent.contextTypes = {
     controllers: PropTypes.array,
     stateTree: PropTypes.array,
-    childCount: PropTypes.object
+    autoIndexManager: PropTypes.object
   };
 
   ReactComponent.childContextTypes = {
     controllers: PropTypes.array,
     stateTree: PropTypes.array,
-    childCount: PropTypes.object
+    autoIndexManager: PropTypes.object
   };
   
   return MobxReact.observer(ReactComponent);

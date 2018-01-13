@@ -46,7 +46,6 @@ export const proxify = (obj, privateScope) => {
       }
       markSetterOnPrivateScope(privateScope, privateScope.internalState.methodUsingState);
       target[prop] = newValue;
-      privateScope.stateTreeListeners.listeners.forEach(listener => listener(privateScope.stateTree));
       tracker.set(prop, newValue);
       return true;
     }
@@ -72,3 +71,33 @@ const createObservableMap = (obj, privateScope) => {
 //     throw new Error('Cannot set state from outside of a controller');
 //   }
 // };
+
+
+export const shallowProxify = (obj) => {
+  const tracker = observable.shallowMap();
+  keys(obj).forEach((key) => {
+    if (isObjectLike(obj[key])) {
+      obj[key] = shallowProxify(obj[key]);
+    }
+  });
+
+  const handler = {
+    ownKeys: (target) => {
+      tracker.keys();
+      return Reflect.ownKeys(target);
+    },
+    get: (target, prop) => {
+      if (isString(prop)) {
+        tracker.get(prop);
+        return target[prop];
+      }
+      return undefined;
+    },
+    set: (target, prop, value) => {
+      target[prop] = value;
+      tracker.set(prop, value);
+      return true;
+    }
+  };
+  return new Proxy(obj, handler);
+};

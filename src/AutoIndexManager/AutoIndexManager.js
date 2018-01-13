@@ -3,12 +3,11 @@ export const useExperimentalSerialization = () => shouldUseExperimentalAutoIndex
 
 export class AutoIndexManager {
   constructor(componentInstance, onIndexChangeCallback) {
-    componentInstance.__controllerimIndexChildrenManager = this;
     this.component = componentInstance;
     this.totalChildrenCount = 0;
     this.currentFreeChildIndex = 0;
     this.onIndexChangeCallback = onIndexChangeCallback;
-    this.parentIndexManager = this.component._reactInternalFiber._debugOwner && this.component._reactInternalFiber._debugOwner.stateNode.__controllerimIndexChildrenManager;
+    this.parentIndexManager = this.component.context && this.component.context.autoIndexManager;
     if (this.parentIndexManager) {
       this.increasTotalCountOnParent();
       swizzleShouldComponentUpdate(this);
@@ -16,7 +15,7 @@ export class AutoIndexManager {
       swizzleComponentDidMount(this);
       swizzleComponentWillUnmount(this);
       this.resetCountOnParent();
-    }
+    } 
   }
 
   resetCountOnParent() {
@@ -44,14 +43,6 @@ export class AutoIndexManager {
       const index = this.getNextFreeIndexFromParent();
       this.component.aa_controllerimIndexForDebug = index;
       this.onIndexChangeCallback(index);
-      //todo: call stateTree callback:
-      // privateScope.stateTree.index = index;
-      // const childWithSameIndexOnParent = privateScope.component.context.stateTree.find(child => child.index === index);
-      // if (childWithSameIndexOnParent) {
-      //   privateScope.stateTree = childWithSameIndexOnParent;
-      // } else {
-      //   privateScope.component.context.stateTree.push(privateScope.stateTree);
-      // }
     }
   }
 }
