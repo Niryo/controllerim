@@ -1,4 +1,4 @@
-.theme1 .container{
+.theme1 > .container{
   display: inline-flex;
   flex-direction: row;
   border: 2px solid #B6DCFE;
@@ -37,7 +37,7 @@
 
 /* ============================= theme2 ========================== */
 
-.theme2 .container{
+.theme2 > .container{
   display: inline-flex;
   flex-direction: column;
   border: 2px solid #C62E65;

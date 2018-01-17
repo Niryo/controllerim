@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "controllerim": "^1.52.0",
+    "controllerim": "^1.56.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
+    "react-json-pretty": "^1.7.4",
     "react-scripts": "^1.0.17"
   },
   "scripts": {
