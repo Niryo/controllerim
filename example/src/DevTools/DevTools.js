@@ -7,7 +7,7 @@ useExperimentalSerialization();
 export const DevTools = observer(class extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { stateTreeVersion: 0, snapshots: [], sliderValue: 0 };
+    this.state = { snapshots: [], sliderValue: 0 };
     this.removeListener = null;
     this.handleOnSliderChange = this.handleOnSliderChange.bind(this);
     this.lock = false;
@@ -56,7 +56,7 @@ export const DevTools = observer(class extends React.Component {
         <div className="devToolsPanel">
           <div className="jsonViewer">
             <h2>State Tree</h2>
-            <JSONPretty key={this.state.stateTreeVersion} json={JSON.stringify(this.controller.getStateTree())} />
+            <JSONPretty json={JSON.stringify(this.controller.getStateTree())} />
           </div>
           <div className="timeMachine">
             <h2>Time machine</h2>
