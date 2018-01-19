@@ -31,6 +31,7 @@ export class NotesListController extends Controller {
   addNote() {
     this.state.listItems.push({ title: this.state.inputValue, text: '', id: this.state.listItems.length });
     this.state.inputValue = '';
+    // update the total notes counter in the app's controller:
     this.getParentController(AppController.name).increaseCounter();
   }
 

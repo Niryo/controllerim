@@ -6,7 +6,9 @@ import './NotesList.css';
 
 export const NotesList = observer(class extends React.Component {
   componentWillMount() {
-    this.controller = new NotesListController(this);
+    // init own controller:
+    this.controller = new NotesListController(this); 
+    // get access to the app controller, so we could get the userName:
     this.appController = this.controller.getParentController(AppController.name);
   }
 
@@ -27,6 +29,7 @@ export const NotesList = observer(class extends React.Component {
 
   handleOnKeyDown = (e) => {
     const value = e.target.value;
+    // add note when user clicks on enter:
     if (e.keyCode === 13 && value !== '') {
       this.controller.addNote();
     }
