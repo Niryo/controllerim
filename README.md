@@ -216,11 +216,11 @@ Returns a state tree object with the current controller as the root of the tree.
 
 * #### `setStateTree(stateTree: Object)`:
 
-Set the state tree to the given state tree object. If you are using setStateTree, you have to make sure that all the controlled components in your app receive a unique `serialID` via props.
+Sets the state tree to the given state tree object. If you are using `setStateTree`, you have to make sure that all the controlled components in your app receive a unique `serialID` via props.
 
 * #### `addOnStateTreeChangeListener(listener: function)`:
 
-Add a listener for changes in the state tree. On every change to the state tree, the listener will be called with a string json object representing the current state tree, with the current controller as the root.
+Adds a listener for changes in the state tree. On every change to the state tree, the listener will be called with a string json object representing the current state tree, with the current controller as the root.
 
 #### Controller Usage example:
 
