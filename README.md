@@ -10,7 +10,7 @@ A simple, clean and well structured state management library for react
 
 ## Posts
 
-* [the ugly side of Redux (blog post)](https://medium.com/@niryo/the-ugly-side-of-redux-6591fde68200)
+* [The Ugly Side Of Redux (blog post)](https://medium.com/@niryo/the-ugly-side-of-redux-6591fde68200)
 
 * [A step by step tutorial](https://medium.com/@niryo/getting-started-with-controllerim-9d9b29923713)
 
