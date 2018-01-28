@@ -5,7 +5,7 @@ import { keys, isObjectLike, isString } from 'lodash';
 import { markSetterOnPrivateScope } from './Controller';
 const alreadyProxiedObjects = new WeakMap();
 
-const markAsProxified = (obj, id) => {
+export const markAsProxified = (obj, id) => {
   alreadyProxiedObjects.set(obj, id);
 };
 

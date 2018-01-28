@@ -117,6 +117,18 @@ describe('Controller', () => {
         expect(value3).not.toEqual(value4); //third time we are changing a related prop, so we expect to recalculate.
       });
 
+      it('getters should return immutableProxy', () => {
+        const immutableProxyModule = require('../ImmutableProxy/immutableProxy');
+        jest.spyOn(immutableProxyModule, 'immutableProxy');
+        const component = mount(<Parent />);
+        const controller = TestUtils.getControllerOf(component.instance());
+        const obj = controller.getObjectProp();
+        expect(immutableProxyModule.immutableProxy).toHaveBeenCalledWith({name: 'alice'});
+        obj.name = 'bob';
+        expect(obj.name).toEqual('alice');
+        delete require.cache[require.resolve('../ImmutableProxy/immutableProxy')];
+      });
+
       runTests();
     });
 

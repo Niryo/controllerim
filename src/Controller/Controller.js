@@ -4,6 +4,8 @@ import { isPlainObject, cloneDeep, uniqueId, merge } from 'lodash';
 import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
 import { transaction, computed, reaction } from 'mobx';
 import { shouldUseExperimentalAutoIndexing, AutoIndexManager } from '../AutoIndexManager/AutoIndexManager';
+import { immutableProxy } from '../ImmutableProxy/immutableProxy';
+import {markAsProxified} from './proxify';
 
 const MethodType = Object.freeze({
   GETTER: 'GETTER',
@@ -169,7 +171,14 @@ const swizzleOwnMethods = (publicScope, privateScope) => {
         injectedFunction(name);
       }
       lockState(privateScope);
-      return returnValue;
+      if(global.Proxy && isPlainObject(returnValue)) {
+        const immutableValue = immutableProxy(returnValue);
+        markAsProxified(immutableValue, privateScope.controllerId);
+        return immutableValue;
+      } else {
+        return returnValue;
+
+      }
     };
   });
 };

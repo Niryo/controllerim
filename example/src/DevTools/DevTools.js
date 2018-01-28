@@ -7,8 +7,8 @@ useExperimentalSerialization();
 export const DevTools = observer(class extends React.Component {
   constructor(props) {
     super(props);
-    // we save the snapshot on local state because if we save them on the controller it 
-    // will trigger a change in the state tree and we will end in an infinity loop
+    // we save the snapshots in local state because if we save them on the controller it 
+    // will trigger a change in the state tree and we will end up in an infinity loop
     this.state = { snapshots: [], sliderValue: 0 };
     this.removeListener = null;
     this.handleOnSliderChange = this.handleOnSliderChange.bind(this);
