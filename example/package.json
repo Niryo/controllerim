@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "controllerim": "^1.56.0",
+    "controllerim": "^1.57.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-json-pretty": "^1.7.4",
-    "react-scripts": "^1.0.17"
+    "react-scripts": "^1.1.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -17,7 +17,7 @@
     "updateGithubPages": "node ./scripts/updateGithubPages.js"
   },
   "devDependencies": {
-    "enzyme": "^3.2.0",
+    "enzyme": "^3.3.0",
     "enzyme-adapter-react-16": "^1.1.1",
     "rimraf": "^2.6.2"
   }

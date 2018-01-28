@@ -3,7 +3,7 @@ import { isPlainObject } from 'lodash';
 let handler = {};
 const tempHandler = {
   set: (target, prop, value) => {
-    console.warn(`Warning: Cannot set prop of immutable object. property "${prop}" will ignore value "${value}"`);
+    console.warn(`Warning: Cannot set prop of immutable object. property "${prop}" will not be set with "${value}"`);
     return true;
   },
   get: (target, prop) => {

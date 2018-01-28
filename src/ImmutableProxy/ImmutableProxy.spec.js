@@ -31,6 +31,6 @@ describe('ImmutableProxy', () => {
   it('should throw warnong when tryig to change prop', () => {
     console.warn = jest.fn();
     immutableObj.basicProp = 'world';
-    expect(console.warn).toHaveBeenCalledWith(`Warning: Cannot set prop of immutable object. property "basicProp" will ignore value "world"`);
+    expect(console.warn).toHaveBeenCalledWith(`Warning: Cannot set prop of immutable object. property "basicProp" will not be set with "world"`);
   });
 });
