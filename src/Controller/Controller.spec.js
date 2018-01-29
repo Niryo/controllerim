@@ -129,6 +129,17 @@ describe('Controller', () => {
         delete require.cache[require.resolve('../ImmutableProxy/immutableProxy')];
       });
 
+      it('getStateTree should return immutable object', () => {
+        const component = mount(<BasicStateTree />);
+        const controller = TestUtils.getControllerOf(component.instance());
+        const stateTree = controller.getStateTree();
+        expect(stateTree.serialID).toEqual('controllerim_root');
+        expect(stateTree.state).toEqual({a: 'a'});
+        stateTree.serialID = 'blamos';
+        stateTree.state = {a: 'changed!'};
+        expect(stateTree.serialID).toEqual('controllerim_root');
+        expect(stateTree.state).toEqual({a: 'a'});
+      });
       runTests();
     });
 
@@ -345,7 +356,7 @@ describe('Controller', () => {
 
 
       describe('State tree', () => {
-        it('should expose stateTree on a component', () => {
+        it('should expose getStateTree on a component', () => {
           const expectedValue = {
             'serialID': 'controllerim_root',
             'name': 'Acon',

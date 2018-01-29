@@ -260,7 +260,11 @@ const exposeClearStateOnScope = (publicScope, privateScope) => {
 
 const exposeGetStateTreeOnScope = (publicScope, privateScope) => {
   publicScope.getStateTree = () => {
-    return privateScope.stateTree;
+    if(global.Proxy){
+      return immutableProxy(privateScope.stateTree);
+    } else {
+      return privateScope.stateTree;
+    }
   };
 };
 
