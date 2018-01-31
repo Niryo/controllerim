@@ -1,6 +1,6 @@
 
 import { observable } from 'mobx';
-import { keys, isObjectLike, isString } from 'lodash';
+import { keys, isObjectLike, isString, cloneDeep } from 'lodash';
 // import {isStateLocked, markSetterOnPrivateScope} from './Controller';
 import { markSetterOnPrivateScope } from './Controller';
 const alreadyProxiedObjects = new WeakMap();
@@ -16,8 +16,11 @@ const isAlreadyProxifiedByOtherController = (obj, controllerId) => {
 const isAlreadyProxified = (obj) => {
   return alreadyProxiedObjects.has(obj);
 };
-
 export const proxify = (obj, privateScope) => {
+  return recursiveProxify(cloneDeep(obj) ,privateScope);
+};
+
+const recursiveProxify = (obj, privateScope) => {
   if (isAlreadyProxified(obj)) {
     return obj;
   }
@@ -59,7 +62,7 @@ const createObservableMap = (obj, privateScope) => {
   const tracker = observable.shallowMap();
   keys(obj).forEach((key) => {
     if (isObjectLike(obj[key])) {
-      obj[key] = proxify(obj[key], privateScope);
+      obj[key] = recursiveProxify(obj[key], privateScope);
     }
     tracker.set(key, obj[key]);
   });

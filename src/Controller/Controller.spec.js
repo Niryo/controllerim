@@ -164,6 +164,15 @@ describe('Controller', () => {
         expect(component.find('[data-hook="counterPreview"]').text()).toEqual('1');
       });
 
+      it('should not change a given objec when saving into state', () => {
+        const component = mount(<Parent />);
+        const controller = TestUtils.getControllerOf(component.instance());
+        const nestedObject = {};
+        const object = {nestedObject};
+        controller.setDynamicObject('test', object);
+        expect(object.nestedObject).toBe(nestedObject);
+      });
+
       it('should throw error if componentInstance was not pass to the controller constructor', () => { //todo: uncomment the second expect
         expect(() => mount(<ComponentThatForgetToPassThis />)).toThrowError(`Component instance is undefined. Make sure that you pass a refernce to the compoenent when you initialize the controller and that you are calling 'super(componentInstance)' inside your controller constructor`);
         expect(() => mount(<ComponentThatInitControllerInConstructor />)).toThrowError(`Context undefined. Make sure that you are initializing the controller inside componentWillMount`);

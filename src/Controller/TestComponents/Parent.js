@@ -72,6 +72,10 @@ export class ParentController extends Controller {
   addNameToDynamicObjectArray() {
     this.state.dynamicObject.array.push('alice');
   }
+  setDynamicObject(prop, value){
+    this.state.dynamicObject.prop = value;
+  }
+
   changeMultiPropsButton() {
     this.state.basicProp = Math.random();
     this.state.basicProp = Math.random();
