@@ -1,11 +1,11 @@
 
-import { proxify,shallowProxify } from './proxify';
-import { isPlainObject, cloneDeep, uniqueId, merge } from 'lodash';
+import { proxify } from './proxify';
+import { isPlainObject, cloneDeep, uniqueId } from 'lodash';
 import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
-import { transaction, computed, reaction } from 'mobx';
-import { shouldUseExperimentalAutoIndexing, AutoIndexManager } from '../AutoIndexManager/AutoIndexManager';
+import { transaction, computed } from 'mobx';
 import { immutableProxy } from '../ImmutableProxy/immutableProxy';
 import {markAsProxified} from './proxify';
+import {addStateTreeFunctionality} from './StateTree';
 
 const MethodType = Object.freeze({
   GETTER: 'GETTER',
@@ -13,7 +13,7 @@ const MethodType = Object.freeze({
 });
 
 const CONTROLLER_NODE_PROP = '_controllerNode';
-export const ROOT_CONTROLLER_SERIAL_ID = 'controllerim_root';
+
 export class Controller {
   static getParentController(componentInstance, parentControllerName) {
     const controllerName = getAnonymousControllerName(componentInstance);
@@ -40,16 +40,13 @@ export class Controller {
       component: componentInstance
     };
 
-    initStateTree(this, privateScope);
+    addStateTreeFunctionality(this,privateScope);
     exposeControllerNodeOnComponent(this, privateScope);
     addGetChildContext(privateScope);
     exposeStateOnScope(this, privateScope);
     exposeGetParentControllerOnScope(this, privateScope);
     exposeMockStateOnScope(this, privateScope);
     exposeClearStateOnScope(this, privateScope);
-    exposeGetStateTreeOnScope(this, privateScope);
-    exposeSetStateTreeOnScope(this, privateScope);
-    exposeAddStateTreeListener(this, privateScope);
     swizzleOwnMethods(this, privateScope);
     swizzleComponentWillUnmount(this, privateScope);
   }
@@ -72,31 +69,6 @@ const addGetChildContext = (privateScope) => {
 //   }
 // };
 
-const initStateTree = (publicScope, privateScope) => {
-  const serialID = privateScope.component.props && privateScope.component.props.serialID;
-  let newstateTreeNode = {
-    name: privateScope.controllerName,
-    state: {},
-    children: []
-  };
-
-  newstateTreeNode = shallowProxify(newstateTreeNode);
-  if (serialID !== undefined) {
-    newstateTreeNode.serialID = serialID;
-  }
-  privateScope.stateTree = newstateTreeNode;
-  if (privateScope.component.context.stateTree) {
-    privateScope.component.context.stateTree.push(newstateTreeNode);
-  } else {
-    newstateTreeNode.serialID = ROOT_CONTROLLER_SERIAL_ID;
-  }
-
-  if (shouldUseExperimentalAutoIndexing) {
-    privateScope.autoIndexManager = new AutoIndexManager(privateScope.component, (index) => {
-      privateScope.stateTree.serialID = index;
-    });
-  }
-};
 
 const exposeControllerNodeOnComponent = (publicScope, privateScope) => {
   const controllerNode = {
@@ -258,55 +230,6 @@ const exposeClearStateOnScope = (publicScope, privateScope) => {
   };
 };
 
-const exposeGetStateTreeOnScope = (publicScope, privateScope) => {
-  publicScope.getStateTree = () => {
-    if(global.Proxy){
-      return immutableProxy(privateScope.stateTree);
-    } else {
-      return privateScope.stateTree;
-    }
-  };
-};
-
-const exposeSetStateTreeOnScope = (publicScope, privateScope) => {
-  publicScope.setStateTree = async (stateTree) => {
-    await recursiveSetStateTree(privateScope.stateTree, stateTree);
-  };
-};
-
-
-const recursiveSetStateTree = async (root, newRoot) => {
-  transaction(() => {
-    Object.keys(root.state).forEach(prop => {
-      delete root.state[prop];
-    });
-    merge(root.state, newRoot.state);
-  });
-  await new Promise(r => setTimeout(r, 0)); //we need to wait for the changes to take effect in the UI
-
-  for (let newRootchild of newRoot.children) {
-    if (newRootchild.serialID === undefined) {
-      throw new Error(`Cannot set stateTree: child ${newRootchild.name} in the given snapshot is missing a serialID`);
-    }
-    const childWithSameSerialID = root.children.find(child => {
-      if (child.serialID === undefined) {
-        throw new Error(`Cannot set stateTree: child ${child.name} is missing a serialID`);
-      }
-      return child.serialID === newRootchild.serialID;
-    });
-    if (childWithSameSerialID) {
-      await recursiveSetStateTree(childWithSameSerialID, newRootchild);
-    }
-  }
-};
-
-const exposeAddStateTreeListener = (publicScope, privateScope) => {
-  publicScope.addOnStateTreeChangeListener = (listener) => {
-    return reaction(() => {
-      return JSON.stringify(privateScope.stateTree);
-    }, (data) => listener(data));
-  };
-};
 
 
 const getControllerFromContext = (context, name) => {
@@ -340,7 +263,7 @@ const markGetterOnPrivateScope = (privateScope) => {
 };
 
 const swizzleComponentWillUnmount = (publicScope, privateScope) => {
-  let originalMethod = getBoundLifeCycleMethod(privateScope.component, 'componentWillUnmount');
+  let originalMethod = privateScope.component.componentWillUnmount? privateScope.component.componentWillUnmount.bind(privateScope.component): ()=> {};
   privateScope.component.componentWillUnmount = () => {
     const indexToRemove = privateScope.component.context.stateTree.findIndex(child => child === privateScope.stateTree);
     privateScope.component.context.stateTree.splice(indexToRemove, 1);
@@ -348,12 +271,4 @@ const swizzleComponentWillUnmount = (publicScope, privateScope) => {
   };
 };
 
-
-const getBoundLifeCycleMethod = (component, methodName) => {
-  if (component[methodName]) {
-    return component[methodName].bind(component);
-  } else {
-    return () => true;
-  }
-};
 
