@@ -21,6 +21,27 @@ A simple, clean and well structured state management library for react
 
 *Note: This is a usage example of sharing data between parent and a direct child, but keep in mind that the child could have been a nested child and everything would have stayed the same*.
 
+Inside `ParentController.js`:
+
+```javascript
+import { Controller } from 'controllerim';
+
+export class ParentController extends Controller {
+  constructor(compInstance) {
+    super(compInstance);
+    this.state = {
+      message: 'hello' 
+    };
+  }
+  getMessage() {
+    return this.state.message;
+  }
+  setMessage(value) {
+    this.state.message = value;
+  }
+}
+```
+
 Inside `Parent.jsx`:
 
 ```javascript
@@ -55,27 +76,6 @@ export const Parent = observer( class extends Component {
 */
 ```
 
-Inside `ParentController.js`:
-
-```javascript
-import { Controller } from 'controllerim';
-
-export class ParentController extends Controller {
-  constructor(compInstance) {
-    super(compInstance);
-    this.state = {
-      message: 'hello' 
-    };
-  }
-  getMessage() {
-    return this.state.message;
-  }
-  setMessage(value) {
-    this.state.message = value;
-  }
-}
-```
-
 Inside `Child.jsx`:
 
 ```javascript
@@ -100,7 +100,17 @@ class Child extends Component {
 
 export default observer(Child);
 ```
+### Example project
 
+Here is a [Simple example project](https://niryo.github.io/controllerim/)
+You can see the source code under the example folder: [example/src](example/src)
+If you want to run it locally:
+After cloning the repository, nevigate to the example folder and type in your terminal:
+
+```
+npm install
+npm start
+```
 
 ## Agenda
 
@@ -128,18 +138,6 @@ export default observer(Child);
 
 The basic (and naive) idea works very similar to React's local components' state, by forcing the component to update on every call to a setter function on the controller. But this is expensive, because we want to render things only if they are trully effected by the change. So Controllerim utilizes [Mobx](https://github.com/mobxjs/mobx) behind the scenes for all the performance boosts (Memoizes values, calculates dependencies and renders only when trully needed).
 Controllerim uses es6 Proxies to proxy Mobx out of the way and keep the state nice and clean, so it's not tightly coupled to Mobx. If you are using an old browser that doesn't support Proxies, Controllerim will fallback to the naive solution, but don't worry - es6 Proxy support is very wide, and for most of the web apps the naive solution works fast enough.
-
-### Example project
-
-Here is a [Simple example project](https://niryo.github.io/controllerim/)
-You can see the source code under the example folder: [example/src](example/src)
-If you want to run it locally:
-After cloning the repository, nevigate to the example folder and type in your terminal:
-
-```
-npm install
-npm start
-```
 
 ## Api
 
