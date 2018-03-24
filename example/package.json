@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "controllerim": "^1.57.0",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0",
-    "react-json-pretty": "^1.7.5",
-    "react-scripts": "^1.1.1"
+    "controllerim": "^1.61.0",
+    "react": "^16.4.0",
+    "react-dom": "^16.4.0",
+    "react-json-pretty": "^1.7.6",
+    "react-scripts": "^1.1.4"
   },
   "scripts": {
     "start": "react-scripts start",

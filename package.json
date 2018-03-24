@@ -1,6 +1,6 @@
 {
   "name": "controllerim",
-  "version": "1.58.0",
+  "version": "1.59.0",
   "description": "A simple, clean and well structured state management library for react",
   "main": "dist/index.js",
   "scripts": {
@@ -21,21 +21,21 @@
   },
   "dependencies": {
     "babel-runtime": "^6.26.0",
-    "lodash": "^4.17.5",
+    "lodash": "^4.17.10",
     "mobx": "^3.6.2"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-plugin-transform-react-jsx": "^6.24.1",
     "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-preset-env": "^1.6.1",
+    "babel-preset-env": "^1.7.0",
     "enzyme": "^3.3.0",
     "enzyme-adapter-react-16": "^1.1.1",
     "eslint": "^4.19.1",
-    "eslint-plugin-react": "^7.7.0",
+    "eslint-plugin-react": "^7.8.2",
     "jest": "^21.2.1",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0"
+    "react": "^16.4.0",
+    "react-dom": "^16.4.0"
   },
   "jest": {
     "setupFiles": [
