@@ -6,8 +6,8 @@
     "controllerim": "^1.57.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
-    "react-json-pretty": "^1.7.4",
-    "react-scripts": "^1.1.0"
+    "react-json-pretty": "^1.7.5",
+    "react-scripts": "^1.1.1"
   },
   "scripts": {
     "start": "react-scripts start",
