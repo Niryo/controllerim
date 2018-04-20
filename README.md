@@ -249,7 +249,7 @@ export class AppController extends Controller {
 }
 ```
 
-Your React component will create an instance of the Controller inside **`componentWillMount`** like this:
+Your React component will create an instance of the Controller inside **`componentWillMount`** like this: 
 
 ```javascript
 import {AppController} from 'controllerim';
@@ -260,6 +260,8 @@ class App extends React.Component {
   }
 }
 ```
+
+**UPDATE: React17 will depreacte componentWillMount. As soon as Facebook release React17, We will need to do some adaptions in Controllerim so it will support initialization in the constructor or in componentDidMount.**
 
 * #### `clearState()`:
 
