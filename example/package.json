@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "controllerim": "^1.61.0",
+    "controllerim": "^1.62.0",
     "react": "^16.4.0",
     "react-dom": "^16.4.0",
     "react-json-pretty": "^1.7.6",
