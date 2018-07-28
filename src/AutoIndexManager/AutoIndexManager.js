@@ -1,5 +1,5 @@
 export let shouldUseExperimentalAutoIndexing = false;
-export const useExperimentalSerialization = () => shouldUseExperimentalAutoIndexing = true;
+export const useExperimentalSerialization = (value) => shouldUseExperimentalAutoIndexing = value ===undefined ? true: value;
 
 export class AutoIndexManager {
   constructor(componentInstance, onIndexChangeCallback) {

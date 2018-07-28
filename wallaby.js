@@ -12,6 +12,7 @@ module.exports = function (wallaby) {
     testFramework: 'jest',
 
     files: [
+      'jestSetup.js',
       'package.json',
       'src/**/*.js',
       '!src/**/*.spec.js'

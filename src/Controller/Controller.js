@@ -1,11 +1,11 @@
 
 import { proxify } from './proxify';
-import { isPlainObject, cloneDeep, uniqueId } from 'lodash';
+import { isPlainObject, cloneDeep, isEqual, uniqueId } from 'lodash';
 import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
 import { transaction, computed } from 'mobx';
 import { immutableProxy } from '../ImmutableProxy/immutableProxy';
-import {markAsProxified} from './proxify';
-import {addStateTreeFunctionality} from './StateTree';
+import { markAsProxified } from './proxify';
+import { addStateTreeFunctionality } from './StateTree';
 
 const MethodType = Object.freeze({
   GETTER: 'GETTER',
@@ -39,8 +39,7 @@ export class Controller {
       internalState: { methodUsingState: undefined, previousState: undefined, initialState: undefined },
       component: componentInstance
     };
-
-    addStateTreeFunctionality(this,privateScope);
+    addStateTreeFunctionality(this, privateScope);
     exposeControllerNodeOnComponent(this, privateScope);
     addGetChildContext(privateScope);
     exposeStateOnScope(this, privateScope);
@@ -60,7 +59,7 @@ const addGetChildContext = (privateScope) => {
     }
     const controllerNode = componentInstance[CONTROLLER_NODE_PROP];
     controllers.push(controllerNode);
-    return { controllers, stateTree: privateScope.stateTree.children, autoIndexManager: privateScope.autoIndexManager};
+    return { controllers, stateTree: privateScope.stateTree.children, autoIndexManager: privateScope.autoIndexManager };
   };
 };
 // const stateGuard = (internalState) => {
@@ -120,19 +119,19 @@ const swizzleOwnMethods = (publicScope, privateScope) => {
 
     const probMethodForGetterOrSetter = (...args) => {
       const result = regularBoundMethod(...args);
-      if (result !== undefined) {
+      if (result !== undefined && !result.then) { //the only value that a setter can return is a promise
         markGetterOnPrivateScope(privateScope);
       }
       const methodType = privateScope.gettersAndSetters[name];
       if (methodType === MethodType.GETTER) {
-        siwzzledMethod = computedIfPossible;
+        siwzzledMethod = global.Proxy? computedIfPossible: regularBoundMethod;
       } else if (methodType === MethodType.SETTER) {
         siwzzledMethod = regularBoundMethod;
       }
       return result;
     };
 
-    siwzzledMethod = global.Proxy ? probMethodForGetterOrSetter : regularBoundMethod;
+    siwzzledMethod = global.Proxy ? probMethodForGetterOrSetter : probMethodForGetterOrSetter;
     publicScope[name] = (...args) => {
       unlockState(privateScope, name);
       let returnValue;
@@ -140,10 +139,16 @@ const swizzleOwnMethods = (publicScope, privateScope) => {
         returnValue = siwzzledMethod(...args);
       });
       if (injectedFunction) {
-        injectedFunction(name);
+        if (returnValue && returnValue.then) {
+          returnValue.then(() => {
+            injectedFunction(name);
+          });
+        } else {
+          injectedFunction(name);
+        }
       }
       lockState(privateScope);
-      if(global.Proxy && isPlainObject(returnValue)) {
+      if (global.Proxy && isPlainObject(returnValue)) {
         const immutableValue = immutableProxy(returnValue);
         markAsProxified(immutableValue, privateScope.controllerId);
         return immutableValue;
@@ -206,13 +211,11 @@ const getInjectedFunctionForNonProxyMode = (privateScope) => {
     if (privateScope.gettersAndSetters[methodName] === MethodType.GETTER) {
       return;
     } else if (privateScope.gettersAndSetters[methodName] === MethodType.SETTER) {
-      privateScope.stateTreeListeners.listeners.forEach(listener => listener(privateScope.stateTree));
       privateScope.component.forceUpdate();
-    } else if (JSON.stringify(privateScope.stateTree.state) !== privateScope.internalState.previousState) {
-      privateScope.stateTreeListeners.listeners.forEach(listener => listener(privateScope.stateTree));
-      privateScope.internalState.previousState = JSON.stringify(privateScope.stateTree.state);
+    } else if (!isEqual(privateScope.internalState.previousState, privateScope.stateTree.state)) {
+      privateScope.internalState.previousState = cloneDeep(privateScope.stateTree.state);
+      markSetterOnPrivateScope(privateScope);
       privateScope.component.forceUpdate();
-      // markSetterOnPrivateScope(privateScope,methodName); todo: fix marking of getter functions without state, can test with "should work with higher order components"
     }
   };
 };
@@ -263,7 +266,7 @@ const markGetterOnPrivateScope = (privateScope) => {
 };
 
 const swizzleComponentWillUnmount = (publicScope, privateScope) => {
-  let originalMethod = privateScope.component.componentWillUnmount? privateScope.component.componentWillUnmount.bind(privateScope.component): ()=> {};
+  let originalMethod = privateScope.component.componentWillUnmount ? privateScope.component.componentWillUnmount.bind(privateScope.component) : () => { };
   privateScope.component.componentWillUnmount = () => {
     const indexToRemove = privateScope.component.context.stateTree.findIndex(child => child === privateScope.stateTree);
     privateScope.component.context.stateTree.splice(indexToRemove, 1);
