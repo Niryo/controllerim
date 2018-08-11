@@ -268,8 +268,10 @@ const markGetterOnPrivateScope = (privateScope) => {
 const swizzleComponentWillUnmount = (publicScope, privateScope) => {
   let originalMethod = privateScope.component.componentWillUnmount ? privateScope.component.componentWillUnmount.bind(privateScope.component) : () => { };
   privateScope.component.componentWillUnmount = () => {
-    const indexToRemove = privateScope.component.context.stateTree.findIndex(child => child === privateScope.stateTree);
-    privateScope.component.context.stateTree.splice(indexToRemove, 1);
+    if(privateScope.component.context.stateTree){
+      const indexToRemove = privateScope.component.context.stateTree.findIndex(child => child === privateScope.stateTree);
+      privateScope.component.context.stateTree.splice(indexToRemove, 1);
+    }
     originalMethod();
   };
 };
