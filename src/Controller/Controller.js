@@ -6,7 +6,7 @@ import { transaction, computed } from 'mobx';
 import { immutableProxy } from '../ImmutableProxy/immutableProxy';
 import { markAsProxified } from './proxify';
 import { addStateTreeFunctionality } from './StateTree';
-
+import {forceUpdate, registerToForceUpdate} from './forceUpdate';
 const MethodType = Object.freeze({
   GETTER: 'GETTER',
   SETTER: 'SETTER'
@@ -39,6 +39,7 @@ export class Controller {
       internalState: { methodUsingState: undefined, previousState: undefined, initialState: undefined },
       component: componentInstance
     };
+
     addStateTreeFunctionality(this, privateScope);
     exposeControllerNodeOnComponent(this, privateScope);
     addGetChildContext(privateScope);
@@ -89,7 +90,7 @@ const exposeStateOnScope = (publicScope, privateScope) => {
       privateScope.stateTree.state = global.Proxy ? proxify(value, privateScope) : value;
       if (internalState.initialState === undefined) {
         internalState.initialState = cloneDeep(value);
-        internalState.previousState = JSON.stringify(internalState.initialState);
+        internalState.previousState = internalState.initialState;
       }
     },
     get: function () {
@@ -133,6 +134,9 @@ const swizzleOwnMethods = (publicScope, privateScope) => {
 
     siwzzledMethod = global.Proxy ? probMethodForGetterOrSetter : probMethodForGetterOrSetter;
     publicScope[name] = (...args) => {
+      if(!global.proxy){
+        registerToForceUpdate();
+      }
       unlockState(privateScope, name);
       let returnValue;
       transaction(() => {
@@ -211,11 +215,11 @@ const getInjectedFunctionForNonProxyMode = (privateScope) => {
     if (privateScope.gettersAndSetters[methodName] === MethodType.GETTER) {
       return;
     } else if (privateScope.gettersAndSetters[methodName] === MethodType.SETTER) {
-      privateScope.component.forceUpdate();
+      scheduleForceUpdateToNextTick();
     } else if (!isEqual(privateScope.internalState.previousState, privateScope.stateTree.state)) {
       privateScope.internalState.previousState = cloneDeep(privateScope.stateTree.state);
       markSetterOnPrivateScope(privateScope);
-      privateScope.component.forceUpdate();
+      scheduleForceUpdateToNextTick();
     }
   };
 };
@@ -229,10 +233,9 @@ const exposeClearStateOnScope = (publicScope, privateScope) => {
       });
       Object.assign(publicScope.state, value);
     });
-    privateScope.component.forceUpdate();
+    scheduleForceUpdateToNextTick();
   };
 };
-
 
 
 const getControllerFromContext = (context, name) => {
@@ -276,4 +279,7 @@ const swizzleComponentWillUnmount = (publicScope, privateScope) => {
   };
 };
 
+const scheduleForceUpdateToNextTick = () => {
+  setTimeout(() => forceUpdate(), 0);
+};
 
