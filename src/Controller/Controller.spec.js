@@ -154,7 +154,7 @@ describe('Controller', () => {
         global.Proxy = backupProxy;
         expect(() => component.find('[data-hook="mixPartOfState"]').simulate('click')).toThrowError(`Cannot set state with other controller's state.`);
       });
-      // runTests();
+      runTests();
     });
 
 
@@ -169,7 +169,7 @@ describe('Controller', () => {
     });
 
     function runTests() {
-      it('sanity check', () => {
+      it('sanity check', async() => {
         const component = mount(<Parent />);
         expect(component.find('[data-hook="blamos"]').text()).toEqual('blamos');
         expect(component.find('[data-hook="counterPreview"]').text()).toEqual('0');
@@ -177,6 +177,7 @@ describe('Controller', () => {
         component.find('[data-hook="increaseCounter"]').simulate('click');
         component.find('[data-hook="increaseCounter"]').simulate('click');
         component.find('[data-hook="increaseCounter"]').simulate('click');
+        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="counterPreview"]').text()).toEqual('3');
       });
 
@@ -213,13 +214,15 @@ describe('Controller', () => {
         const controller = TestUtils.getControllerOf(component.instance());
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('blamos');
         await controller.testAsyncFunc();
+        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('changedAsync!');
       });
 
-      it(`should allow saving into state own proxified object`, () => {
+      it(`should allow saving into state own proxified object`, async () => {
         const component = mount(<Parent />);
         global.Proxy = backupProxy;
         component.find('[data-hook="setOwnObject"]').simulate('click');
+        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="previewNestedOwnObject"]').text()).toEqual(JSON.stringify({ name: 'alice' }));
       });
 
@@ -246,30 +249,34 @@ describe('Controller', () => {
         expect(() => controller.setState(['1', '2'])).toThrowError('State should be initialize only with plain object');
       });
 
-      it('should allow getter with args', () => {
+      it('should allow getter with args', async () => {
         const component = mount(<Parent />);
         component.find('[data-hook="basicPropWithArgPreview"]').text();
         expect(component.find('[data-hook="basicPropWithArgPreview"]').text()).toEqual('blamossomeArg');
         global.Proxy = backupProxy;
         component.find('[data-hook="changeBasicPropButton"]').simulate('click');
+        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="basicPropWithArgPreview"]').text()).toEqual('changed!someArg');
       });
 
-      it('should have an observable state', () => {
+      it('should have an observable state', async () => {
         const component = mount(<Parent />);
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('blamos');
         global.Proxy = backupProxy;
         component.find('[data-hook="changeBasicPropButton"]').simulate('click');
+        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('changed!');
       });
 
-      it('should observe on deep nested change', () => {
+      it('should observe on deep nested change', async () => {
         const component = mount(<Parent />);
         expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual('{}');
         global.Proxy = backupProxy;
         component.find('[data-hook="addArrayToDynamicObjectButton"]').simulate('click');
+        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: [] }));
         component.find('[data-hook="addNameToDynamicObjectArrayButton"]').simulate('click');
+        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: ['alice'] }));
       });
 
@@ -283,10 +290,11 @@ describe('Controller', () => {
         expect(renderCallback.mock.calls.length).toBeLessThanOrEqual(3);
       });
 
-      it('should allow setters with args', () => {
+      it('should allow setters with args', async () => {
         const component = mount(<Parent />);
         global.Proxy = backupProxy;
         component.find('[data-hook="applySetterWithArgsButton"]').simulate('click');
+        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('value1value2');
       });
 
@@ -300,7 +308,7 @@ describe('Controller', () => {
         expect(component.find('[data-hook="blamos"]').text()).toEqual('blamos');
       });
       describe('componentWillUnmount', () => {
-        it('should clean the stateTree when component unmount', () => {
+        it('should clean the stateTree when component unmount', async () => {
           const component = mount(<ParentThatCanHideChild />);
           const controller = TestUtils.getControllerOf(component.instance());
           const expectedStateTree = {
@@ -317,16 +325,18 @@ describe('Controller', () => {
           expect(controller.getStateTree()).toEqual(expectedStateTree);
           global.Proxy = backupProxy;
           component.find('[data-hook="hide"]').simulate('click');
+          await new Promise(r => setTimeout(r,0));
           expectedStateTree.children = [];
           expectedStateTree.state.isChildShown = false;
           expect(controller.getStateTree()).toEqual(expectedStateTree);
         });
 
-        it('compponentWillUnmount should work', () => {
+        it('compponentWillUnmount should work', async () => {
           const callback = jest.fn();
           const component = mount(<ParentThatCanHideChild callback={callback} />);
           global.Proxy = backupProxy;
           component.find('[data-hook="hide"]').simulate('click');
+          await new Promise(r => setTimeout(r,0));
           expect(callback.mock.calls.length).toEqual(1);
         });
       });
@@ -343,7 +353,7 @@ describe('Controller', () => {
         expect(component.find('[data-hook="value"]').text()).toEqual('value!');
       });
 
-      it('should expose a clearState method', () => {
+      it('should expose a clearState method', async () => {
         const component = mount(<Parent />);
         const controller = TestUtils.getControllerOf(component.instance());
         global.Proxy = backupProxy;
@@ -351,19 +361,23 @@ describe('Controller', () => {
         component.find('[data-hook="addArrayToDynamicObjectButton"]').simulate('click');
         component.find('[data-hook="addNameToDynamicObjectArrayButton"]').simulate('click');
         component.find('[data-hook="addNonExistProp"]').simulate('click');
+        await new Promise(r => setTimeout(r,0));
         expect(controller.state.nowExist).toEqual('yey!');
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('changed!');
         expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: ['alice'] }));
         component.find('[data-hook="clearState"]').simulate('click');
+        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('blamos');
         expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({}));
         expect(controller.state.nowExist).toEqual(undefined);
       });
 
-      it('should work with dinamically added smart component', () => {
+      it('should work with dinamically added smart component', async () => {
         const component = mount(<Parent />);
         global.Proxy = backupProxy;
         component.find('[data-hook="showDog"]').simulate('click');
+        await new Promise(r => setTimeout(r,0));
+        component.update(); //should work without it, need to check why we need to update
         expect(component.find('[data-hook="dogBlamos"]').text()).toEqual('blamos');
       });
 
@@ -574,7 +588,7 @@ describe('Controller', () => {
         //   expect(component.find('[data-hook="c"]').text()).toEqual('1');
         // });
 
-        it('componentDidMount, componentWillMount, and componentWillUpdate should work', () => {
+        it('componentDidMount, componentWillMount, and componentWillUpdate should work', async () => {
           const didMount = jest.fn();
           const willMount = jest.fn();
           const didUpdate = jest.fn();
@@ -583,6 +597,7 @@ describe('Controller', () => {
           expect(didMount.mock.calls.length).toEqual(1);
           global.Proxy = backupProxy;
           component.find('[data-hook="increaseCounter"]').simulate('click');
+          await new Promise(r => setTimeout(r,0));
           expect(didUpdate).toHaveBeenCalled();
         });
 
