@@ -8,7 +8,7 @@ A simple, clean and well structured state management library for react
 
 `npm install controllerim --save`
 
- #### If you are going to use controllerim with React Native, use the `reactNative` tag:
+ #### For React Native:
  
 `npm install controllerim@reactNative --save`
 
