@@ -8,6 +8,10 @@ A simple, clean and well structured state management library for react
 
 `npm install controllerim --save`
 
+ #### If you are going to use controllerim with React Native, use the `reactNative` tag:
+ 
+`npm install controllerim@reactNative --save`
+
 ## Posts
 
 * [The Ugly Side Of Redux (blog post)](https://medium.com/@niryo/the-ugly-side-of-redux-6591fde68200)
@@ -16,6 +20,12 @@ A simple, clean and well structured state management library for react
 
 * [Using the State Tree (tutorial)](https://medium.com/@niryo/lets-build-a-time-machine-51256d20679d)
 
+## React Native Support
+
+Controllerim mostly supports React Native, but `setStateTree` and `addOnStateTreeChangeListener` will not work. 
+Those are advanced functions and are rarely used, so you are probably not going to feel their absence.
+Use `reactNative` tag when installing:
+`npm install controllerim@reactNative --save`
 
 ## Basic usage example
 
@@ -112,6 +122,16 @@ npm install
 npm start
 ```
 
+## Agenda
+
+* Data flow is unidirectional- from parent down to the children. A parent cannot fetch data from child controllers.
+* Every 'smart component' should have a controller.
+* A controller is a plain Javascript class and is not tightly coupled to any view.
+* The controller holds a state and methods for manipulating the state. 
+* The controller's lifecycle should be bound to the component's lifecycle. when a component enters the screen, A new fresh controller will be created, and when the component is destroyed the controller will be destroyed.
+* A component can get and set data from parents' controllers (not necessarily direct parents), but it cannot use data from the controllers of sibling components.
+* Any changes to the controller state will be automatically reflected by the view.
+
 ## Why 
 
 * **Zero boilerplate:** Controllers are just plain javascript classes, and All you need to do in order to make your views react to changes in the controllers, is just to wrap them with `observer` and you are good to go.
@@ -124,6 +144,10 @@ npm start
 
 * **Mimics React's local component's state :** React state is really good for dumb components, but it's not so good for smart components. It cannot be esaly shared to deep nested children, it prevents separation of logic and view to different files, and it is not easily testable. controllerim tackles exactly those points.
 
+## How
+
+The basic (and naive) idea works very similar to React's local components' state, by forcing the component to update on every call to a setter function on the controller. But this is expensive, because we want to render things only if they are trully effected by the change. So Controllerim utilizes [Mobx](https://github.com/mobxjs/mobx) behind the scenes for all the performance boosts (Memoizes values, calculates dependencies and renders only when trully needed).
+Controllerim uses es6 Proxies to proxy Mobx out of the way and keep the state nice and clean, so it's not tightly coupled to Mobx. If you are using an old browser that doesn't support Proxies, Controllerim will fallback to the naive solution, but don't worry - es6 Proxy support is very wide, and for most of the web apps the naive solution works fast enough.
 
 ## Api
 
