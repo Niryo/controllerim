@@ -132,17 +132,6 @@ npm start
 * A component can get and set data from parents' controllers (not necessarily direct parents), but it cannot use data from the controllers of sibling components.
 * Any changes to the controller state will be automatically reflected by the view.
 
-## Why 
-
-* **Zero boilerplate:** Controllers are just plain javascript classes, and All you need to do in order to make your views react to changes in the controllers, is just to wrap them with `observer` and you are good to go.
-
-* **No need for singleton stores:** If you ever used Redux, you probably knows what happens when you forget to clean your stores when a component leave the screen- the next time it enters the screen, it fetches some old state-related data from the store and bad things happens. You may say that stores should not contain state related data, but sometimes you just need to share state across multiple components, for example, `currentSelectedItem`, `isCartFull`, `canMoveToNextStep` etc. `Controllers` lifecycle is bound to the component lifecycle, so you get a fresh controller out of the box whenever a component enters the screen.
-
-* **Reusability:** Each component holds an *instance* of its Controller (again, no singletons!), so you can create **multiple  instances of a component** (see example project). When you have a singleton store it's much more cumbersome to support multiple instance of a component. 
-
-* **Better encapsulation**: A component can fetch data only from its direct controller and its parents controllers. You cannot feth data from sibling component's Controllers. If you need some piece of data to be visible for two sibling components, it means that this data should sit within their first common parent. If you need a piece of data to be visible to all other component, put it in your AppController.
-
-* **Mimics React's local component's state :** React state is really good for dumb components, but it's not so good for smart components. It cannot be esaly shared to deep nested children, it prevents separation of logic and view to different files, and it is not easily testable. controllerim tackles exactly those points.
 
 ## How
 
