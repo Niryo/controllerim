@@ -290,6 +290,18 @@ describe('Controller', () => {
         expect(renderCallback.mock.calls.length).toBeLessThanOrEqual(3);
       });
 
+      it('should trigger only the render of relevant components', async () => {
+        const renderCallback = jest.fn();
+        const component = mount(<Parent renderCallback={renderCallback} />);
+        expect(renderCallback.mock.calls.length).toEqual(1);
+        global.Proxy = backupProxy;
+        expect(component.find('[data-hook="someChildProp"]').text()).toEqual('testChildProp');
+        component.find('[data-hook="changeChildProp"]').simulate('click');
+        await new Promise(r => setTimeout(r,0));
+        expect(component.find('[data-hook="someChildProp"]').text()).toEqual('changed!');
+        expect(renderCallback.mock.calls.length).toEqual(1);
+      });
+
       it('should allow setters with args', async () => {
         const component = mount(<Parent />);
         global.Proxy = backupProxy;

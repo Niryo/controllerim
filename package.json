@@ -1,6 +1,6 @@
 {
   "name": "controllerim",
-  "version": "1.64.3",
+  "version": "1.64.4",
   "description": "A simple, clean and well structured state management library for react",
   "main": "dist/index.js",
   "scripts": {

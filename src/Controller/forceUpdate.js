@@ -1,12 +1,10 @@
 import { observable } from 'mobx';
 const tracker = observable.shallowMap();
-tracker.set('key', Math.random());
 
-export function registerToForceUpdate(){
-  tracker.get('key');
-
+export function registerToForceUpdate(controllerId){
+  tracker.get(controllerId);
 }
 
-export function forceUpdate() {
-  tracker.set('key', Math.random());
+export function forceUpdate(controllerId) {
+  tracker.set(controllerId, Math.random());
 }
