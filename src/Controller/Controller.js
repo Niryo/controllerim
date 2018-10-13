@@ -135,7 +135,7 @@ const swizzleOwnMethods = (publicScope, privateScope) => {
     siwzzledMethod = global.Proxy ? probMethodForGetterOrSetter : probMethodForGetterOrSetter;
     publicScope[name] = (...args) => {
       if(!global.proxy){
-        registerToForceUpdate();
+        registerToForceUpdate(privateScope.controllerId);
       }
       unlockState(privateScope, name);
       let returnValue;
@@ -215,11 +215,11 @@ const getInjectedFunctionForNonProxyMode = (privateScope) => {
     if (privateScope.gettersAndSetters[methodName] === MethodType.GETTER) {
       return;
     } else if (privateScope.gettersAndSetters[methodName] === MethodType.SETTER) {
-      scheduleForceUpdateToNextTick();
+      scheduleForceUpdateToNextTick(privateScope);
     } else if (!isEqual(privateScope.internalState.previousState, privateScope.stateTree.state)) {
       privateScope.internalState.previousState = cloneDeep(privateScope.stateTree.state);
       markSetterOnPrivateScope(privateScope);
-      scheduleForceUpdateToNextTick();
+      scheduleForceUpdateToNextTick(privateScope);
     }
   };
 };
@@ -233,7 +233,7 @@ const exposeClearStateOnScope = (publicScope, privateScope) => {
       });
       Object.assign(publicScope.state, value);
     });
-    scheduleForceUpdateToNextTick();
+    scheduleForceUpdateToNextTick(privateScope);
   };
 };
 
@@ -279,7 +279,7 @@ const swizzleComponentWillUnmount = (publicScope, privateScope) => {
   };
 };
 
-const scheduleForceUpdateToNextTick = () => {
-  setTimeout(() => forceUpdate(), 0);
+const scheduleForceUpdateToNextTick = (privateScope) => {
+  setTimeout(() => forceUpdate(privateScope.controllerId), 0);
 };
 

@@ -4,10 +4,18 @@ import { Controller, observer } from '../../index';
 export class ChildController extends Controller {
   constructor(comp){
     super(comp);
-    this.state = {hello: 'world'};
+    this.state = {hello: 'world', someChildProp: 'testChildProp'};
   }
   getPropFromParent() {
     return this.getParentController('ParentController').getBasicProp();
+  }
+
+  getChildProp() {
+    return this.state.someChildProp;
+  }
+
+  changeChildProp(){
+    this.state.someChildProp = 'changed!';
   }
 
   getState(){
@@ -29,6 +37,8 @@ export const Child = observer(class extends React.Component {
         <div data-hook="blamos">{this.parentController.getBasicProp()}</div>
         <div data-hook="propFromParent">{this.parentController.getBasicProp()}</div>
         <div data-hook="propFromParentFromWithingController">{this.controller.getPropFromParent()}</div>
+        <div data-hook="someChildProp">{this.controller.getChildProp()}</div>
+        <button data-hook="changeChildProp" onClick={() => this.controller.changeChildProp()} />
       </div>
     );
   }
