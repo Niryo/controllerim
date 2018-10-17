@@ -19,6 +19,9 @@ export class Controller {
     const controllerName = getAnonymousControllerName(componentInstance);
     return staticGetParentController(controllerName, componentInstance, parentControllerName);
   }
+  isControllerimObject(){
+    return true;
+  }
 
   constructor(componentInstance) {
     if (!componentInstance) {
@@ -34,7 +37,7 @@ export class Controller {
     const privateScope = {
       gettersAndSetters: {},
       controllerId: uniqueId(),
-      controllerName: this.constructor.name === 'Controller' ? getAnonymousControllerName(componentInstance) : this.constructor.name,
+      controllerName: extractControllerName(this),
       stateTree: undefined,
       internalState: { methodUsingState: undefined, previousState: undefined, initialState: undefined },
       component: componentInstance
@@ -283,3 +286,18 @@ const scheduleForceUpdateToNextTick = (privateScope) => {
   setTimeout(() => forceUpdate(privateScope.controllerId), 0);
 };
 
+const isAnonymousController= (instance) =>  {
+  //a class that extends controller, will have a parent with the isControllerimObject function defined:
+  return instance instanceof Controller && !Object.getPrototypeOf(Object.getPrototypeOf(instance)).isControllerimObject;
+};
+
+const extractControllerName = (instance) => {
+  if(isAnonymousController(instance)) {
+    return 'AnonymousController';
+  } else if(instance.constructor.controllerName){
+    return instance.constructor.controllerName;
+  } else {
+    console.warn(`Warning: controllers must have a static member "controllerName". Please add it to ${instance.constructor.name}`);
+    return instance.constructor.name;
+  }
+};

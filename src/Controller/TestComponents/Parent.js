@@ -151,3 +151,5 @@ export const Parent = observer(class extends React.Component {
     );
   }
 });
+
+ParentController.controllerName = 'ParentController';

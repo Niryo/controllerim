@@ -51,7 +51,9 @@ export const ComponentThatPutOneStateInsideAnother = observer(class extends Reac
 
 
 class ComponentWithSeralizableChildController extends Controller { constructor(comp) { super(comp); } }
+ComponentWithSeralizableChildController.controllerName = 'ComponentWithSeralizableChildController';
 class BasicChildController extends Controller { constructor(comp) { super(comp); } }
+BasicChildController.controllerName = 'BasicChildController';
 
 export const BasicChild = observer(class extends React.Component {
   componentWillMount() {

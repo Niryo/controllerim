@@ -27,6 +27,10 @@ class HostParentController extends Controller {
     super(comp);
     this.state = { isChildShown: true };
   }
+  getControllerName() {
+    return 'ChildController';
+  }
+
   isChildShown() {
     return this.state.isChildShown;
   }
@@ -34,6 +38,8 @@ class HostParentController extends Controller {
     this.state.isChildShown = false;
   }
 }
+HostParentController.controllerName = 'HostParentController';
+
 export const ParentThatCanHideChild = observer(class extends React.Component {
   componentWillMount() {
     this.controller = new HostParentController(this);
@@ -46,3 +52,5 @@ export const ParentThatCanHideChild = observer(class extends React.Component {
       </div>);
   }
 });
+
+ChildCotroller.controllerName = 'ChildCotroller';

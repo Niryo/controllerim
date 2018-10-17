@@ -37,6 +37,7 @@ Inside `ParentController.js`:
 import { Controller } from 'controllerim';
 
 export class ParentController extends Controller {
+  static controllerName = 'ParentController';
   constructor(compInstance) {
     super(compInstance);
     this.state = {
@@ -143,7 +144,7 @@ Controllerim uses es6 Proxies to proxy Mobx out of the way and keep the state ni
 ### `Controller(componentInstance)`
 
 Every view should have a controller that extends `Controller`. A controller is a plain javascript class that holds an observable state. a controller should contain only a **state** and methods that manipulate the state.
-Make sure to call `super(componentInstance)` from your controller constructor.
+Make sure to call `super(componentInstance)` from your controller constructor, and that you add a `controllerName` prop as a static member of your controller class.
 Every controller exposes `getParentController()` (See bellow for more details).
 
 * #### state:
@@ -198,7 +199,8 @@ Or anonymously with the the static method of Controller:
 Or within your controller:
 
 ```javascript
-class SomeChild extends Controller{ 
+class SomeChild extends Controller{
+  static controllerName = 'SomeChild';
   constructor(comp){
     super(comp);
   }
@@ -207,6 +209,17 @@ class SomeChild extends Controller{
   }
 }
 ```
+* #### `static controllerName`:
+
+Every controller should have a static member with it's name.
+
+```javascript
+class DogController extends Controller{
+  static controllerName = 'DogController';
+  constructor(comp){
+    super(comp);
+  }
+}
 
 * #### `getStateTree()`:
 
