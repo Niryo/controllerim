@@ -50,11 +50,6 @@ describe('Controller', () => {
   });
 
 
-  // it('should give anonymous controllers a name according to their component', () => {
-
-  // });
-
-
   it('should memoize getting parent controller', () => {
     const controllers = [{ name: 'someParent', instance: 'mocekdParentController' }];
     const testController = new Controller(getFakeComponentInstacne(controllers));
@@ -72,7 +67,19 @@ describe('Controller', () => {
     expect(() => testController.state.bla = 'bla').toThrowError('Cannot set state from outside of a controller');
   });
 
-
+  it('should print warning when trying to use a controller that does not have static member "controllerName"', () => {
+    class ControllerWithoutGetName extends Controller{}
+    const originalConsole = console.warn;
+    console.warn = jest.fn(); 
+    new ControllerWithoutGetName(getFakeComponentInstacne());
+    expect(console.warn).toHaveBeenCalledWith(`Warning: controllers must have a static member "controllerName". Please add it to ControllerWithoutGetName`);
+    console.warn.mockReset();
+    expect(console.warn).not.toHaveBeenCalled();
+    class ControllerWithName extends Controller{}
+    ControllerWithName.controllerName = 'I am a name!';
+    new ControllerWithoutGetName(getFakeComponentInstacne());
+    console.warn = originalConsole;
+  });
 
   describe('Tests with mounting component', () => {
     const backupProxy = global.Proxy;
@@ -357,6 +364,9 @@ describe('Controller', () => {
         class Acon extends Controller { constructor(comp) { super(comp); } }
         class Bcon extends Controller { constructor(comp) { super(comp); } getValue() { return 'value!'; } }
         class Ccon extends Controller { constructor(comp) { super(comp); } testCallParent() { return this.getParentController(Bcon.name).getValue(); } }
+        Acon.controllerName = 'Acon';
+        Bcon.controllerName = 'Bcon';
+        Ccon.controllerName = 'Ccon';
         const A = observer(class extends React.Component { componentWillMount() { this.controller = new Acon(this); } render() { return (<div><div>{JSON.stringify(this.controller.getStateTree())}</div>{this.props.children}</div>); } });
         const B = observer(class extends React.Component { componentWillMount() { this.controller = new Bcon(this); } render() { return (<div><C /></div>); } });
         const C = observer(class extends React.Component { componentWillMount() { this.controller = new Ccon(this); } render() { return (<div data-hook="value">{this.controller.testCallParent()}</div>); } });

@@ -43,3 +43,5 @@ export const Child = observer(class extends React.Component {
     );
   }
 });
+
+ChildController.controllerName = 'ChildController';

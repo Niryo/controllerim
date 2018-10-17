@@ -15,8 +15,12 @@ class Ccon extends Controller {
   constructor(comp) {
     super(comp);
   }
-
 }
+
+Acon.controllerName = 'Acon';
+Bcon.controllerName = 'Bcon';
+Ccon.controllerName = 'Ccon';
+
 export const ComponentThatFetchSiblingController = observer(class extends React.Component {
   componentWillMount() {
     this.controller = new Acon(this);
