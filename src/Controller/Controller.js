@@ -105,7 +105,6 @@ const exposeStateOnScope = (publicScope, privateScope) => {
 const swizzleOwnMethods = (publicScope, privateScope) => {
   const ownMethodNames = getOwnMethodNames(publicScope);
   ownMethodNames.forEach((name) => publicScope[name] = publicScope[name].bind(publicScope));
-
   const injectedFunction = global.Proxy ? undefined : getInjectedFunctionForNonProxyMode(privateScope);
   ownMethodNames.forEach((name) => {
     const regularBoundMethod = publicScope[name];
@@ -218,25 +217,23 @@ const getInjectedFunctionForNonProxyMode = (privateScope) => {
     if (privateScope.gettersAndSetters[methodName] === MethodType.GETTER) {
       return;
     } else if (privateScope.gettersAndSetters[methodName] === MethodType.SETTER) {
-      scheduleForceUpdateToNextTick(privateScope);
+      forceUpdate(privateScope.controllerId);
     } else if (!isEqual(privateScope.internalState.previousState, privateScope.stateTree.state)) {
       privateScope.internalState.previousState = cloneDeep(privateScope.stateTree.state);
       markSetterOnPrivateScope(privateScope);
-      scheduleForceUpdateToNextTick(privateScope);
+      forceUpdate(privateScope.controllerId);
     }
   };
 };
 
 const exposeClearStateOnScope = (publicScope, privateScope) => {
-  publicScope.clearState = () => {
+  const scope = Reflect.getPrototypeOf(publicScope);
+  scope.clearState = () => {
     const value = cloneDeep(privateScope.internalState.initialState);
-    transaction(() => {
-      Object.keys(publicScope.state).forEach(key => {
-        delete publicScope.state[key];
-      });
-      Object.assign(publicScope.state, value);
+    Object.keys(publicScope.state).forEach(key => {
+      delete publicScope.state[key];
     });
-    scheduleForceUpdateToNextTick(privateScope);
+    Object.assign(publicScope.state, value);
   };
 };
 
@@ -280,10 +277,6 @@ const swizzleComponentWillUnmount = (publicScope, privateScope) => {
     }
     originalMethod();
   };
-};
-
-const scheduleForceUpdateToNextTick = (privateScope) => {
-  setTimeout(() => forceUpdate(privateScope.controllerId), 0);
 };
 
 const isAnonymousController= (instance) =>  {
