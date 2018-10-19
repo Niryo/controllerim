@@ -184,7 +184,6 @@ describe('Controller', () => {
         component.find('[data-hook="increaseCounter"]').simulate('click');
         component.find('[data-hook="increaseCounter"]').simulate('click');
         component.find('[data-hook="increaseCounter"]').simulate('click');
-        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="counterPreview"]').text()).toEqual('3');
       });
 
@@ -221,7 +220,6 @@ describe('Controller', () => {
         const controller = TestUtils.getControllerOf(component.instance());
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('blamos');
         await controller.testAsyncFunc();
-        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('changedAsync!');
       });
 
@@ -229,7 +227,6 @@ describe('Controller', () => {
         const component = mount(<Parent />);
         global.Proxy = backupProxy;
         component.find('[data-hook="setOwnObject"]').simulate('click');
-        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="previewNestedOwnObject"]').text()).toEqual(JSON.stringify({ name: 'alice' }));
       });
 
@@ -262,7 +259,6 @@ describe('Controller', () => {
         expect(component.find('[data-hook="basicPropWithArgPreview"]').text()).toEqual('blamossomeArg');
         global.Proxy = backupProxy;
         component.find('[data-hook="changeBasicPropButton"]').simulate('click');
-        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="basicPropWithArgPreview"]').text()).toEqual('changed!someArg');
       });
 
@@ -271,7 +267,6 @@ describe('Controller', () => {
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('blamos');
         global.Proxy = backupProxy;
         component.find('[data-hook="changeBasicPropButton"]').simulate('click');
-        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('changed!');
       });
 
@@ -280,10 +275,8 @@ describe('Controller', () => {
         expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual('{}');
         global.Proxy = backupProxy;
         component.find('[data-hook="addArrayToDynamicObjectButton"]').simulate('click');
-        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: [] }));
         component.find('[data-hook="addNameToDynamicObjectArrayButton"]').simulate('click');
-        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: ['alice'] }));
       });
 
@@ -304,7 +297,6 @@ describe('Controller', () => {
         global.Proxy = backupProxy;
         expect(component.find('[data-hook="someChildProp"]').text()).toEqual('testChildProp');
         component.find('[data-hook="changeChildProp"]').simulate('click');
-        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="someChildProp"]').text()).toEqual('changed!');
         expect(renderCallback.mock.calls.length).toEqual(1);
       });
@@ -313,7 +305,6 @@ describe('Controller', () => {
         const component = mount(<Parent />);
         global.Proxy = backupProxy;
         component.find('[data-hook="applySetterWithArgsButton"]').simulate('click');
-        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('value1value2');
       });
 
@@ -344,7 +335,6 @@ describe('Controller', () => {
           expect(controller.getStateTree()).toEqual(expectedStateTree);
           global.Proxy = backupProxy;
           component.find('[data-hook="hide"]').simulate('click');
-          await new Promise(r => setTimeout(r,0));
           expectedStateTree.children = [];
           expectedStateTree.state.isChildShown = false;
           expect(controller.getStateTree()).toEqual(expectedStateTree);
@@ -355,7 +345,6 @@ describe('Controller', () => {
           const component = mount(<ParentThatCanHideChild callback={callback} />);
           global.Proxy = backupProxy;
           component.find('[data-hook="hide"]').simulate('click');
-          await new Promise(r => setTimeout(r,0));
           expect(callback.mock.calls.length).toEqual(1);
         });
       });
@@ -383,12 +372,10 @@ describe('Controller', () => {
         component.find('[data-hook="addArrayToDynamicObjectButton"]').simulate('click');
         component.find('[data-hook="addNameToDynamicObjectArrayButton"]').simulate('click');
         component.find('[data-hook="addNonExistProp"]').simulate('click');
-        await new Promise(r => setTimeout(r,0));
         expect(controller.state.nowExist).toEqual('yey!');
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('changed!');
         expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({ array: ['alice'] }));
         component.find('[data-hook="clearState"]').simulate('click');
-        await new Promise(r => setTimeout(r,0));
         expect(component.find('[data-hook="basicPropPreview"]').text()).toEqual('blamos');
         expect(component.find('[data-hook="dynamicObjectPreviw"]').text()).toEqual(JSON.stringify({}));
         expect(controller.state.nowExist).toEqual(undefined);
@@ -398,7 +385,6 @@ describe('Controller', () => {
         const component = mount(<Parent />);
         global.Proxy = backupProxy;
         component.find('[data-hook="showDog"]').simulate('click');
-        await new Promise(r => setTimeout(r,0));
         component.update(); //should work without it, need to check why we need to update
         expect(component.find('[data-hook="dogBlamos"]').text()).toEqual('blamos');
       });
@@ -619,7 +605,6 @@ describe('Controller', () => {
           expect(didMount.mock.calls.length).toEqual(1);
           global.Proxy = backupProxy;
           component.find('[data-hook="increaseCounter"]').simulate('click');
-          await new Promise(r => setTimeout(r,0));
           expect(didUpdate).toHaveBeenCalled();
         });
 
