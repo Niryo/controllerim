@@ -2,9 +2,7 @@
 import { shouldUseExperimentalAutoIndexing, AutoIndexManager } from '../AutoIndexManager/AutoIndexManager';
 import { immutableProxy } from '../ImmutableProxy/immutableProxy';
 
-
 const ROOT_CONTROLLER_SERIAL_ID = 'controllerim_root';
-
 export const addStateTreeFunctionality = (publicScope, privateScope) => {
   initStateTree(publicScope, privateScope);
   exposeGetStateTreeOnScope(publicScope, privateScope);
@@ -14,21 +12,18 @@ export const addStateTreeFunctionality = (publicScope, privateScope) => {
 
 const initStateTree = (publicScope, privateScope) => {
   const serialID = privateScope.component.props && privateScope.component.props.serialID;
-  let newstateTreeNode = {
-    name: privateScope.controllerName,
-    state: {},
-    children: []
-  };
+  let stateTreeNode = privateScope.component.props.controllerimStateTreeNode;
+  stateTreeNode.name = privateScope.controllerName;
 
   // newstateTreeNode = shallowProxify(newstateTreeNode);
   if (serialID !== undefined) {
-    newstateTreeNode.serialID = serialID;
+    stateTreeNode.serialID = serialID;
   }
-  privateScope.stateTree = newstateTreeNode;
-  if (privateScope.component.context.stateTree) {
-    privateScope.component.context.stateTree.push(newstateTreeNode);
+  privateScope.stateTree = stateTreeNode;
+  if (privateScope.component.props.controllerimContext.parentStateTreeChildren) {
+    privateScope.component.props.controllerimContext.parentStateTreeChildren.push(stateTreeNode);
   } else {
-    newstateTreeNode.serialID = ROOT_CONTROLLER_SERIAL_ID;
+    stateTreeNode.serialID = ROOT_CONTROLLER_SERIAL_ID;
   }
 
   if (shouldUseExperimentalAutoIndexing) {

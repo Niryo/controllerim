@@ -225,14 +225,6 @@ class DogController extends Controller{
 
 Returns a state tree object with the current controller as the root of the tree. The state tree Object is an observable and it is always up to date, just like the controller's state. 
 
-* #### `setStateTree(stateTree: Object)`:
-
-Sets the state tree to the given state tree object. If you are using `setStateTree`, you have to make sure that all the controlled components in your app receive a unique `serialID` via props.
-
-* #### `addOnStateTreeChangeListener(listener: function)`:
-
-Adds a listener for changes in the state tree. On every change to the state tree, the listener will be called with a string json object representing the current state tree, with the current controller as the root.
-
 #### Controller Usage example:
 
 ```javascript

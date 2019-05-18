@@ -21,6 +21,9 @@ export class ChildController extends Controller {
   getState(){
     return this.state;
   }
+  setAnotherState(state) {
+    this.state = state;
+  }
   setPartialState(someObj) {
     this.state.someObj = someObj;
   }
@@ -39,6 +42,8 @@ export const Child = observer(class extends React.Component {
         <div data-hook="propFromParentFromWithingController">{this.controller.getPropFromParent()}</div>
         <div data-hook="someChildProp">{this.controller.getChildProp()}</div>
         <button data-hook="changeChildProp" onClick={() => this.controller.changeChildProp()} />
+        <button data-hook="mixStates" onClick={() => this.controller.setAnotherState(this.parentController.getState())} />
+        <button data-hook="mixPartOfState" onClick={() => this.controller.setPartialState(this.parentController.getObjectProp())} />
       </div>
     );
   }

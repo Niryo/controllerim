@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { observer } from '../../index';
 import { ParentController } from './Parent';
-import { ChildController } from './Child';
 import {Controller} from '../Controller';
 
 export const ComponentThatForgetToPassThis = observer(class extends React.Component {
@@ -35,19 +34,6 @@ export const ComponentThatAskForNonExistentParent = observer(class extends React
   }
 });
 
-export const ComponentThatPutOneStateInsideAnother = observer(class extends React.Component {
-  componentWillMount() {
-    this.parentController = new ParentController(this);
-    this.childController = new ChildController(this);
-  }
-
-  render() {
-    return <div>
-      <button data-hook="mixStates" onClick={() => this.parentController.setAnotherState(this.childController.getState())} />
-      <button data-hook="mixPartOfState" onClick={() => this.childController.setPartialState(this.parentController.getObjectProp())} />
-    </div>;
-  }
-});
 
 
 class ComponentWithSeralizableChildController extends Controller { constructor(comp) { super(comp); } }

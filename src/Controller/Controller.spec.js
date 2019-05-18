@@ -7,20 +7,19 @@ import { TestUtils } from '../TestUtils/testUtils';
 import {
   Parent, ComponentThatForgetToPassThis,
   ComponentThatAskForNonExistentParent,
-  ComponentThatPutOneStateInsideAnother,
   ComponentThatFetchSiblingController,
   ComponentThatInitControllerInConstructor,
   ParentThatCanHideChild,
   BasicStateTree,
   ComponentWithSeralizableChild,
-  BasicChild,
-  ComponentThatOnlyRenderItsChildren,
+  // BasicChild,
+  // ComponentThatOnlyRenderItsChildren,
   // SerializableTree,
   // ComponentWithMissingSerialID,
   // ComplexStateTree
 } from './TestComponents';
 
-const getFakeComponentInstacne = (controllers) => {
+const getFakeComponentInstance = (controllers) => {
   controllers = controllers || [];
   controllers.forEach(controller => controller.stateTree = {
     listenersLinkedList: {
@@ -34,7 +33,7 @@ const getFakeComponentInstacne = (controllers) => {
       }
     }
   }, );
-  return { context: { controllers } };
+  return { context: { controllers }, props: {controllerimContext: { controllers: [...controllers] }, controllerimStateTreeNode: {state: {}, children: []}, testModeID: Math.random()} };
 };
 
 
@@ -52,7 +51,7 @@ describe('Controller', () => {
 
   it('should memoize getting parent controller', () => {
     const controllers = [{ name: 'someParent', instance: 'mocekdParentController' }];
-    const testController = new Controller(getFakeComponentInstacne(controllers));
+    const testController = new Controller(getFakeComponentInstance(controllers));
     expect(testController.getParentController('someParent')).toEqual('mocekdParentController');
     controllers[0].instance = 'changedMocked';
     //change will not take effect because of memoization:
@@ -60,7 +59,7 @@ describe('Controller', () => {
   });
 
   xit('should throw an error when trying to set the state from outside of the contoller', () => {
-    const testController = new Controller(getFakeComponentInstacne());
+    const testController = new Controller(getFakeComponentInstance());
     testController.state = { FirstChangeAllwaysAllowed: 'change' };
     //after state is set for the first time, no changes outside the controller are allowed:
     expect(() => testController.state = { bla: 'bla' }).toThrowError('Cannot set state from outside of a controller');
@@ -71,13 +70,13 @@ describe('Controller', () => {
     class ControllerWithoutGetName extends Controller{}
     const originalConsole = console.warn;
     console.warn = jest.fn(); 
-    new ControllerWithoutGetName(getFakeComponentInstacne());
+    new ControllerWithoutGetName(getFakeComponentInstance());
     expect(console.warn).toHaveBeenCalledWith(`Warning: controllers must have a static member "controllerName". Please add it to ControllerWithoutGetName`);
     console.warn.mockReset();
     expect(console.warn).not.toHaveBeenCalled();
     class ControllerWithName extends Controller{}
     ControllerWithName.controllerName = 'I am a name!';
-    new ControllerWithoutGetName(getFakeComponentInstacne());
+    new ControllerWithoutGetName(getFakeComponentInstance());
     console.warn = originalConsole;
   });
 
@@ -151,13 +150,13 @@ describe('Controller', () => {
       });
 
       it(`should throw an error if trying to save into state other controller's state`, () => {
-        const component = mount(<ComponentThatPutOneStateInsideAnother />);
+        const component = mount(<Parent />);
         global.Proxy = backupProxy;
         expect(() => component.find('[data-hook="mixStates"]').simulate('click')).toThrowError(`Cannot set state with other controller's state.`);
       });
 
       it(`should throw an error if trying to save into state other controller's part of state`, () => {
-        const component = mount(<ComponentThatPutOneStateInsideAnother />);
+        const component = mount(<Parent />);
         global.Proxy = backupProxy;
         expect(() => component.find('[data-hook="mixPartOfState"]').simulate('click')).toThrowError(`Cannot set state with other controller's state.`);
       });
@@ -608,68 +607,68 @@ describe('Controller', () => {
           expect(didUpdate).toHaveBeenCalled();
         });
 
-        it('should add children indexes as serialID when activating useExperimentalIndexing()', () => {
-          useExperimentalSerialization();
-          const component = mount(<BasicStateTree />);
-          const controller = TestUtils.getControllerOf(component.instance());
-          const expectedValue = {
-            'name': 'Acon',
-            'serialID': 'controllerim_root',
-            'state': {
-              'a': 'a'
-            },
-            'children': [
-              {
-                'serialID': 0,
-                'name': 'Bcon',
-                'state': {
-                  'b': 'b'
-                },
-                'children': [
-                  {
-                    'serialID': 0,
-                    'name': 'Ccon',
-                    'state': {
-                      'c': 'c'
-                    },
-                    'children': [
+        // it('should add children indexes as serialID when activating useExperimentalIndexing()', () => {
+        //   useExperimentalSerialization();
+        //   const component = mount(<BasicStateTree />);
+        //   const controller = TestUtils.getControllerOf(component.instance());
+        //   const expectedValue = {
+        //     'name': 'Acon',
+        //     'serialID': '0',
+        //     'state': {
+        //       'a': 'a'
+        //     },
+        //     'children': [
+        //       {
+        //         'serialID': 0,
+        //         'name': 'Bcon',
+        //         'state': {
+        //           'b': 'b'
+        //         },
+        //         'children': [
+        //           {
+        //             'serialID': 0,
+        //             'name': 'Ccon',
+        //             'state': {
+        //               'c': 'c'
+        //             },
+        //             'children': [
 
-                    ]
-                  }
-                ]
-              },
-              {
-                'serialID': 1,
-                'name': 'Ccon',
-                'state': {
-                  'c': 'c'
-                },
-                'children': [
+        //             ]
+        //           }
+        //         ]
+        //       },
+        //       {
+        //         'serialID': 1,
+        //         'name': 'Ccon',
+        //         'state': {
+        //           'c': 'c'
+        //         },
+        //         'children': [
 
-                ]
-              }
-            ]
-          };
-          expect(controller.getStateTree()).toEqual(expectedValue);
-        });
+        //         ]
+        //       }
+        //     ]
+        //   };
+        //   expect(controller.getStateTree()).toEqual(expectedValue);
+        // });
 
-        it('should handle ownerless children correctly when auto indexing', () => {
-          useExperimentalSerialization();
-          const expectedValue = {
-            'name': 'ComponentWithSeralizableChildController',
-            'serialID': 'controllerim_root',
-            'state': {},
-            'children': [{
-              'name': 'BasicChildController',
-              'serialID': 0,
-              'state': {},
-              'children': []
-            }]
-          };
-          const component = mount(<ComponentThatOnlyRenderItsChildren><BasicChild /></ComponentThatOnlyRenderItsChildren>);
-          const controller = TestUtils.getControllerOf(component.instance());
-          expect(controller.getStateTree()).toEqual(expectedValue);
-        });
+        // it('should handle ownerless children correctly when auto indexing', () => {
+        //   useExperimentalSerialization();
+        //   const expectedValue = {
+        //     'name': 'ComponentWithSeralizableChildController',
+        //     'serialID': 'controllerim_root',
+        //     'state': {},
+        //     'children': [{
+        //       'name': 'BasicChildController',
+        //       'serialID': 0,
+        //       'state': {},
+        //       'children': []
+        //     }]
+        //   };
+        //   const component = mount(<ComponentThatOnlyRenderItsChildren><BasicChild /></ComponentThatOnlyRenderItsChildren>);
+        //   const controller = TestUtils.getControllerOf(component.instance());
+        //   expect(controller.getStateTree()).toEqual(expectedValue);
+        // });
       });
     }
   });
