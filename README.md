@@ -20,12 +20,6 @@ A simple, clean and well structured state management library for react
 
 * [Using the State Tree (tutorial)](https://medium.com/@niryo/lets-build-a-time-machine-51256d20679d)
 
-## React Native Support
-
-Controllerim mostly supports React Native, but `setStateTree` and `addOnStateTreeChangeListener` will not work. 
-Those are advanced functions and are rarely used, so you are probably not going to feel their absence.
-Use `reactNative` tag when installing:
-`npm install controllerim@reactNative --save`
 
 ## Basic usage example
 
