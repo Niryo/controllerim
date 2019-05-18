@@ -36,7 +36,6 @@ export class AutoIndexManager {
   }
 
   shouldUpdateIndex() {
-    console.log(this.parentIndexManager.totalChildrenCount)
     return this.parentIndexManager.currentFreeChildIndex < this.parentIndexManager.totalChildrenCount;
   }
 

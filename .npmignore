@@ -1,3 +1,10 @@
 example/
 **/*.spec.js
-src/Controller/TestComponents
+dist/Controller/TestComponents
+wallaby.js
+index.html
+.idea
+src
+babel.config.js
+jestSetup.js
+.eslintrc.js
