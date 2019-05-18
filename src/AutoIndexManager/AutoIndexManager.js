@@ -1,5 +1,6 @@
 export let shouldUseExperimentalAutoIndexing = false;
-export const useExperimentalSerialization = (value) => shouldUseExperimentalAutoIndexing = value ===undefined ? true: value;
+// export const useExperimentalSerialization = (value) => shouldUseExperimentalAutoIndexing = value ===undefined ? true: value;
+export const useExperimentalSerialization = () => console.warn('experimental indexing currently not supported');
 
 export class AutoIndexManager {
   constructor(componentInstance, onIndexChangeCallback) {
@@ -7,7 +8,7 @@ export class AutoIndexManager {
     this.totalChildrenCount = 0;
     this.currentFreeChildIndex = 0;
     this.onIndexChangeCallback = onIndexChangeCallback;
-    this.parentIndexManager = this.component.context && this.component.context.autoIndexManager;
+    this.parentIndexManager = this.component.props.controllerimContext && this.component.props.controllerimContext.autoIndexManager;
     if (this.parentIndexManager) {
       this.increasTotalCountOnParent();
       swizzleShouldComponentUpdate(this);
@@ -35,6 +36,7 @@ export class AutoIndexManager {
   }
 
   shouldUpdateIndex() {
+    console.log(this.parentIndexManager.totalChildrenCount)
     return this.parentIndexManager.currentFreeChildIndex < this.parentIndexManager.totalChildrenCount;
   }
 

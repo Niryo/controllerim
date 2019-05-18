@@ -120,7 +120,7 @@ GrandChild.contextTypes = {
 };
 
 
-describe('IndexChildrenManager', () => {
+describe.skip('IndexChildrenManager', () => {
   beforeEach(() => {
     indexesArray = [];
     grandChildIndexArray = [];

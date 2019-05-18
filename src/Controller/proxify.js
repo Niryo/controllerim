@@ -17,6 +17,9 @@ const isAlreadyProxified = (obj) => {
   return alreadyProxiedObjects.has(obj);
 };
 export const proxify = (obj, privateScope) => {
+  if (isAlreadyProxifiedByOtherController(obj, privateScope.controllerId)) {
+    throwAlreadyProxifiedError();
+  }
   return recursiveProxify(cloneDeep(obj) ,privateScope);
 };
 
@@ -43,7 +46,7 @@ const recursiveProxify = (obj, privateScope) => {
       // stateGuard(privateScope.internalState);
       if (isObjectLike(value)) {
         if (isAlreadyProxifiedByOtherController(value, privateScope.controllerId)) {
-          throw new Error(`Cannot set state with other controller's state.`);
+          throwAlreadyProxifiedError();
         }
         newValue = proxify(value, privateScope);
       }
@@ -104,3 +107,7 @@ export const shallowProxify = (obj) => {
   };
   return new Proxy(obj, handler);
 };
+
+function throwAlreadyProxifiedError(){
+  throw new Error(`Cannot set state with other controller's state.`);
+}

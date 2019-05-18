@@ -7,7 +7,7 @@ let savedControllerInstance = undefined;
 
 const getFakeComponentInstacne = (controllers) => {
   controllers = controllers || [];
-  return { context: { controllers } };
+  return { context: { controllers }, props: {controllerimContext: {controllers: []}, controllerimStateTreeNode: {children: [],}, testModeID: Math.random()} };
 };
 
 class FakeParentController extends Controller {

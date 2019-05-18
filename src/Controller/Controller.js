@@ -45,7 +45,7 @@ export class Controller {
 
     addStateTreeFunctionality(this, privateScope);
     exposeControllerNodeOnComponent(this, privateScope);
-    addGetChildContext(privateScope);
+    pushSelfToControllersArray(privateScope);
     exposeStateOnScope(this, privateScope);
     exposeGetParentControllerOnScope(this, privateScope);
     exposeMockStateOnScope(this, privateScope);
@@ -54,17 +54,11 @@ export class Controller {
     swizzleComponentWillUnmount(this, privateScope);
   }
 }
-const addGetChildContext = (privateScope) => {
+const pushSelfToControllersArray = (privateScope) => {
   const componentInstance = privateScope.component;
-  componentInstance.getChildContext = function () {
-    let controllers = [];
-    if (componentInstance.context.controllers) {
-      controllers = [...this.context.controllers];
-    }
-    const controllerNode = componentInstance[CONTROLLER_NODE_PROP];
-    controllers.push(controllerNode);
-    return { controllers, stateTree: privateScope.stateTree.children, autoIndexManager: privateScope.autoIndexManager };
-  };
+  const controllerNode = componentInstance[CONTROLLER_NODE_PROP]; //check if we really need this
+  componentInstance.context.controllers.push(controllerNode);
+  componentInstance.props.controllerimContext.autoIndexManager = privateScope.autoIndexManager;
 };
 // const stateGuard = (internalState) => {
 //   if (isStateLocked(internalState) && internalState.initialState !== undefined) {
@@ -202,7 +196,7 @@ const exposeGetParentControllerOnScope = (publicScope, privateScope) => {
 };
 
 const staticGetParentController = (currentControllerName, component, parentControllerName) => {
-  let parentController = component.context.controllers && getControllerFromContext(component.context, parentControllerName);
+  let parentController = component.props.controllerimContext.controllers && getControllerFromContext(component.props.controllerimContext, parentControllerName);
   if (!parentController && isTestMod()) {
     parentController = getMockedParent(currentControllerName);
   }
@@ -271,9 +265,10 @@ const markGetterOnPrivateScope = (privateScope) => {
 const swizzleComponentWillUnmount = (publicScope, privateScope) => {
   let originalMethod = privateScope.component.componentWillUnmount ? privateScope.component.componentWillUnmount.bind(privateScope.component) : () => { };
   privateScope.component.componentWillUnmount = () => {
-    if(privateScope.component.context.stateTree){
-      const indexToRemove = privateScope.component.context.stateTree.findIndex(child => child === privateScope.stateTree);
-      privateScope.component.context.stateTree.splice(indexToRemove, 1);
+    const parentStateTreeChildren = privateScope.component.props.controllerimContext.parentStateTreeChildren;
+    if(parentStateTreeChildren){
+      const indexToRemove = parentStateTreeChildren.findIndex(child => child === privateScope.stateTree);
+      parentStateTreeChildren.splice(indexToRemove, 1);
     }
     originalMethod();
   };
@@ -294,3 +289,6 @@ const extractControllerName = (instance) => {
     return instance.constructor.name;
   }
 };
+
+
+//todo: swizzle component will mount todo all the context related magic.
