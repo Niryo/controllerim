@@ -19,23 +19,20 @@ export const observer = (ReactComponent) => {
     }
     getValue() {
       if (this.context) {
-        return {...this.context, controllers: [...this.context.controllers], parentStateTreeChildren: this.stateTreeNode.children};
+        return Object.assign({}, this.context, {controllers: [...this.context.controllers], parentStateTreeChildren: this.stateTreeNode.children});
       } else {
-        return {...defaultContext, controllers: [], autoIndexManager: {}, parentStateTreeChildren: this.stateTreeNode.children};
+        return Object.assign({}, defaultContext, {controllers: [], autoIndexManager: {}, parentStateTreeChildren: this.stateTreeNode.children});
       }
     }
  
     render() {
       let testModeIDProp = isTestMod()? {testModeID: this.testModeID} : {};
-      return (
-        <ControllerimContext.Provider value={this.getValue()}>
-          <ObservedComponent 
-            {...this.props} 
-            {...testModeIDProp} 
-            controllerimStateTreeNode={this.stateTreeNode}
-            controllerimContext={this.context || defaultContext} />
-        </ControllerimContext.Provider>
-      );
+      return React.createElement(ControllerimContext.Provider, {
+        value: this.getValue()
+      }, React.createElement(ObservedComponent, Object.assign({}, this.props, testModeIDProp, {
+        controllerimStateTreeNode: this.stateTreeNode,
+        controllerimContext: this.context || defaultContext
+      })));
     }
   }
   ContextProviderWrapper.contextType = ControllerimContext;
