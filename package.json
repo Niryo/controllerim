@@ -1,8 +1,8 @@
 {
   "name": "controllerim",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A simple, clean and well structured state management library for react",
-  "main": "dist/index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "npm run babel && jest",
     "lint": "eslint src --fix ",
@@ -17,23 +17,23 @@
   "author": "niryosef89@gmail.com",
   "license": "MIT",
   "peerDependencies": {
-    "react": "^16.1.1"
+    "react": "^16.8.0"
   },
   "dependencies": {
-    "@babel/polyfill": "^7.4.4",
+    "babel-runtime": "^6.26.0",
     "lodash": "^4.17.10",
     "mobx": "^3.6.2"
   },
   "devDependencies": {
-    "@babel/cli": "^7.4.4",
-    "@babel/core": "^7.4.4",
-    "@babel/preset-env": "^7.4.4",
-    "@babel/preset-react": "^7.0.0",
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-react-jsx": "^6.24.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.7.0",
     "enzyme": "^3.3.0",
     "enzyme-adapter-react-16": "^1.1.1",
     "eslint": "^4.19.1",
     "eslint-plugin-react": "^7.8.2",
-    "jest": "^24.8.0",
+    "jest": "^21.2.1",
     "react": "^16.4.0",
     "react-dom": "^16.4.0"
   },
@@ -44,6 +44,15 @@
     "testPathIgnorePatterns": [
       "./dist",
       "./example"
+    ]
+  },
+  "babel": {
+    "presets": [
+      "env"
+    ],
+    "plugins": [
+      "transform-react-jsx",
+      "transform-runtime"
     ]
   },
   "keywords": [
