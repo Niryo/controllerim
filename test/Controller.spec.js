@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { Controller } from './Controller';
+import { Controller } from '../src/Controller/Controller';
 import { mount } from 'enzyme';
 
-import { observer, useExperimentalSerialization } from '../index';
-import { TestUtils } from '../TestUtils/testUtils';
+import { observer, useExperimentalSerialization } from '../src/index';
+import { TestUtils } from './TestUtils/testUtils';
 import {
   Parent, ComponentThatForgetToPassThis,
   ComponentThatAskForNonExistentParent,
@@ -126,7 +126,7 @@ describe('Controller', () => {
       });
 
       it('getters should return immutableProxy', () => {
-        const immutableProxyModule = require('../ImmutableProxy/immutableProxy');
+        const immutableProxyModule = require('../src/ImmutableProxy/immutableProxy');
         jest.spyOn(immutableProxyModule, 'immutableProxy');
         const component = mount(<Parent />);
         const controller = TestUtils.getControllerOf(component.instance());
@@ -134,7 +134,7 @@ describe('Controller', () => {
         expect(immutableProxyModule.immutableProxy).toHaveBeenCalledWith({name: 'alice'});
         obj.name = 'bob';
         expect(obj.name).toEqual('alice');
-        delete require.cache[require.resolve('../ImmutableProxy/immutableProxy')];
+        delete require.cache[require.resolve('../src/ImmutableProxy/immutableProxy')];
       });
 
       it('getStateTree should return immutable object', () => {

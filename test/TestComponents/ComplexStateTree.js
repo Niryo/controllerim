@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Controller, observer } from '../../index';
+import { Controller, observer } from '../../src/index';
 
 class ControllerA extends Controller {
   constructor(comp) {
@@ -17,7 +17,7 @@ class ControllerA extends Controller {
 class ControllerB extends Controller {
   constructor(comp) {
     super(comp);
-    this.state = { b: 0, shouldShowC: true};
+    this.state = { b: 0, shouldShowC: true };
   }
   getB() {
     return this.state.b;
@@ -31,13 +31,13 @@ class ControllerB extends Controller {
   getState() {
     return this.state;
   }
-  showC(){
+  showC() {
     this.state.shouldShowC = true;
   }
-  hideC(){
+  hideC() {
     this.state.shouldShowC = false;
   }
-  shouldShowC(){
+  shouldShowC() {
     return this.state.shouldShowC;
   }
 }
@@ -55,6 +55,19 @@ class ControllerC extends Controller {
   }
 }
 
+class ControllerD extends Controller {
+  constructor(comp) {
+    super(comp);
+    this.state = { d: 0 };
+  }
+  getD() {
+    return this.state.d;
+  }
+  setD() {
+    this.state.d += 1;
+  }
+}
+
 export const A = observer(class extends React.Component {
   componentWillMount() {
     this.controller = new ControllerA(this);
@@ -65,7 +78,9 @@ export const A = observer(class extends React.Component {
       <div>
         <div data-hook="a">{this.controller.getA()}</div>
         <button data-hook="setA" onClick={() => this.controller.setA()} />
-        <B serialID="0" setControllerInstanceB={this.props.setControllerInstanceB}/></div>);
+        <B setControllerInstanceB={this.props.setControllerInstanceB} />
+        <D />
+      </div>);
   }
 });
 
@@ -76,10 +91,9 @@ const B = observer(class extends React.Component {
   }
   render() {
     return (<div>
-      <div data-hook="test">{this.controller.shouldShowC()}</div>
       <div data-hook="b">{this.controller.getB()}</div>
       <div data-hook="state">{JSON.stringify(this.controller.getState())}</div>
-      {this.controller.shouldShowC()? <C serialID="1"/> : null}
+      {this.controller.shouldShowC() ? <C /> : null}
       <button data-hook="setB" onClick={() => this.controller.setB()} />
       <button data-hook="setSomeProp" onClick={() => this.controller.setSomeProp()} />
       <button data-hook="hideC" onClick={() => this.controller.hideC()} />
@@ -96,6 +110,18 @@ const C = observer(class extends React.Component {
     return (<div>
       <div data-hook="c">{this.controller.getC()}</div>
       <button data-hook="setC" onClick={() => this.controller.setC()} />
+    </div>);
+  }
+});
+
+const D = observer(class extends React.Component {
+  componentWillMount() {
+    this.controller = new ControllerD(this);
+  }
+  render() {
+    return (<div>
+      <div data-hook="d">{this.controller.getD()}</div>
+      <button data-hook="setD" onClick={() => this.controller.setD()} />
     </div>);
   }
 });

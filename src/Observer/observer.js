@@ -1,6 +1,7 @@
 import * as MobxReact from './mobxReactClone';
 import React from 'react';
-import {isTestMod} from '../TestUtils/testUtils';
+import {isTestMod} from '../../test/TestUtils/testUtils';
+import hoistNonReactStatics from 'hoist-non-react-statics';
 
 const ControllerimContext = React.createContext();
 
@@ -38,5 +39,5 @@ export const observer = (ReactComponent) => {
   ContextProviderWrapper.contextType = ControllerimContext;
   ReactComponent.contextType = ControllerimContext;
 
-  return ContextProviderWrapper;
+  return hoistNonReactStatics(ContextProviderWrapper, ReactComponent);
 };

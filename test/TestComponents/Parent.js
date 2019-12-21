@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Controller, observer } from '../../index';
+import { Controller, observer } from '../../src/index';
 import { Child } from './Child';
 import { Dog } from './Dog';
 

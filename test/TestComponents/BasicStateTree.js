@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Controller, observer } from '../../index';
+import { Controller, observer } from '../../src/index';
 
 class Acon extends Controller { constructor(comp) { super(comp); this.state = { a: 'a' }; } }
 class Bcon extends Controller { constructor(comp) { super(comp); this.state = { b: 'b' }; } }

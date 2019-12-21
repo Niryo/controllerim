@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { mount } from 'enzyme';
-import { Controller, observer, TestUtils } from '../index';
+import { Controller, observer, TestUtils } from '../src/index';
 
 
 class A extends Controller {

@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Controller, observer } from '../index';
+import { Controller, observer } from '../../src/index';
 import { mount } from 'enzyme';
-import { TestUtils } from '../index';
+import { TestUtils } from '../../src/index';
 
 let savedControllerInstance = undefined;
 

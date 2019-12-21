@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Controller, observer } from '../../index';
+import { Controller, observer } from '../../src/index';
 
 class ChildCotroller extends Controller {
   constructor(comp) {

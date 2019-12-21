@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { mount } from 'enzyme';
-import { AutoIndexManager } from './AutoIndexManager';
+import { AutoIndexManager } from '../src/AutoIndexManager/AutoIndexManager';
 import PropTypes from 'prop-types';
 
 let indexesArray = [];

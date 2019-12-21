@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Controller, observer} from '../../index';
+import {Controller, observer} from '../../src/index';
 
 export const Dog = observer(class extends React.Component {
   componentWillMount() {

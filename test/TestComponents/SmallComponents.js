@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { observer } from '../../index';
+import { observer } from '../../src/index';
 import { ParentController } from './Parent';
-import {Controller} from '../Controller';
+import {Controller} from '../../src/Controller/Controller';
 
 export const ComponentThatForgetToPassThis = observer(class extends React.Component {
   componentWillMount() {
