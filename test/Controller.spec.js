@@ -3,7 +3,7 @@ import { Controller } from '../src/Controller/Controller';
 import { mount } from 'enzyme';
 
 import { observer, useExperimentalSerialization } from '../src/index';
-import { TestUtils } from './TestUtils/testUtils';
+import { TestUtils } from '../src/TestUtils/testUtils';
 import {
   Parent, ComponentThatForgetToPassThis,
   ComponentThatAskForNonExistentParent,

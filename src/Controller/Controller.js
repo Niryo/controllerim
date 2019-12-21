@@ -1,7 +1,7 @@
 
 import { proxify } from './proxify';
 import { isPlainObject, cloneDeep, isEqual, uniqueId } from 'lodash';
-import { registerControllerForTest, isTestMod, getMockedParent } from '../../test/TestUtils/testUtils';
+import { registerControllerForTest, isTestMod, getMockedParent } from '../TestUtils/testUtils';
 import { transaction, computed } from 'mobx';
 import { immutableProxy } from '../ImmutableProxy/immutableProxy';
 import { markAsProxified } from './proxify';
