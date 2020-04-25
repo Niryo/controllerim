@@ -22,21 +22,22 @@
   },
   "dependencies": {
     "babel-runtime": "^6.26.0",
-    "hoist-non-react-statics": "^3.3.1",
     "lodash": "^4.17.10",
     "mobx": "^5.15.4",
-    "mobx-react": "^6.2.2"
+    "mobx-react": "^6.2.2",
+    "mobx-utils": "^5.5.7"
   },
   "devDependencies": {
+    "@babel/plugin-transform-runtime": "^7.9.0",
+    "@babel/preset-env": "^7.9.5",
     "babel-cli": "^6.26.0",
     "babel-plugin-transform-react-jsx": "^6.24.1",
     "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-preset-env": "^1.7.0",
     "enzyme": "^3.3.0",
     "enzyme-adapter-react-16": "^1.1.1",
     "eslint": "^4.19.1",
     "eslint-plugin-react": "^7.8.2",
-    "jest": "^21.2.1",
+    "jest": "^24.9.0",
     "react": "^16.4.0",
     "react-dom": "^16.4.0"
   },
@@ -45,16 +46,17 @@
       "./jestSetup.js"
     ],
     "testPathIgnorePatterns": [
-      "./example"
+      "./example",
+      "demo-app"
     ]
   },
   "babel": {
     "presets": [
-      "env"
+      "@babel/preset-env"
     ],
     "plugins": [
       "transform-react-jsx",
-      "transform-runtime"
+      "@babel/plugin-transform-runtime"
     ]
   },
   "keywords": [

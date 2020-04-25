@@ -1,4 +1,4 @@
-import {immutableProxy} from '../src/ImmutableProxy/immutableProxy';
+import {immutableProxy} from '../src/immutableProxy';
 
 describe('ImmutableProxy', () => {
   let obj;
