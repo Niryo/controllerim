@@ -1,5 +1,5 @@
 import {Controller} from '../../src';
-class TestController {
+export class TestController {
   constructor() {
     this.state = {
       blamos: 'blamos',
