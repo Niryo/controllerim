@@ -97,4 +97,4 @@ export class TestController {
   }
 }
 
-export const {getController, getCleanController} = Controller(TestController);
+export const {getController, createController: createController} = Controller(TestController);

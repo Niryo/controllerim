@@ -1,5 +1,5 @@
 import { Controller } from 'controllerim';
-import AppController from '../App/AppController';
+import {appStore} from '../App/AppStore';
 import { fetchRandomJoke } from '../chuckNorrisService';
 
 class NotesListController {
@@ -31,7 +31,7 @@ class NotesListController {
     this.state.listItems.push({ title: this.state.inputValue, text: '', id: this.state.listItems.length });
     this.state.inputValue = '';
     // update the total notes counter in the app's controller:
-    AppController.getController().increaseCounter();
+    appStore.increaseCounter();
   }
 
   editSelectedNote(value) {

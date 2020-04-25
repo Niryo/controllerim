@@ -1,7 +1,7 @@
 import React from 'react';
 import {mount} from 'enzyme';
 
-import {getCleanController, getController} from './TestComponents/TestComponentController';
+import {createController, getController} from './TestComponents/TestComponentController';
 
 
 describe('Controller', () => {
@@ -9,7 +9,7 @@ describe('Controller', () => {
   let TestComponentClass;
   beforeEach(() => {
     jest.resetModules();
-    controller = getCleanController();
+    controller = createController();
     TestComponentClass = require('./TestComponents/TestComponent').TestComponentClass;
   });
   it('sanity check', async () => {
@@ -122,27 +122,27 @@ describe('Controller', () => {
     expect(console.warn).toHaveBeenCalledWith(`Warning: Cannot set prop of immutable object. property \"wow\" will not be set with "changed"`);
   });
 
-  describe('getCleanController', () => {
+  describe('createController', () => {
     it('it should allow getting clean controller instance by key', () => {
-      const testController = getCleanController('testKey');
+      const testController = createController('testKey');
       testController.setBlamos();
       expect(testController.getBlamos()).toEqual('changed');
-      const testController2 = getCleanController('testKey');
+      const testController2 = createController('testKey');
       expect(testController2.getBlamos()).toEqual('blamos');
     });
 
     it('it should allow getting clean global controller', () => {
-      const testController = getCleanController();
+      const testController = createController();
       testController.setBlamos();
       expect(testController.getBlamos()).toEqual('changed');
-      const testController2 = getCleanController();
+      const testController2 = createController();
       expect(testController2.getBlamos()).toEqual('blamos');
     });
   }); 
 
   describe('getController', () => {
     it('it should allow getting existing global controller', () => {
-      const testController = getCleanController();
+      const testController = createController();
       testController.setBlamos();
       expect(testController.getBlamos()).toEqual('changed');
       const testController2 = getController();
@@ -150,7 +150,7 @@ describe('Controller', () => {
     });
 
     it('it should allow getting existing global controller by key', () => {
-      const testController = getCleanController('testKey');
+      const testController = createController('testKey');
       testController.setBlamos();
       expect(testController.getBlamos()).toEqual('changed');
       const testController2 = getController('testKey');

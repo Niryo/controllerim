@@ -1,7 +1,7 @@
 import {Controller} from './Controller';
 
 export function Store(controller) {
-  const {getCleanController} = Controller(controller);
-  const singletonInstance = getCleanController();
+  const {createController: createController} = Controller(controller);
+  const singletonInstance = createController();
   return singletonInstance;
 }

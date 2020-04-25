@@ -7,18 +7,18 @@ export function Controller(ControllerClass) {
   return {
     getController(key = 'globalController') {
       if (!controllers[key]) {
-        controllers[key] = getControllerInstance(ControllerClass);
+        controllers[key] = createControllerInstance(ControllerClass);
       }
       return controllers[key];
     },
-    getCleanController(key = 'globalController') {
-      controllers[key] = getControllerInstance(ControllerClass);
+    createController(key = 'globalController') {
+      controllers[key] = createControllerInstance(ControllerClass);
       return controllers[key];
     }
   };
 }
 
-function getControllerInstance(ControllerClass) {
+function createControllerInstance(ControllerClass) {
   const instance = new ControllerClass();
   forceMethodToReturnImmutableProxy(instance);
   wrapMethodsWithComputed(instance);

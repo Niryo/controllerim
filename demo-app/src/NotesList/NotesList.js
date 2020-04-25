@@ -1,16 +1,14 @@
 import * as React from 'react';
 import NotesListController from './NotesListController';
 import { observer } from 'controllerim';
-import AppController from '../App/AppController';
+import {appStore} from '../App/AppStore';
 import './NotesList.css';
 
 export const NotesList = observer(class extends React.Component {
   constructor(props) {
     super(props);
     // get own controller:
-    this.controller = NotesListController.getCleanController();
-    // get access to the app controller, so we could get the userName:
-    this.appController = AppController.getController();
+    this.controller = NotesListController.createController();
   }
 
   renderListItems() {
@@ -57,7 +55,7 @@ export const NotesList = observer(class extends React.Component {
             <textarea
               value={this.controller.getSelectedItem().text}
               onChange={(e) => this.controller.editSelectedNote(e.target.value)}
-              placeholder={`Hello ${this.appController.getUserName()}, Whats on your mind?`}
+              placeholder={`Hello ${appStore.getUserName()}, Whats on your mind?`}
             />
             <button onClick={() => this.controller.addRandomJoke()}>Add chuck norris joke</button>
           </div>

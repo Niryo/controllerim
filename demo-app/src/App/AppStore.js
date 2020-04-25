@@ -1,5 +1,5 @@
-import { Controller } from 'controllerim';
-class AppController {
+import { Store } from 'controllerim';
+class AppStore {
   constructor() {
     this.state = {
       totalNotesCount: 2,
@@ -23,4 +23,4 @@ class AppController {
   }
 }
 
-export default Controller(AppController);
+export const appStore = Store(AppStore);
