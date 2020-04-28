@@ -5,13 +5,13 @@ import {computedFn} from 'mobx-utils';
 export function Controller(ControllerClass) {
   const controllers = {};
   return {
-    getController(key = 'globalController') {
+    getInstance(key = 'globalController') {
       if (!controllers[key]) {
         controllers[key] = createControllerInstance(ControllerClass);
       }
       return controllers[key];
     },
-    createController(key = 'globalController') {
+    create(key = 'globalController') {
       controllers[key] = createControllerInstance(ControllerClass);
       return controllers[key];
     }
@@ -27,7 +27,7 @@ function createControllerInstance(ControllerClass) {
     set: function (value) {
       if (!isPlainObject(value)) {
         throw new Error('State should be initialize with plain object only');
-      } 
+      }
       resetState(state, value);
 
     },

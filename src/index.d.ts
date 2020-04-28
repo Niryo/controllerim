@@ -1,6 +1,6 @@
 interface Manipulators<C> {
-  createController: (id?: string) => C;
-  getController: (id?: string) => C;
+  create: (id?: string) => C;
+  getInstance: (id?: string) => C;
 }
 
 export function Controller<C>(c: {new(): C}): Manipulators<C>;
