@@ -11,16 +11,17 @@ export class TestController {
       dynamicObject: {},
       unRelevantProp: 'not relevant'
     };
+    this.getBoundBlamos = this.getBoundBlamos.bind(this);
   }
 
-  changeUnrelevantProp(){
+  changeUnrelevantProp() {
     this.state.unRelevantProp = 'changed';
   }
   getBlamos() {
     return this.state.blamos;
   }
 
-  setNonExistProp(){
+  setNonExistProp() {
     this.state.nonExist = 'yey!';
   }
 
@@ -41,10 +42,10 @@ export class TestController {
     this.state.counter + arg;
     return Math.random();
   }
-  getCounter(){
+  getCounter() {
     return this.state.counter;
   }
-  setterWithArg(arg){
+  setterWithArg(arg) {
     this.state.blamos = arg;
   }
   increaseCounter() {
@@ -54,10 +55,10 @@ export class TestController {
     this.state.obj = obj;
   }
 
-  getDynamicObject(){
+  getDynamicObject() {
     return JSON.stringify(this.state.dynamicObject);
   }
-   
+
   addArrayToDynamicObject() {
     this.state.dynamicObject.array = [];
   }
@@ -75,8 +76,10 @@ export class TestController {
   getCyclic() {
     return this.state.cyclic ? this.state.cyclic.a.b.a : 'before change';
   }
+  getBoundBlamos() {
+    return this.state.blamos;
+  }
   setCyclic() {
-    
     const a = {value: 'a'};
     const b = {value: 'b'};
     b.a = a;
@@ -89,7 +92,7 @@ export class TestController {
   }
 
   getterWithArg(isDog, someValue) {
-    if(isDog) {
+    if (isDog) {
       return this.state.dog + ' ' + someValue;
     } else {
       return this.state.cat + ' ' + someValue;
@@ -97,4 +100,4 @@ export class TestController {
   }
 }
 
-export const {getController, createController: createController} = Controller(TestController);
+export const {getInstance, create} = Controller(TestController);

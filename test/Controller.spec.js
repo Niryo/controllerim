@@ -1,7 +1,7 @@
 import React from 'react';
 import {mount} from 'enzyme';
 
-import {createController, getController} from './TestComponents/TestComponentController';
+import {create, getInstance} from './TestComponents/TestComponentController';
 
 
 describe('Controller', () => {
@@ -9,7 +9,7 @@ describe('Controller', () => {
   let TestComponentClass;
   beforeEach(() => {
     jest.resetModules();
-    controller = createController();
+    controller = create();
     TestComponentClass = require('./TestComponents/TestComponent').TestComponentClass;
   });
   it('sanity check', async () => {
@@ -122,46 +122,72 @@ describe('Controller', () => {
     expect(console.warn).toHaveBeenCalledWith(`Warning: Cannot set prop of immutable object. property \"wow\" will not be set with "changed"`);
   });
 
+  it('should dispose unobserved controllers', () => {
+    const {InnerComponentController} = require('./TestComponents/InnerComponent');
+    const component = mount(<TestComponentClass />);
+    //first call to getInstance should return fresh instance:
+    const controller1 = InnerComponentController.getInstance();
+    expect(controller1.getBla()).toEqual('bla');
+    component.find('[data-hook="setInnerComponentBla"]').simulate('click');
+    //second call should return same instance, with changed value:
+    const controller2 = InnerComponentController.getInstance();
+    expect(controller2.getBla()).toEqual('changed');
+    //remove the inner component and expect instance to be dispose
+    component.find('[data-hook="toggleFlag"]').simulate('click');
+    const controllerAfterDispose = InnerComponentController.getInstance();
+    expect(controllerAfterDispose.getBla()).toEqual('bla');
+  });
+
+  it('should work correctly with arrow function as getter', () => {
+    const component = mount(<TestComponentClass />);
+    expect(component.find('[data-hook="boundBlamos"]').text()).toEqual('blamos');
+  });
+
   describe('createController', () => {
     it('it should allow getting clean controller instance by key', () => {
-      const testController = createController('testKey');
+      const testController = create('testKey');
       testController.setBlamos();
       expect(testController.getBlamos()).toEqual('changed');
-      const testController2 = createController('testKey');
+      const testController2 = create('testKey');
       expect(testController2.getBlamos()).toEqual('blamos');
     });
 
     it('it should allow getting clean global controller', () => {
-      const testController = createController();
+      const testController = create();
       testController.setBlamos();
       expect(testController.getBlamos()).toEqual('changed');
-      const testController2 = createController();
+      const testController2 = create();
       expect(testController2.getBlamos()).toEqual('blamos');
     });
-  }); 
+  });
 
-  describe('getController', () => {
+  describe('getInstance', () => {
     it('it should allow getting existing global controller', () => {
-      const testController = createController();
+      const testController = create();
       testController.setBlamos();
       expect(testController.getBlamos()).toEqual('changed');
-      const testController2 = getController();
+      const testController2 = getInstance();
       expect(testController2.getBlamos()).toEqual('changed');
     });
 
     it('it should allow getting existing global controller by key', () => {
-      const testController = createController('testKey');
+      const testController = create('testKey');
       testController.setBlamos();
       expect(testController.getBlamos()).toEqual('changed');
-      const testController2 = getController('testKey');
+      const testController2 = getInstance('testKey');
       expect(testController2.getBlamos()).toEqual('changed');
     });
   });
 
-  it('should memoize getters', () => {
+  it('should memoize getters starting from the second call', () => {
     const component = mount(<TestComponentClass />);
+    const value0 = component.find('[data-hook="randomNumberPreview"]').text();
+    //change unrelated prop and verify that on the first call, value will be re-calculated:
+    component.find('[data-hook="setDynamicArray"]').simulate('click');
     const value1 = component.find('[data-hook="randomNumberPreview"]').text();
-    //change unrelated prop and verify no re-calculation:
+    expect(value1).not.toEqual(value0);
+
+    //now change unrelated prop again and verify no re-calculation:
     component.find('[data-hook="setDynamicArray"]').simulate('click');
     const value2 = component.find('[data-hook="randomNumberPreview"]').text();
     expect(value1).toEqual(value2);
@@ -175,7 +201,7 @@ describe('Controller', () => {
     component.find('[data-hook="toggleFlag"]').simulate('click');
     const value4 = component.find('[data-hook="randomNumberPreview"]').text();
     expect(value3).not.toEqual(value4);
-    
+
     //go back to previous arg and verify no re-calculation:
     component.find('[data-hook="toggleFlag"]').simulate('click');
     const value5 = component.find('[data-hook="randomNumberPreview"]').text();

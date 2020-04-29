@@ -1,8 +1,8 @@
 import * as React from 'react';
-import {observer} from '../../src/observer';
-import {getController} from './TestComponentController';
-
-const controller = getController();
+import {observer} from '../../src';
+import {getInstance} from './TestComponentController';
+import {InnerComponent} from './InnerComponent';
+const controller = getInstance();
 export const TestComponentClass = observer(class extends React.Component {
   constructor(props) {
     super(props);
@@ -13,6 +13,7 @@ export const TestComponentClass = observer(class extends React.Component {
     return (
       <div>
         <div data-hook="blamos">{controller.getBlamos()}</div>
+        <div data-hook="boundBlamos">{controller.getBoundBlamos()}</div>
         <div data-hook="randomNumberPreview">{controller.tetMemoized(this.state.flag)}</div>
         <div data-hook="getterWithArgsPreview">{controller.getterWithArg(this.state.flag, 'blamos')}</div>
         <div data-hook="cyclicPreview">{controller.getCyclic()}</div>
@@ -31,6 +32,7 @@ export const TestComponentClass = observer(class extends React.Component {
         <div data-hook="setSetterWithArgs" onClick={() => controller.setterWithArg('this is a given arg')} />
         <div data-hook="resetState" onClick={() => controller.resetState()} />
         <div data-hook="setNonExist" onClick={() => controller.setNonExistProp()} />
+        {this.state.flag && <InnerComponent/>}
       </div>
     );
   }
