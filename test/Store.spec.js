@@ -1,9 +1,17 @@
 import {Store} from '../src';
-import {TestController} from './TestComponents/TestComponentController';
+
+class TestStore {
+  constructor() {
+    this.state = {blamos: 'blamos'};
+  }
+  getBlamos() {
+    return this.state.blamos;
+  }
+}
 
 describe('Store', () => {
   it('should return a global controller instance', () => {
-    const store = Store(TestController);
+    const store = Store(TestStore);
     expect(store.getBlamos()).toEqual('blamos');
   });
 });

@@ -1,5 +1,5 @@
 import {Controller} from '../../src';
-export class TestController {
+export const TestComponentController = Controller(class {
   constructor() {
     this.state = {
       blamos: 'blamos',
@@ -68,6 +68,9 @@ export class TestController {
   changeMultipleProps() {
     this.state.blamos = 'changed';
     this.state.counter++;
+    this.state.counter++;
+    this.state.counter++;
+    this.state.dynamicObject.a = true;
     this.state.dog = 'changed';
   }
   async setAsync() {
@@ -98,6 +101,4 @@ export class TestController {
       return this.state.cat + ' ' + someValue;
     }
   }
-}
-
-export const {getInstance, create} = Controller(TestController);
+});

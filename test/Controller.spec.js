@@ -1,15 +1,14 @@
 import React from 'react';
 import {mount} from 'enzyme';
+import {autorun} from 'mobx';
 
-import {create, getInstance} from './TestComponents/TestComponentController';
+import {TestComponentController} from './TestComponents/TestComponentController';
 
 
 describe('Controller', () => {
-  let controller;
   let TestComponentClass;
   beforeEach(() => {
     jest.resetModules();
-    controller = create();
     TestComponentClass = require('./TestComponents/TestComponent').TestComponentClass;
   });
   it('sanity check', async () => {
@@ -65,6 +64,7 @@ describe('Controller', () => {
 
   it('should allow setting the state only with object', () => {
     const errorMessage = 'State should be initialize with plain object only';
+    const controller = TestComponentController.create();
     expect(() => controller.setState(true)).toThrowError(errorMessage);
     expect(() => controller.setState(['1', '2'])).toThrowError(errorMessage);
     expect(() => controller.setState(() => {})).toThrowError(errorMessage);
@@ -91,11 +91,15 @@ describe('Controller', () => {
   });
 
   it('should trigger only one render per setter', () => {
-    const renderCallback = jest.fn();
-    const component = mount(<TestComponentClass renderCallback={renderCallback} />);
-    expect(renderCallback.mock.calls.length).toEqual(1);
-    component.find('[data-hook="changeMultiPropsButton"]').simulate('click');
-    expect(renderCallback.mock.calls.length).toEqual(2);
+    const controller = TestComponentController.create();
+    const spy = jest.fn();
+    autorun(() => {
+      spy(controller.getCounter());
+    });
+    expect(spy.mock.calls.length).toEqual(1);
+    controller.changeMultipleProps();
+    expect(spy.mock.calls.length).toEqual(2);
+    expect(controller.getCounter()).toEqual(3);
   });
 
   it('should trigger render only if a relevant prop changed', async () => {
@@ -115,6 +119,7 @@ describe('Controller', () => {
 
   it('getters should return immutableProxy', () => {
     console.warn = jest.fn();
+    const controller = TestComponentController.create();
     const test = controller.getObj();
     expect(test).toEqual({wow: 'wow'});
     test.wow = 'changed';
@@ -145,36 +150,36 @@ describe('Controller', () => {
 
   describe('createController', () => {
     it('it should allow getting clean controller instance by key', () => {
-      const testController = create('testKey');
+      const testController = TestComponentController.create('testKey');
       testController.setBlamos();
       expect(testController.getBlamos()).toEqual('changed');
-      const testController2 = create('testKey');
+      const testController2 = TestComponentController.create('testKey');
       expect(testController2.getBlamos()).toEqual('blamos');
     });
 
     it('it should allow getting clean global controller', () => {
-      const testController = create();
+      const testController = TestComponentController.create();
       testController.setBlamos();
       expect(testController.getBlamos()).toEqual('changed');
-      const testController2 = create();
+      const testController2 = TestComponentController.create();
       expect(testController2.getBlamos()).toEqual('blamos');
     });
   });
 
   describe('getInstance', () => {
     it('it should allow getting existing global controller', () => {
-      const testController = create();
+      const testController = TestComponentController.create();
       testController.setBlamos();
       expect(testController.getBlamos()).toEqual('changed');
-      const testController2 = getInstance();
+      const testController2 = TestComponentController.getInstance();
       expect(testController2.getBlamos()).toEqual('changed');
     });
 
     it('it should allow getting existing global controller by key', () => {
-      const testController = create('testKey');
+      const testController = TestComponentController.create('testKey');
       testController.setBlamos();
       expect(testController.getBlamos()).toEqual('changed');
-      const testController2 = getInstance('testKey');
+      const testController2 = TestComponentController.getInstance('testKey');
       expect(testController2.getBlamos()).toEqual('changed');
     });
   });

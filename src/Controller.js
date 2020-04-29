@@ -1,17 +1,19 @@
-import {observable, onBecomeUnobserved} from 'mobx';
+import {observable, onBecomeUnobserved, transaction} from 'mobx';
 import {isPlainObject} from 'lodash';
 import {immutableProxy} from './immutableProxy';
 import {computedFn} from 'mobx-utils';
+
+const GLOBAL_CONTROLLER = 'globalController';
 export function Controller(ControllerClass) {
   const controllers = {};
   return {
-    getInstance(key = 'globalController') {
+    getInstance(key = GLOBAL_CONTROLLER) {
       if (!controllers[key]) {
         controllers[key] = createControllerInstance(ControllerClass);
       }
       return controllers[key];
     },
-    create(key = 'globalController') {
+    create(key = GLOBAL_CONTROLLER) {
       controllers[key] = createControllerInstance(ControllerClass, () => delete controllers[key]);
       return controllers[key];
     }
@@ -21,9 +23,10 @@ export function Controller(ControllerClass) {
 function createControllerInstance(ControllerClass, disposer) {
   const instance = new ControllerClass();
   forceMethodToReturnImmutableProxy(instance);
-  wrapMethodsWithComputed(instance);
+  wrapMethodsWithinComputed(instance);
+  wrapMethodsWithinTransaction(instance);
   const stateContainer = observable({state: instance.state});
-  onBecomeUnobserved(stateContainer, 'state',() => {
+  onBecomeUnobserved(stateContainer, 'state', () => {
     disposer();
   });
   Object.defineProperty(instance, 'state', {
@@ -41,16 +44,29 @@ function createControllerInstance(ControllerClass, disposer) {
   return instance;
 }
 
-function wrapMethodsWithComputed(instance) {
+function wrapMethodsWithinComputed(instance) {
   const methodNames = getOwnMethodNames(instance);
   methodNames.forEach(name => {
-    // instance[name] = computedFn(instance[name]);
     const originalFunction = instance[name];
     instance[name] = (...args) => {
       const result = originalFunction(...args);
-      if(result && !result.then) {
+      if (result && !result.then) {
         instance[name] = computedFn(originalFunction);
       }
+      return result;
+    };
+  });
+}
+
+function wrapMethodsWithinTransaction(instance) {
+  const methodNames = getOwnMethodNames(instance);
+  methodNames.forEach(name => {
+    const originalFunction = instance[name];
+    instance[name] = (...args) => {
+      let result;
+      transaction(() => {
+        result = originalFunction(...args);
+      });
       return result;
     };
   });
