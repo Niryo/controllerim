@@ -1,12 +1,13 @@
-import { Controller } from 'controllerim';
+import {Controller} from 'controllerim';
 import {appStore} from '../App/AppStore';
-import { fetchRandomJoke } from '../chuckNorrisService';
+import {fetchRandomJoke} from '../chuckNorrisService';
 
-class NotesListController {
+export const NotesListController = Controller(class {
   constructor() {
+    const firstItem = {title: 'firstItem', text: '', id: 0};
     this.state = {
-      listItems: [{ title: 'firstItem', text: 'this is your first todo!', id: 0 }],
-      selectedItem: { title: '', text: '' },
+      listItems: [firstItem],
+      selectedItem: firstItem,
       inputValue: ''
     };
   }
@@ -14,7 +15,7 @@ class NotesListController {
     return this.state.selectedItem;
   }
   setSelectedItem(item) {
-    return this.state.selectedItem = item;
+    this.state.selectedItem = item;
   }
 
   getInputValue() {
@@ -28,7 +29,7 @@ class NotesListController {
   }
 
   addNote() {
-    this.state.listItems.push({ title: this.state.inputValue, text: '', id: this.state.listItems.length });
+    this.state.listItems.push({title: this.state.inputValue, text: '', id: this.state.listItems.length});
     this.state.inputValue = '';
     // update the total notes counter in the app's controller:
     appStore.increaseCounter();
@@ -38,10 +39,18 @@ class NotesListController {
     this.state.selectedItem.text = value;
   }
 
+  copyNote(text) {
+    this.state.selectedItem.text = text;
+  }
+
   async addRandomJoke() {
     const joke = await fetchRandomJoke();
     this.state.selectedItem.text = joke;
   }
-}
 
-export default Controller(NotesListController);
+  copyNoteToOther(currentInstanceId) {
+    const otherInstanceId = currentInstanceId === 'first' ? 'second' : 'first';
+    const otherInstanceController = NotesListController.getInstance(otherInstanceId);
+    otherInstanceController.copyNote(this.state.selectedItem.text);
+  }
+});

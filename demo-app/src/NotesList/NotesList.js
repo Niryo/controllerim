@@ -1,5 +1,5 @@
 import * as React from 'react';
-import NotesListController from './NotesListController';
+import {NotesListController} from './NotesListController';
 import { observer } from 'controllerim';
 import {appStore} from '../App/AppStore';
 import './NotesList.css';
@@ -8,9 +8,9 @@ export const NotesList = observer(class extends React.Component {
   constructor(props) {
     super(props);
     // get own controller:
-    this.controller = NotesListController.createController();
+    this.controller = NotesListController.create(this.props.id);
   }
-
+  
   renderListItems() {
     return this.controller.getListItems().map((item) => {
       return (
@@ -58,6 +58,7 @@ export const NotesList = observer(class extends React.Component {
               placeholder={`Hello ${appStore.getUserName()}, Whats on your mind?`}
             />
             <button onClick={() => this.controller.addRandomJoke()}>Add chuck norris joke</button>
+            <button onClick={() => this.controller.copyNoteToOther(this.props.id)}>Copy to other note list instance</button>
           </div>
         </div>
       </div>

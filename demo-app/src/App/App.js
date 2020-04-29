@@ -18,10 +18,10 @@ export const App = observer(class extends Component {
           onChange={(e) => appStore.setUserName(e.target.value)} />
         <div className="notesContainer">
           <div className="leftNote">
-            <NotesList theme={'theme1'} />
+            <NotesList theme={'theme1'} id="first"/>
           </div>
           <div>
-            <NotesList theme={'theme2'} />
+           <NotesList theme={'theme2'} id="second"/>
           </div>
         </div>
       </div>
