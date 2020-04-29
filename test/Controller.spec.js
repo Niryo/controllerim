@@ -2,13 +2,13 @@ import React from 'react';
 import {mount} from 'enzyme';
 import {autorun} from 'mobx';
 
-import {TestComponentController} from './TestComponents/TestComponentController';
-
 
 describe('Controller', () => {
   let TestComponentClass;
+  let TestComponentController;
   beforeEach(() => {
     jest.resetModules();
+    TestComponentController = require('./TestComponents/TestComponentController').TestComponentController;
     TestComponentClass = require('./TestComponents/TestComponent').TestComponentClass;
   });
   it('sanity check', async () => {
@@ -73,6 +73,17 @@ describe('Controller', () => {
     expect(() => controller.setState({hello: true})).not.toThrowError(errorMessage);
   });
 
+  it('getters should return immutableProxy', () => {
+    console.warn = jest.fn();
+    const controller = TestComponentController.create();
+    const test = controller.getObj();
+    expect(test).toEqual({wow: 'wow'});
+    test.wow = 'changed';
+    expect(test).toEqual({wow: 'wow'});
+    expect(console.warn).toHaveBeenCalledWith(`Warning: Cannot set prop of immutable object. property \"wow\" will not be set with "changed"`);
+  });
+
+
   it('should allow getter with args', async () => {
     const component = mount(<TestComponentClass />);
     expect(component.find('[data-hook="getterWithArgsPreview"]').text()).toEqual('I am a dog blamos');
@@ -117,16 +128,6 @@ describe('Controller', () => {
     expect(component.find('[data-hook="blamos"]').text()).toEqual('this is a given arg');
   });
 
-  it('getters should return immutableProxy', () => {
-    console.warn = jest.fn();
-    const controller = TestComponentController.create();
-    const test = controller.getObj();
-    expect(test).toEqual({wow: 'wow'});
-    test.wow = 'changed';
-    expect(test).toEqual({wow: 'wow'});
-    expect(console.warn).toHaveBeenCalledWith(`Warning: Cannot set prop of immutable object. property \"wow\" will not be set with "changed"`);
-  });
-
   it('should dispose unobserved controllers', () => {
     const {InnerComponentController} = require('./TestComponents/InnerComponent');
     const component = mount(<TestComponentClass />);
@@ -153,18 +154,39 @@ describe('Controller', () => {
       const testController = TestComponentController.create('testKey');
       testController.setBlamos();
       expect(testController.getBlamos()).toEqual('changed');
+      //we trigger observe and dispose in order to remove the current instance:
+      simulateBecomingUnObserved(testController);
       const testController2 = TestComponentController.create('testKey');
       expect(testController2.getBlamos()).toEqual('blamos');
+    });
+
+    it('it should throw error when trying to create a controller when there is already an observed controller with the same key', () => {
+      const testController = TestComponentController.create('testKey');
+      const dispose = autorun(() => {
+        testController.getCounter();
+      });
+
+      expect(() => {TestComponentController.create('differentKey');}).not.toThrowError();
+      expect(() => {TestComponentController.create('testKey');}).toThrowError('[Controllerim] Cannot create new controller when there is already an active controller instance with the same id: testKey');
+      //stop observing the controller:
+      dispose();
+      expect(() => {TestComponentController.create('testKey');}).not.toThrowError();
     });
 
     it('it should allow getting clean global controller', () => {
       const testController = TestComponentController.create();
       testController.setBlamos();
       expect(testController.getBlamos()).toEqual('changed');
+      //we trigger observe and dispose in order to remove the current instance:
+      simulateBecomingUnObserved(testController);
       const testController2 = TestComponentController.create();
       expect(testController2.getBlamos()).toEqual('blamos');
     });
   });
+
+  // it('should throw warning if suspecting that controller was initialized outside of a reactive context', () => {
+
+  // });
 
   describe('getInstance', () => {
     it('it should allow getting existing global controller', () => {
@@ -213,3 +235,11 @@ describe('Controller', () => {
     expect(value3).not.toEqual(value5);
   });
 });
+
+function simulateBecomingUnObserved(controller) {
+  //we trigger observe and dispose in order to remove the current instance:
+  const dispose = autorun(() => {
+    controller.getCounter();
+  });
+  dispose();
+}

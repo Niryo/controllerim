@@ -1,4 +1,4 @@
-import {observable, onBecomeUnobserved, transaction} from 'mobx';
+import {observable, onBecomeUnobserved, transaction, _isComputingDerivation} from 'mobx';
 import {isPlainObject} from 'lodash';
 import {immutableProxy} from './immutableProxy';
 import {computedFn} from 'mobx-utils';
@@ -14,6 +14,9 @@ export function Controller(ControllerClass) {
       return controllers[key];
     },
     create(key = GLOBAL_CONTROLLER) {
+      if(controllers[key]) {
+        throw new Error(`[Controllerim] Cannot create new controller when there is already an active controller instance with the same id: ${key}`);
+      }
       controllers[key] = createControllerInstance(ControllerClass, () => delete controllers[key]);
       return controllers[key];
     }
