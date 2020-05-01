@@ -15,7 +15,7 @@ export function Controller(ControllerClass) {
     },
     create(key = DEFAULT_CONTROLLER_KEY) {
       if(controllers[key]) {
-        throw new Error(`[Controllerim] Cannot create new controller when there is already an active controller instance with the same id: ${key}`);
+        console.error(`[Controllerim] Cannot create new controller when there is already an active controller instance with the same id: ${key}`);
       }
       controllers[key] = createObservableInstance(ControllerClass, () => delete controllers[key]);
       return controllers[key];

@@ -161,17 +161,21 @@ describe('Controller', () => {
       expect(testController2.getBlamos()).toEqual('blamos');
     });
 
-    it('it should throw error when trying to create a controller when there is already an observed controller with the same key', () => {
+    it('it should log error when trying to create a controller when there is already an observed controller with the same key', () => {
       const testController = TestComponentController.create('testKey');
       const dispose = autorun(() => {
         testController.getCounter();
       });
-
-      expect(() => {TestComponentController.create('differentKey');}).not.toThrowError();
-      expect(() => {TestComponentController.create('testKey');}).toThrowError('[Controllerim] Cannot create new controller when there is already an active controller instance with the same id: testKey');
+      console.error = jest.fn();
+      TestComponentController.create('differentKey');
+      expect(console.error).not.toHaveBeenCalled();
+      TestComponentController.create('testKey');
+      expect(console.error).toHaveBeenCalledWith('[Controllerim] Cannot create new controller when there is already an active controller instance with the same id: testKey');
       //stop observing the controller:
       dispose();
-      expect(() => {TestComponentController.create('testKey');}).not.toThrowError();
+      console.error.mockClear();
+      TestComponentController.create('testKey');
+      expect(console.error).not.toHaveBeenCalled();
     });
 
     it('it should allow getting clean global controller', () => {
