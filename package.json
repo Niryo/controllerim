@@ -7,6 +7,7 @@
   "scripts": {
     "test": "jest",
     "lint": "eslint src --fix ",
+    "deploy": "gh-pages -d demo-app/build",
     "minorUpdate": "npm run build && npm version minor && npm publish"
   },
   "files": [
@@ -38,6 +39,7 @@
     "enzyme-adapter-react-16": "^1.1.1",
     "eslint": "^4.19.1",
     "eslint-plugin-react": "^7.8.2",
+    "gh-pages": "^2.2.0",
     "jest": "^24.9.0",
     "react": "^16.4.0",
     "react-dom": "^16.4.0"
