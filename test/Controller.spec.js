@@ -178,6 +178,13 @@ describe('Controller', () => {
       expect(console.error).not.toHaveBeenCalled();
     });
 
+    // it('should not log error if controller never became observed', () => {
+    //   console.error = jest.fn();
+    //   TestComponentController.create('testKey');
+    //   TestComponentController.create('testKey');
+    //   expect(console.error).not.toHaveBeenCalled();
+    // });
+
     it('it should allow getting clean global controller', () => {
       const testController = TestComponentController.create();
       testController.setBlamos();
