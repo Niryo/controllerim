@@ -1,7 +1,6 @@
-import {Controller} from './Controller';
+import {createObservableInstance} from './Controller';
 
-export function Store(controller) {
-  const {create} = Controller(controller);
-  const singletonInstance = create();
+export function Store(StoreClass) {
+  const singletonInstance = createObservableInstance(StoreClass);
   return singletonInstance;
 }

@@ -1,37 +1,46 @@
-import {observable, onBecomeUnobserved, transaction, _isComputingDerivation} from 'mobx';
+import {observable, onBecomeUnobserved, transaction, onBecomeObserved} from 'mobx';
 import {isPlainObject} from 'lodash';
 import {immutableProxy} from './immutableProxy';
 import {computedFn} from 'mobx-utils';
 
-const GLOBAL_CONTROLLER = 'globalController';
+const DEFAULT_CONTROLLER_KEY = 'DEFAULT_CONTROLLER_KEY';
 export function Controller(ControllerClass) {
   const controllers = {};
   return {
-    getInstance(key = GLOBAL_CONTROLLER) {
+    getInstance(key = DEFAULT_CONTROLLER_KEY) {
       if (!controllers[key]) {
-        controllers[key] = createControllerInstance(ControllerClass);
+        controllers[key] = createObservableInstance(ControllerClass, () => delete controllers[key]);
       }
       return controllers[key];
     },
-    create(key = GLOBAL_CONTROLLER) {
+    create(key = DEFAULT_CONTROLLER_KEY) {
       if(controllers[key]) {
         throw new Error(`[Controllerim] Cannot create new controller when there is already an active controller instance with the same id: ${key}`);
       }
-      controllers[key] = createControllerInstance(ControllerClass, () => delete controllers[key]);
+      controllers[key] = createObservableInstance(ControllerClass, () => delete controllers[key]);
       return controllers[key];
     }
   };
 }
 
-function createControllerInstance(ControllerClass, disposer) {
+export function createObservableInstance(ControllerClass, controllerDisposer) {
   const instance = new ControllerClass();
   forceMethodToReturnImmutableProxy(instance);
   wrapMethodsWithinComputed(instance);
   wrapMethodsWithinTransaction(instance);
   const stateContainer = observable({state: instance.state});
-  onBecomeUnobserved(stateContainer, 'state', () => {
-    disposer();
-  });
+  const isController = controllerDisposer !== undefined;
+  if(isController) {
+    const timeOutIdForBecomingObserved = setTimeout(() => console.warn('Controllerim warning: you have a controller that had not become observed for a long time after initialization. Make sure that you are initializing controllers only inside React components. Only Stores should be initialized outside React components'), 3000);
+    onBecomeObserved(stateContainer, 'state', () => {
+      clearTimeout(timeOutIdForBecomingObserved);
+    });
+
+    onBecomeUnobserved(stateContainer, 'state', () => {
+      controllerDisposer();
+    });
+  }
+
   Object.defineProperty(instance, 'state', {
     set: function (value) {
       if (!isPlainObject(value)) {

@@ -7,6 +7,7 @@ describe('Controller', () => {
   let TestComponentClass;
   let TestComponentController;
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.resetModules();
     TestComponentController = require('./TestComponents/TestComponentController').TestComponentController;
     TestComponentClass = require('./TestComponents/TestComponent').TestComponentClass;
@@ -128,28 +129,28 @@ describe('Controller', () => {
     expect(component.find('[data-hook="blamos"]').text()).toEqual('this is a given arg');
   });
 
-  it('should dispose unobserved controllers', () => {
-    const {InnerComponentController} = require('./TestComponents/InnerComponent');
-    const component = mount(<TestComponentClass />);
-    //first call to getInstance should return fresh instance:
-    const controller1 = InnerComponentController.getInstance();
-    expect(controller1.getBla()).toEqual('bla');
-    component.find('[data-hook="setInnerComponentBla"]').simulate('click');
-    //second call should return same instance, with changed value:
-    const controller2 = InnerComponentController.getInstance();
-    expect(controller2.getBla()).toEqual('changed');
-    //remove the inner component and expect instance to be dispose
-    component.find('[data-hook="toggleFlag"]').simulate('click');
-    const controllerAfterDispose = InnerComponentController.getInstance();
-    expect(controllerAfterDispose.getBla()).toEqual('bla');
-  });
-
   it('should work correctly with arrow function as getter', () => {
     const component = mount(<TestComponentClass />);
     expect(component.find('[data-hook="boundBlamos"]').text()).toEqual('blamos');
   });
 
   describe('createController', () => {
+    it('should dispose unobserved controllers', () => {
+      const {InnerComponentController} = require('./TestComponents/InnerComponent');
+      const component = mount(<TestComponentClass />);
+      //first call to getInstance should return fresh instance:
+      const controller1 = InnerComponentController.getInstance();
+      expect(controller1.getBla()).toEqual('bla');
+      component.find('[data-hook="setInnerComponentBla"]').simulate('click');
+      //second call should return same instance, with changed value:
+      const controller2 = InnerComponentController.getInstance();
+      expect(controller2.getBla()).toEqual('changed');
+      //remove the inner component and expect instance to be disposed
+      component.find('[data-hook="toggleFlag"]').simulate('click');
+      const controllerAfterDispose = InnerComponentController.getInstance();
+      expect(controllerAfterDispose.getBla()).toEqual('bla');
+    });
+
     it('it should allow getting clean controller instance by key', () => {
       const testController = TestComponentController.create('testKey');
       testController.setBlamos();
@@ -184,11 +185,51 @@ describe('Controller', () => {
     });
   });
 
-  // it('should throw warning if suspecting that controller was initialized outside of a reactive context', () => {
+  it('should log warning if suspecting that a controller was initialized outside of a reactive context', () => {
+    //create:
+    console.warn = jest.fn();
+    TestComponentController.create('1');
+    expect(console.warn).not.toHaveBeenCalled();
+    jest.runOnlyPendingTimers();
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('Controllerim warning: you have a controller that had not become observed'));
 
-  // });
+    console.warn.mockClear();
+    const controller = TestComponentController.create('2');
+    simulateObserved(controller);
+    jest.runOnlyPendingTimers();
+    expect(console.warn).not.toHaveBeenCalled();
+
+    //getInstance:
+    console.warn.mockClear();
+    TestComponentController.getInstance('3');
+    expect(console.warn).not.toHaveBeenCalled();
+    jest.runOnlyPendingTimers();
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('Controllerim warning: you have a controller that had not become observed'));
+
+    console.warn.mockClear();
+    const controller2 = TestComponentController.getInstance('4');
+    simulateObserved(controller2);
+    jest.runOnlyPendingTimers();
+    expect(console.warn).not.toHaveBeenCalled();
+  });
 
   describe('getInstance', () => {
+    it('should dispose unobserved controllers', () => {
+      //first call to getInstance should return fresh instance:
+      const instance1 = TestComponentController.getInstance();
+      expect(instance1.getBlamos()).toEqual('blamos');
+
+      //change value and verify controller was not dispose yet:
+      instance1.setBlamos();
+      const instance2 = TestComponentController.getInstance();
+      expect(instance2.getBlamos()).toEqual('changed');
+
+      //simulate unobserved and expect controller to be disposed:
+      simulateBecomingUnObserved(instance2);
+      const instance3 = TestComponentController.getInstance();
+      expect(instance3.getBlamos()).toEqual('blamos');
+    });
+
     it('it should allow getting existing global controller', () => {
       const testController = TestComponentController.create();
       testController.setBlamos();
@@ -242,4 +283,9 @@ function simulateBecomingUnObserved(controller) {
     controller.getCounter();
   });
   dispose();
+}
+function simulateObserved(controller) {
+  autorun(() => {
+    controller.getCounter();
+  });
 }
