@@ -8,6 +8,8 @@ A simple, clean and well structured state management library for react
 
 `npm install controllerim --save`
 
+## Migrating from Controllerim v2 to v3
+The migration process should be very easy. Follow the docs and the example project for understanding the new API.
 
 ## Basic usage example
 
