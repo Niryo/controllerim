@@ -178,12 +178,19 @@ describe('Controller', () => {
       expect(console.error).not.toHaveBeenCalled();
     });
 
-    // it('should not log error if controller never became observed', () => {
-    //   console.error = jest.fn();
-    //   TestComponentController.create('testKey');
-    //   TestComponentController.create('testKey');
-    //   expect(console.error).not.toHaveBeenCalled();
-    // });
+    it('should not log error if controller never became observed', () => {
+      console.error = jest.fn();
+      TestComponentController.create('testKey');
+      TestComponentController.create('testKey');
+      expect(console.error).not.toHaveBeenCalled();
+    });
+
+    it('should clean return value form mobx administration', () => {
+      const test = TestComponentController.create('testKey');
+      const obj = test.getObj();
+      console.log(Object.getOwnPropertySymbols(obj)); //mobx attaches a $mobx prop that we expected to be cleaned
+      expect(Object.getOwnPropertySymbols(obj).length).toEqual(0);
+    });
 
     it('it should allow getting clean global controller', () => {
       const testController = TestComponentController.create();
