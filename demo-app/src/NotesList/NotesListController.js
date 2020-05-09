@@ -1,8 +1,8 @@
-import {Controller} from 'controllerim';
+import {controller} from 'controllerim';
 import {appStore} from '../App/AppStore';
 import {fetchRandomJoke} from '../chuckNorrisService';
 
-export const NotesListController = Controller(class {
+export const NotesListController = controller(class {
   constructor() {
     const firstItem = {title: 'firstItem', text: '', id: 0};
     this.state = {

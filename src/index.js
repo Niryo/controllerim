@@ -1,3 +1,4 @@
 export {observer} from 'mobx-react';
-export { Controller } from './Controller';
-export {Store} from './Store';
+export { controller } from './controller';
+export {store} from './store';
+export {useController} from './useController';

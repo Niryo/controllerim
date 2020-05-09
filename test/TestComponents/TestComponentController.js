@@ -1,5 +1,5 @@
-import {Controller} from '../../src';
-export const TestComponentController = Controller(class {
+import {controller} from '../../src';
+export const TestComponentController = controller(class {
   constructor() {
     this.state = {
       blamos: 'blamos',

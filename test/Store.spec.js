@@ -1,4 +1,4 @@
-import {Store} from '../src';
+import {store} from '../src';
 
 class TestStore {
   constructor() {
@@ -9,19 +9,19 @@ class TestStore {
   }
 }
 
-describe('Store', () => {
+describe('store', () => {
   beforeEach(() => {
     jest.useFakeTimers();
   });
 
   it('should return a global controller instance', () => {
-    const store = Store(TestStore);
+    const store = store(TestStore);
     expect(store.getBlamos()).toEqual('blamos');
   });
 
   it('should allow initialization without immediately becoming observed', () => {
     console.warn = jest.fn();
-    Store(TestStore);
+    store(TestStore);
     jest.runOnlyPendingTimers();
     expect(console.warn).not.toHaveBeenCalledWith(expect.stringContaining('Controllerim warning: you have a controller that had not become observed'));
   });

@@ -1,4 +1,4 @@
-import {Controller} from './Controller';
+import {controller} from './controller';
 
 
 class TestController {
@@ -23,4 +23,4 @@ class TestController {
     this.state = {blamos: 'cleaned!'};
   }
 }
-export const {getController} = Controller(TestController);
+export const {getController} = controller(TestController);

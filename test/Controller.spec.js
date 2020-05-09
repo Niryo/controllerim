@@ -3,7 +3,7 @@ import {mount} from 'enzyme';
 import {autorun} from 'mobx';
 
 
-describe('Controller', () => {
+describe('controller', () => {
   let TestComponentClass;
   let TestComponentController;
   beforeEach(() => {

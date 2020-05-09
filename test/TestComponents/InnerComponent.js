@@ -1,7 +1,7 @@
 import React from 'react';
-import {observer, Controller} from '../../src';
+import {observer, controller} from '../../src';
 
-export const InnerComponentController = Controller(class {
+export const InnerComponentController = controller(class {
   constructor() {
     this.state = {bla: 'bla'};
   }

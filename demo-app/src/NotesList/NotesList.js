@@ -3,7 +3,7 @@ import {NotesListController} from './NotesListController';
 import { observer } from 'controllerim';
 import {appStore} from '../App/AppStore';
 import './NotesList.css';
-
+import {NotificationListItem} from './NotificationListItem';
 export const NotesList = observer(class extends React.Component {
   constructor(props) {
     super(props);
@@ -12,18 +12,7 @@ export const NotesList = observer(class extends React.Component {
   }
   
   renderListItems() {
-    return this.controller.getListItems().map((item) => {
-      return (
-        <li
-          className={`listItem ${this.controller.getSelectedItem().id === item.id ? 'selected' : ''}`}
-          onClick={() => this.controller.setSelectedItem(item)}
-          key={item.id}
-          data-hook="listItem"
-        >
-          {item.title}
-        </li>
-      )
-    });
+    return this.controller.getListItems().map((item) => <NotificationListItem item={item} controllerId={this.props.id}/>);
   }
 
   handleOnKeyDown = (e) => {

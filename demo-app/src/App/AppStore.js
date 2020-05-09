@@ -1,4 +1,4 @@
-import { Store } from 'controllerim';
+import { store } from 'controllerim';
 class AppStore {
   constructor() {
     this.state = {
@@ -23,4 +23,4 @@ class AppStore {
   }
 }
 
-export const appStore = Store(AppStore);
+export const appStore = store(AppStore);

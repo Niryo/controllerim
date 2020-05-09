@@ -4,7 +4,7 @@ import {immutableProxy} from './immutableProxy';
 import {computedFn} from 'mobx-utils';
 
 const DEFAULT_CONTROLLER_KEY = 'DEFAULT_CONTROLLER_KEY';
-export function Controller(ControllerClass) {
+export function controller(ControllerClass) {
   const controllers = {};
   const isControllerBeingObserved = {}
   const getInstanceForKey = (key) => {
