@@ -111,7 +111,7 @@ Controllerim utilizes [Mobx](https://github.com/mobxjs/mobx) behind the scenes. 
 * **Object: { create(), getInstance() }**: an object with two factory methods for getting a new controller instance 
 
 A controller is a plain Javascript class that holds a  **state** and methods for manipulating the state.
-All the methods of the controller are smartly memoized and computed, thus if you do some heavy calculation based on some props from the state, it will be re-calculated only if the relevant state or args have changed.
+All the methods of the controller are smartly memoized and computed, thus if you do some heavy calculation, it will be re-calculated when really needed.
 
 The observers (React Components that you wrapped within `observer`) will react to any change in the state, even changes of deep nested properties.
 
@@ -141,6 +141,8 @@ class _AppController {
     this.state.totalNotesCount++;
   }
 }
+
+export const AppController = Controller(_AppController);
 ```
 
 Your React component will create an instance of the Controller like this: 
@@ -155,8 +157,10 @@ class App extends React.Component {
   }
 
   render(){
-    <div>{this.controller.getTotalNotesCount()}</div>
-    <div onPress={() => this.controller.increaseCounter()}>click me</div>
+    <div>
+      <div>{this.controller.getTotalNotesCount()}</div>
+      <div onPress={() => this.controller.increaseCounter()}>click me</div>
+    </div>
   }
 }
 ```
@@ -176,7 +180,7 @@ export const SomeSmartComponent = observer(class extends React.Component {
 ```
 
 ### `Store(storeClass)`
-A store is just a global singleton controller that is not conceptually bound to the lifecycle of any specific component. 
+A store is just a global singleton controller that is not conceptually bound to any specific component. 
 
 inside `AppStore.js`:
 ```javascript
@@ -204,7 +208,7 @@ import {AppStore} from './AppStore';
 
 class SomeComponent extends React.Component {
   render(){
-    <div>{AppStore.getUserName()}</div>
+    <div>{AppStore.getUserName()}</div> // <== The component will re-render on any change in getUserName
   }
 }
 
